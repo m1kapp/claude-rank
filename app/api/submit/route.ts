@@ -13,10 +13,18 @@ export const POST = handler(async (req) => {
 
   const t = report.totals || {};
   let chats = 0, commits = 0, active = 0;
-  for (const m of Object.values<any>(report.months || {})) {
+  const months: Record<string, any> = {};
+  for (const [mk, m] of Object.entries<any>(report.months || {})) {
     chats += m.chats || 0;
     commits += (m.git && m.git.commit) || 0;
     active += m.active_days || 0;
+    months[mk] = {
+      ratio: Number(m.ratio) || 0,
+      chats: m.chats || 0,
+      commits: (m.git && m.git.commit) || 0,
+      cost_krw: m.cost_krw || 0,
+      plan: m.plan_usd || Number(report.plan_usd_per_month) || 200,
+    };
   }
   const e: Entry = {
     id, nick,
@@ -24,6 +32,7 @@ export const POST = handler(async (req) => {
     ratio: Number(t.ratio) || 0,
     chats, commits, active_days: active,
     cost_krw: Number(t.cost_krw) || 0,
+    months,
     updated: new Date().toISOString(),
   };
   await upsert(e);

@@ -3,15 +3,17 @@
 import { promises as fs } from "fs";
 import path from "path";
 
+export type MonthStat = { ratio: number; chats: number; commits: number; cost_krw: number; plan: number };
 export type Entry = {
   id: string;            // 익명 고유 ID (리포트 JSON의 id)
   nick: string;          // 표시 닉네임
   plan: number;          // 월 구독 USD ($200/$100 등)
-  ratio: number;         // 본전 배율
+  ratio: number;         // 본전 배율(전체)
   chats: number;
   commits: number;
   active_days: number;
   cost_krw: number;
+  months: Record<string, MonthStat>;  // 월별 랭킹용
   updated: string;       // ISO
 };
 
