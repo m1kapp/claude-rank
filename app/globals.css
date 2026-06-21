@@ -1,0 +1,11 @@
+html, body { margin: 0; padding: 0; }
+body {
+  min-height: 100vh;
+  background: #e7e2d8;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+@media (min-width: 480px) {
+  body { align-items: center; padding: 24px 0; }
+}
