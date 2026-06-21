@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import { useParams } from "next/navigation";
-import { useFetch, Section, SectionHeader, SegmentedControl, StatChip, Badge, Skeleton, EmptyState, Divider } from "@m1kapp/kit";
+import { useParams, useRouter } from "next/navigation";
+import { useFetch, Section, SectionHeader, SegmentedControl, StatChip, Badge, Skeleton, EmptyState, Divider, Button } from "@m1kapp/kit";
 import Shell from "../../Shell";
 
 const MODEL_COLORS: Record<string, string> = {
@@ -48,6 +48,7 @@ const series = (o: Record<string, number>, c?: string) => Object.entries(o || {}
 
 export default function UserPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const { data, loading } = useFetch<{ entry: any; report: any }>(`/api/report/${id}`);
   const months = data ? Object.keys(data.report.months).sort() : [];
   const [mo, setMo] = useState("");
@@ -68,6 +69,9 @@ export default function UserPage() {
   return (
     <Shell title={`${entry?.nick || "익명"} 의 리포트`}>
       <Section>
+        <div style={{ margin: "6px 0 12px" }}>
+          <Button variant="light" shape="pill" onClick={() => router.push("/")}>← 랭킹으로</Button>
+        </div>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
           <span style={{ fontSize: 30, fontWeight: 800, fontFamily: "Georgia,serif", color: "#5fa563" }}>{report.totals.ratio}×</span>
           <Badge>${entry?.plan || report.plan_usd_per_month}/월</Badge>
