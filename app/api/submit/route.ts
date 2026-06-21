@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { upsert, type Entry } from "../../../lib/store";
+import { upsert, saveReport, type Entry } from "../../../lib/store";
 
 // 리포트 JSON(usage-report 산출물) + 닉네임을 받아 저장(ID로 upsert).
 export async function POST(req: NextRequest) {
@@ -36,5 +36,6 @@ export async function POST(req: NextRequest) {
     updated: new Date().toISOString(),
   };
   await upsert(e);
+  await saveReport(id, report);   // 상세 페이지용 전체 리포트 저장
   return NextResponse.json({ ok: true, entry: e });
 }

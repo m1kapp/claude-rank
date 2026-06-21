@@ -41,7 +41,7 @@ export default async function Home() {
                 <tr key={e.id}>
                   <td className="rank">{i + 1}</td>
                   <td>
-                    <span className="nick">{e.nick}</span>
+                    <Link href={`/u/${e.id}`} className="nick">{e.nick}</Link>
                     <span className="plan">${e.plan}/월</span>
                   </td>
                   <td className="num ratio">{e.ratio}×</td>

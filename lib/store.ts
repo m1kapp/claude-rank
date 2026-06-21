@@ -63,3 +63,28 @@ export async function all(): Promise<Entry[]> {
     return Object.values(await readFile());
   }
 }
+
+// --- 전체 리포트 JSON 저장/조회 (상세 페이지용) ---
+const RKEY = "claude-rank:reports";
+const RFILE = path.join(process.cwd(), ".data", "reports.json");
+
+export async function saveReport(id: string, report: any) {
+  if (useUpstash) {
+    await upstash(["HSET", RKEY, id, JSON.stringify(report)]);
+  } else {
+    let db: Record<string, any> = {};
+    try { db = JSON.parse(await fs.readFile(RFILE, "utf8")); } catch {}
+    db[id] = report;
+    await fs.mkdir(path.dirname(RFILE), { recursive: true });
+    await fs.writeFile(RFILE, JSON.stringify(db));
+  }
+}
+
+export async function getReport(id: string): Promise<any | null> {
+  if (useUpstash) {
+    const v = await upstash(["HGET", RKEY, id]);
+    try { return v ? JSON.parse(v) : null; } catch { return null; }
+  } else {
+    try { return JSON.parse(await fs.readFile(RFILE, "utf8"))[id] ?? null; } catch { return null; }
+  }
+}

@@ -23,3 +23,4 @@ label{display:block;font-size:13px;font-weight:600;color:#5a534a;margin:14px 0 6
 .msg{margin-top:14px;font-weight:600}
 .msg.ok{color:#5fa563} .msg.err{color:#c15f3c}
 code{background:#f0ebe2;padding:1px 5px;border-radius:4px;font-size:12px}
+@media(max-width:680px){.detailgrid{grid-template-columns:1fr !important}}
