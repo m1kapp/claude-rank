@@ -37,14 +37,23 @@ export default function Submit() {
         <label>닉네임</label>
         <input value={nick} onChange={(e) => setNick(e.target.value)} placeholder="표시될 이름 (예: 민호)" maxLength={24} />
 
-        <label>리포트 JSON</label>
+        <label>리포트 파일 (권장)</label>
+        <input type="file" accept=".json,application/json" onChange={async (e) => {
+          const f = e.target.files?.[0];
+          if (!f) return;
+          const txt = await f.text();
+          setJson(txt);
+          setMsg({ t: `파일 불러옴: ${f.name}`, ok: true });
+        }} />
+
+        <label>또는 JSON 붙여넣기</label>
         <textarea value={json} onChange={(e) => setJson(e.target.value)}
           placeholder='~/claude-usage-report.json 내용을 통째로 붙여넣기' />
 
         <div className="note">
           1) Claude Code에서 <code>/usage-report</code> 실행 →
-          2) <code>~/claude-usage-report.json</code> 열어 전체 복사 →
-          3) 위에 붙여넣고 제출. 같은 기기는 ID로 자동 갱신됩니다(중복 안 쌓임).
+          2) <code>~/claude-usage-report.json</code> 파일 선택(또는 내용 붙여넣기) →
+          3) 닉네임 넣고 제출. 같은 기기는 ID로 자동 갱신됩니다(중복 안 쌓임).
         </div>
 
         <div style={{ marginTop: 16 }}>

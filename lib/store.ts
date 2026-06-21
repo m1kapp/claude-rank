@@ -15,8 +15,9 @@ export type Entry = {
   updated: string;       // ISO
 };
 
-const URL = process.env.UPSTASH_REDIS_REST_URL;
-const TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+// Vercel KV(Upstash) / Upstash 직접 — 두 네이밍 모두 지원
+const URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+const TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 const KEY = "claude-rank:entries";
 const useUpstash = !!(URL && TOKEN);
 
