@@ -6,7 +6,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  font-family: "Tossface", "Pretendard Variable", "Pretendard", sans-serif;
+  font-family: "Pretendard Variable", "Pretendard", system-ui, sans-serif;
 }
 @media (min-width: 480px) {
   :root { --shell-h: min(932px, calc(100dvh - 48px)); }
