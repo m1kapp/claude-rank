@@ -1,6 +1,3 @@
-@import url("https://cdn.jsdelivr.net/gh/toss/tossface/dist/tossface.css");
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
-
 html, body { margin: 0; padding: 0; }
 :root { --shell-h: 100dvh; }
 body {
@@ -11,7 +8,6 @@ body {
   align-items: flex-start;
   font-family: "Tossface", "Pretendard Variable", "Pretendard", sans-serif;
 }
-* { font-family: inherit; }
 @media (min-width: 480px) {
   :root { --shell-h: min(932px, calc(100dvh - 48px)); }
   body { align-items: center; padding: 24px 0; }

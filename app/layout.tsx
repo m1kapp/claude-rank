@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { FontLinks } from "@m1kapp/kit";
 import "./globals.css";
 import Providers from "./providers";
 
@@ -16,6 +17,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
+      <head>
+        <FontLinks />
+      </head>
       <body>
         <Providers>{children}</Providers>
       </body>
