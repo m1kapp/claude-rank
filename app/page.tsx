@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useFetch, Section, SegmentedControl, ListRow, EmptyState, Skeleton, Badge, PoweredByKit, CopyButton, Button } from "@m1kapp/kit";
 import { useRouter } from "next/navigation";
 import Shell from "./Shell";
+import { tierForKrw, emblemSrc } from "../lib/tier";
 
 type MonthStat = { ratio: number; chats: number; commits: number; cost_krw: number; plan: number };
 type Entry = { id: string; nick: string; plan: number; ratio: number; chats: number; commits: number; cost_krw: number; months?: Record<string, MonthStat> };
@@ -41,17 +42,23 @@ export default function Home() {
             <h1 className="display" style={{ fontWeight: 900, fontSize: 34, lineHeight: 1.05, letterSpacing: "-0.02em", margin: 0 }}>
               누가 본전을<br />제일 뽑나<span style={{ color: "var(--terra)" }}>?</span>
             </h1>
-            {top && (
-              <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12, margin: "16px 0 2px" }}>
-                <div>
-                  <div className="kicker" style={{ color: "var(--muted)", fontSize: 10, marginBottom: 2 }}>현재 선두</div>
-                  <div className="display" style={{ fontSize: 18, fontWeight: 700 }}>{top.e.nick}</div>
+            {top && (() => {
+              const { tier } = tierForKrw(top.cost_krw);
+              return (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, margin: "16px 0 2px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <img src={emblemSrc(tier.key)} alt={tier.ko} style={{ width: 46, height: 46, objectFit: "contain", filter: "drop-shadow(0 2px 5px rgba(0,0,0,.25))" }} />
+                    <div>
+                      <div className="kicker" style={{ color: "var(--muted)", fontSize: 10, marginBottom: 2 }}>현재 선두 · <span style={{ color: tier.color }}>{tier.ko}</span></div>
+                      <div className="display" style={{ fontSize: 18, fontWeight: 700 }}>{top.e.nick}</div>
+                    </div>
+                  </div>
+                  <div className="display tnum" style={{ fontSize: 52, fontWeight: 900, color: "var(--terra)", lineHeight: .82, letterSpacing: "-0.03em" }}>
+                    {top.ratio}<span style={{ fontSize: 26 }}>×</span>
+                  </div>
                 </div>
-                <div className="display tnum" style={{ fontSize: 52, fontWeight: 900, color: "var(--terra)", lineHeight: .82, letterSpacing: "-0.03em" }}>
-                  {top.ratio}<span style={{ fontSize: 26 }}>×</span>
-                </div>
-              </div>
-            )}
+              );
+            })()}
             <p style={{ fontSize: 12.5, color: "#7a7064", margin: "14px 0 12px", lineHeight: 1.6 }}>
               매달 구독료를 API 정가로 환산하면 몇 배를 뽑는지 겨루는 랭킹.
               Claude Code에서 <b className="display" style={{ color: "var(--terra-deep)" }}>/usage-rank</b> 한 줄이면 등록돼요.
@@ -91,18 +98,24 @@ export default function Home() {
           ) : rows.length === 0 ? (
             <EmptyState icon={<span style={{ fontSize: 34 }}>🏆</span>} message="아직 기록이 없어요. /usage-rank 로 1등 찜하세요!" />
           ) : (
-            rows.map((r, i) => (
-              <div key={r.e.id} className="rise" style={{ animationDelay: `${0.04 * i + 0.08}s` }}>
-                <ListRow
-                  accent="var(--terra)"
-                  lead={<span className="display tnum" style={{ fontSize: i < 3 ? 22 : 17, fontWeight: 900, color: i < 3 ? "var(--ink)" : "var(--muted)", minWidth: 28, display: "inline-block", textAlign: "center" }}>{i < 3 ? MEDAL[i] : i + 1}</span>}
-                  title={<span className="display" style={{ fontWeight: 700, fontSize: 16 }}>{r.e.nick} <Badge size="sm">${r.plan}/월</Badge></span>}
-                  sub={<span className="tnum">{won(r.cost_krw)} · 💬 {r.chats.toLocaleString()} · 🔀 {r.commits.toLocaleString()}</span>}
-                  trailing={<span className="display tnum" style={{ fontWeight: 900, fontSize: 21, color: "var(--sage)" }}>{r.ratio}<span style={{ fontSize: 13 }}>×</span></span>}
-                  onClick={() => router.push(`/u/${r.e.id}`)}
-                />
-              </div>
-            ))
+            rows.map((r, i) => {
+              const { tier } = tierForKrw(r.cost_krw);
+              return (
+                <div key={r.e.id} className="rise" style={{ animationDelay: `${0.04 * i + 0.08}s` }}>
+                  <ListRow
+                    accent={tier.color}
+                    lead={<span className="display tnum" style={{ fontSize: i < 3 ? 22 : 17, fontWeight: 900, color: i < 3 ? "var(--ink)" : "var(--muted)", minWidth: 28, display: "inline-block", textAlign: "center" }}>{i < 3 ? MEDAL[i] : i + 1}</span>}
+                    title={<span className="display" style={{ fontWeight: 700, fontSize: 16, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <img src={emblemSrc(tier.key)} alt={tier.ko} title={tier.ko} style={{ width: 26, height: 26, objectFit: "contain" }} />
+                      {r.e.nick} <Badge size="sm">${r.plan}/월</Badge>
+                    </span>}
+                    sub={<span className="tnum"><b className="display" style={{ color: tier.color }}>{tier.ko}</b> · {won(r.cost_krw)} · 💬 {r.chats.toLocaleString()} · 🔀 {r.commits.toLocaleString()}</span>}
+                    trailing={<span className="display tnum" style={{ fontWeight: 900, fontSize: 21, color: "var(--sage)" }}>{r.ratio}<span style={{ fontSize: 13 }}>×</span></span>}
+                    onClick={() => router.push(`/u/${r.e.id}`)}
+                  />
+                </div>
+              );
+            })
           )}
         </Section>
 

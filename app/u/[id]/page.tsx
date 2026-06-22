@@ -3,6 +3,14 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useFetch, Section, SectionHeader, SegmentedControl, StatChip, Badge, Skeleton, EmptyState, Divider, Button } from "@m1kapp/kit";
 import Shell from "../../Shell";
+import { TIERS, tierForUsd, emblemSrc } from "../../../lib/tier";
+
+function tfmt(n: number) {
+  if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + "B";
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
+  return n.toLocaleString();
+}
 
 const MODEL_COLORS: Record<string, string> = {
   "opus-4-8": "#d97757", "opus-4-6": "#c15f3c", "sonnet-4-6": "#6a9bcc",
@@ -46,6 +54,71 @@ function Bars({ data, color, avg, fmt, wk }: {
 const cap = (t: string) => <div style={{ fontSize: 11, color: "#9a9389", marginBottom: 13 }}>{t}</div>;
 const series = (o: Record<string, number>, c?: string) => Object.entries(o || {}).map(([k, v]) => ({ k, v: v as number, c }));
 
+// 가성비 티어 배너 (롤 엠블럼 + 10단 사다리)
+function TierBanner({ usd, krwPerUsd }: { usd: number; krwPerUsd: number }) {
+  const { tier, idx } = tierForUsd(usd);
+  const nxt = TIERS[idx + 1];
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 16, background: "linear-gradient(135deg,#322b22,#231f1a)", border: "1px solid #4a4030", borderRadius: 16, padding: "16px 18px", color: "#f4f1ea" }}>
+      <img src={emblemSrc(tier.key)} alt={tier.ko} style={{ width: 78, height: 78, objectFit: "contain", flex: "none", filter: "drop-shadow(0 4px 10px rgba(0,0,0,.4))" }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="kicker" style={{ color: "#9a9389", fontSize: 10 }}>이번 달 가성비 티어</div>
+        <div className="display" style={{ fontWeight: 900, fontSize: 26, lineHeight: 1.05, margin: "2px 0 4px", color: tier.color, display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+          {tier.key.toUpperCase()}<span style={{ fontSize: 14, color: "#cfc8bc", fontFamily: "var(--display)" }}>{tier.ko}</span>
+        </div>
+        <div style={{ display: "flex", gap: 3, marginBottom: 7 }}>
+          {TIERS.map((t, n) => {
+            const on = n === idx, done = n < idx;
+            const rng = n + 1 < TIERS.length ? `₩${won(Math.round(t.minUsd * krwPerUsd))}~${won(Math.round(TIERS[n + 1].minUsd * krwPerUsd))}` : `₩${won(Math.round(t.minUsd * krwPerUsd))}+`;
+            return <div key={t.key} title={`${t.ko} · ${rng}/월`} style={{ flex: 1, height: 10, borderRadius: 3, background: on || done ? t.color : "#3a352f", opacity: on || done ? 1 : 0.5, boxShadow: on ? `0 0 0 2px #231f1a,0 0 0 4px ${t.color}` : undefined }} />;
+          })}
+        </div>
+        <div style={{ fontSize: 12, color: "#b3aa9c" }}>
+          {nxt
+            ? <>다음 <b style={{ color: nxt.color }}>{nxt.ko}</b>까지 <b style={{ color: "#f4f1ea" }}>+₩{won(Math.round(Math.max(nxt.minUsd * krwPerUsd - usd * krwPerUsd, 0)))}</b> / 월</>
+            : <>🏆 <b style={{ color: "#f4f1ea" }}>최고 티어</b> — 더 위는 없습니다</>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 토큰 사용량 위젯 (입출력 / 캐시 분리 바)
+function TokenWidget({ tok }: { tok: any }) {
+  if (!tok || !tok.total) return null;
+  const duo = (title: string, a: number, al: string, ac: string, b: number, bl: string, bc: string) => {
+    const s = a + b || 1;
+    return (
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "baseline", fontSize: 12, fontWeight: 700, color: "#5a534a", marginBottom: 6 }}>
+          <span>{title}</span><span style={{ marginLeft: "auto", color: "#9a9389", fontWeight: 800 }} className="tnum">{tfmt(a + b)}</span>
+        </div>
+        <div style={{ display: "flex", height: 18, borderRadius: 9, overflow: "hidden", background: "#f0ebe2" }}>
+          <span style={{ width: `${(a / s) * 100}%`, background: ac }} /><span style={{ width: `${(b / s) * 100}%`, background: bc }} />
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, color: "#7a7268", marginTop: 6 }}>
+          <span><i style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: ac, marginRight: 5 }} />{al} <b className="display">{tfmt(a)}</b> · {Math.round((a / s) * 100)}%</span>
+          <span><i style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: bc, marginRight: 5 }} />{bl} <b className="display">{tfmt(b)}</b> · {Math.round((b / s) * 100)}%</span>
+        </div>
+      </div>
+    );
+  };
+  const lever = tok.input ? tok.cache_read / tok.input : 0;
+  return (
+    <>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", margin: "8px 0 14px" }}>
+        <div><div className="display tnum" style={{ fontSize: 28, fontWeight: 900 }}>{tfmt(tok.total)}</div><div style={{ fontSize: 12, color: "#9a9389" }}>총 토큰 (입력·출력·캐시 합)</div></div>
+        <div style={{ textAlign: "right" }}><div className="display tnum" style={{ fontSize: 24, fontWeight: 900, color: "var(--sage)" }}>{Math.round(lever).toLocaleString()}×</div><div style={{ fontSize: 11, color: "#9a9389" }}>캐시읽기 / 입력</div></div>
+      </div>
+      {duo("실제 입출력 (내가 쓴 양)", tok.input, "입력", "#6a9bcc", tok.output, "출력", "#d97757")}
+      {duo("캐시 (컨텍스트 재사용)", tok.cache_read, "읽기", "#5fa563", tok.cache_write, "쓰기", "#8b6db5")}
+      <div style={{ fontSize: 12, color: "#5a534a", background: "#faf7f0", borderRadius: 9, padding: "11px 13px" }}>
+        실제로 주고받은 건 <b>입력 {tfmt(tok.input)} · 출력 {tfmt(tok.output)}</b>뿐. 캐시읽기({tfmt(tok.cache_read)})는 매 턴 컨텍스트를 재활용한 양이라 입력의 <b>{Math.round(lever).toLocaleString()}배</b>로 크게 잡힙니다(캐시 할인가라 저렴·정상).
+      </div>
+    </>
+  );
+}
+
 export default function UserPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -84,6 +157,11 @@ export default function UserPage() {
               options={months.map((mm) => ({ value: mm, label: `${mm.split("-")[0].slice(2)}.${+mm.split("-")[1]}월` }))} />
           </div>
         )}
+        {typeof m.cost_usd === "number" && (
+          <div style={{ marginTop: 14 }}>
+            <TierBanner usd={m.cost_usd} krwPerUsd={report.currency_krw_per_usd} />
+          </div>
+        )}
       </Section>
 
       <Section>
@@ -104,6 +182,14 @@ export default function UserPage() {
           ))}
         </div>
       </Section>
+
+      {m.tokens && (<>
+        <Divider />
+        <Section>
+          <SectionHeader>🔢 토큰 사용량</SectionHeader>
+          <TokenWidget tok={m.tokens} />
+        </Section>
+      </>)}
 
       <Divider />
 
