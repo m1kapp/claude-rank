@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useFetch, Section, SegmentedControl, ListRow, EmptyState, Skeleton, Badge, PoweredByKit, CopyButton } from "@m1kapp/kit";
+import { useFetch, Section, SegmentedControl, ListRow, EmptyState, Skeleton, Badge, PoweredByKit, CopyButton, Button } from "@m1kapp/kit";
 import { useRouter } from "next/navigation";
 import Shell from "./Shell";
 
@@ -57,7 +57,10 @@ export default function Home() {
               매달 구독료를 API 정가로 환산하면 몇 배를 뽑는지 겨루는 랭킹.
               Claude Code에서 <b className="display" style={{ color: "var(--terra-deep)" }}>/usage-rank</b> 한 줄이면 등록돼요.
             </p>
-            <CopyButton text="/usage-rank" accent="var(--terra)" copiedLabel="복사됐어요!">/usage-rank 복사</CopyButton>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <Button variant="dark" shape="pill" onClick={() => router.push("/start")}>나도 등록하기 →</Button>
+              <CopyButton text="/usage-rank" accent="var(--terra)" copiedLabel="복사됐어요!">/usage-rank 복사</CopyButton>
+            </div>
             <hr className="hair" style={{ marginTop: 18 }} />
           </div>
         </Section>
