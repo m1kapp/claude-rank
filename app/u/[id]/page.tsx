@@ -67,27 +67,40 @@ export default function UserPage() {
   const buckets = ["1-5", "6-10", "11-20", "21-50", "50+"].map((k) => ({ k, v: (s.buckets || {})[k] || 0, c: "#d97757" }));
 
   return (
-    <Shell title={`${entry?.nick || "익명"} 의 리포트`}>
+    <Shell title="REPORT">
       <Section>
-        <div style={{ margin: "6px 0 12px" }}>
+        <div className="rise" style={{ paddingTop: 12 }}>
           <Button variant="light" shape="pill" onClick={() => router.push("/")}>← 랭킹으로</Button>
-        </div>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
-          <span style={{ fontSize: 30, fontWeight: 800, fontFamily: "Georgia,serif", color: "#5fa563" }}>{report.totals.ratio}×</span>
-          <Badge>${entry?.plan || report.plan_usd_per_month}/월</Badge>
-          <span style={{ color: "#9a9389", fontSize: 13 }}>정가환산 {won(report.totals.cost_krw)}</span>
+          <div className="kicker" style={{ margin: "16px 0 4px" }}>가성비 리포트</div>
+          <h1 className="display" style={{ fontWeight: 900, fontSize: 28, letterSpacing: "-0.02em", margin: "0 0 12px" }}>{entry?.nick || "익명"}</h1>
+          <hr className="hair" />
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12, margin: "14px 0 6px" }}>
+            <div>
+              <div className="kicker" style={{ color: "var(--muted)", fontSize: 10, marginBottom: 3 }}>전체 본전배율</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Badge>${entry?.plan || report.plan_usd_per_month}/월</Badge>
+                <span className="tnum" style={{ color: "var(--muted)", fontSize: 12 }}>정가 {won(report.totals.cost_krw)}</span>
+              </div>
+            </div>
+            <span className="display tnum" style={{ fontSize: 48, fontWeight: 900, color: "var(--sage)", lineHeight: .82, letterSpacing: "-0.03em" }}>
+              {report.totals.ratio}<span style={{ fontSize: 24 }}>×</span>
+            </span>
+          </div>
+          <hr className="hair" style={{ marginTop: 12 }} />
         </div>
         {months.length > 1 && (
-          <SegmentedControl value={cur} onChange={setMo} accent="#d97757"
-            options={months.map((mm) => ({ value: mm, label: `${mm.split("-")[0].slice(2)}.${+mm.split("-")[1]}월` }))} />
+          <div style={{ marginTop: 16 }}>
+            <SegmentedControl value={cur} onChange={setMo} accent="var(--terra)"
+              options={months.map((mm) => ({ value: mm, label: `${mm.split("-")[0].slice(2)}.${+mm.split("-")[1]}월` }))} />
+          </div>
         )}
       </Section>
 
       <Section>
         <SectionHeader>💰 가격</SectionHeader>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", margin: "8px 0 12px" }}>
-          <div><div style={{ fontSize: 28, fontWeight: 800, fontFamily: "Georgia,serif" }}>{won(m.cost_krw)}</div><div style={{ fontSize: 12, color: "#9a9389" }}>정가 환산</div></div>
-          <div style={{ textAlign: "right" }}><div style={{ fontSize: 26, fontWeight: 800, color: "#5fa563", fontFamily: "Georgia,serif" }}>{m.ratio}×</div><div style={{ fontSize: 11, color: "#9a9389" }}>${m.plan_usd}/월 대비</div></div>
+          <div><div className="display tnum" style={{ fontSize: 28, fontWeight: 900 }}>{won(m.cost_krw)}</div><div style={{ fontSize: 12, color: "#9a9389" }}>정가 환산</div></div>
+          <div style={{ textAlign: "right" }}><div className="display tnum" style={{ fontSize: 26, fontWeight: 900, color: "var(--sage)" }}>{m.ratio}×</div><div style={{ fontSize: 11, color: "#9a9389" }}>${m.plan_usd}/월 대비</div></div>
         </div>
         <Bars data={dCost} color="#d97757" avg wk fmt={(n) => won(n)} />
         {cap("일별 정가 환산")}
@@ -107,7 +120,7 @@ export default function UserPage() {
       <Section>
         <SectionHeader>📊 질적 · 활동</SectionHeader>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, padding: "12px 14px", margin: "8px 0 12px", background: "#2a2622", borderRadius: 12 }}>
-          <span style={{ fontSize: 24, fontWeight: 800, fontFamily: "Georgia,serif", color: "#6a9bcc" }}>{(m.chats || 0).toLocaleString()}</span>
+          <span className="display tnum" style={{ fontSize: 24, fontWeight: 900, color: "#6a9bcc" }}>{(m.chats || 0).toLocaleString()}</span>
           <span style={{ fontSize: 12, color: "#9a9389" }}>총 채팅</span>
         </div>
         <SegmentedControl value={qv} onChange={setQv} accent="#d97757"

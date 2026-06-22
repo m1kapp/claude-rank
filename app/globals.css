@@ -1,14 +1,54 @@
+/* 에디토리얼 세리프(라틴/숫자) — 한글은 Pretendard 폴백, 숫자 띄어쓰기 안전 */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,900&display=swap");
+
+:root {
+  --cream: #f0ead9;
+  --paper: #faf6ec;
+  --ink: #2a2420;
+  --terra: #c25a3a;
+  --terra-deep: #9e4327;
+  --sage: #5f8f5f;
+  --muted: #9a9085;
+  --line: #e0d7c4;
+  --shell-h: 100dvh;
+  --display: "Fraunces", "Pretendard Variable", "Pretendard", Georgia, serif;
+}
+
 html, body { margin: 0; padding: 0; }
-:root { --shell-h: 100dvh; }
 body {
   min-height: 100dvh;
-  background: #e7e2d8;
+  color: var(--ink);
+  font-family: "Pretendard Variable", "Pretendard", system-ui, sans-serif;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  font-family: "Pretendard Variable", "Pretendard", system-ui, sans-serif;
+  /* 종이결: 크림 그라데이션 + 미세 그레인 */
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #efe7d4 0%, #e7ddc8 55%, #ddd2b9 100%);
+  position: relative;
 }
+body::before {
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  opacity: .55; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+}
+
 @media (min-width: 480px) {
-  :root { --shell-h: min(932px, calc(100dvh - 48px)); }
+  :root { --shell-h: min(940px, calc(100dvh - 48px)); }
   body { align-items: center; padding: 24px 0; }
 }
+
+/* 유틸 */
+.display { font-family: var(--display); font-optical-sizing: auto; }
+.tnum { font-variant-numeric: tabular-nums; }
+.kicker {
+  font-family: var(--display);
+  font-weight: 600; font-size: 11px; letter-spacing: .28em;
+  text-transform: uppercase; color: var(--terra);
+}
+.hair { height: 1px; background: var(--line); border: 0; }
+
+/* 등장 모션 */
+@keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.rise { animation: riseIn .5s cubic-bezier(.2,.7,.2,1) both; }

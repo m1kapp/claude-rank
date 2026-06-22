@@ -29,28 +29,43 @@ export default function Home() {
     const ms = e.months![sel];
     return { e, ratio: ms.ratio, chats: ms.chats, commits: ms.commits, cost_krw: ms.cost_krw, plan: ms.plan };
   }).sort((a, b) => b.ratio - a.ratio);
+  const top = rows[0];
 
   return (
-    <Shell title="구독 가성비 랭킹 🏆">
-      <div style={{ display: "flex", flexDirection: "column", minHeight: "100%" }}>
-        {/* 히어로 */}
+    <Shell title="THE LEAGUE">
+      <div style={{ display: "flex", flexDirection: "column", minHeight: "100%", position: "relative", zIndex: 1 }}>
+        {/* 마스트헤드 */}
         <Section>
-          <div style={{ background: "linear-gradient(150deg,#2a2622,#3a3028)", borderRadius: 18, padding: "22px 20px", color: "#f4f1ea", marginTop: 6, boxShadow: "0 8px 24px rgba(42,38,34,.15)" }}>
-            <div style={{ fontSize: 30, marginBottom: 8, letterSpacing: 2 }}>🏆💸🤑</div>
-            <div style={{ fontFamily: "Georgia,serif", fontWeight: 800, fontSize: 21, lineHeight: 1.32 }}>
-              누가 Claude 구독<br />본전을 제일 뽑나?
-            </div>
-            <p style={{ fontSize: 13, color: "#cfc8bd", margin: "10px 0 16px", lineHeight: 1.65 }}>
+          <div className="rise" style={{ paddingTop: 14 }}>
+            <hr className="hair" />
+            <div className="kicker" style={{ margin: "13px 0 10px" }}>구독 가성비 리그 · CLAUDE</div>
+            <h1 className="display" style={{ fontWeight: 900, fontSize: 34, lineHeight: 1.05, letterSpacing: "-0.02em", margin: 0 }}>
+              누가 본전을<br />제일 뽑나<span style={{ color: "var(--terra)" }}>?</span>
+            </h1>
+            {top && (
+              <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12, margin: "16px 0 2px" }}>
+                <div>
+                  <div className="kicker" style={{ color: "var(--muted)", fontSize: 10, marginBottom: 2 }}>현재 선두</div>
+                  <div className="display" style={{ fontSize: 18, fontWeight: 700 }}>{top.e.nick}</div>
+                </div>
+                <div className="display tnum" style={{ fontSize: 52, fontWeight: 900, color: "var(--terra)", lineHeight: .82, letterSpacing: "-0.03em" }}>
+                  {top.ratio}<span style={{ fontSize: 26 }}>×</span>
+                </div>
+              </div>
+            )}
+            <p style={{ fontSize: 12.5, color: "#7a7064", margin: "14px 0 12px", lineHeight: 1.6 }}>
               매달 구독료를 API 정가로 환산하면 몇 배를 뽑는지 겨루는 랭킹.
-              Claude Code에서 <b style={{ color: "#e0a060" }}>/usage-rank</b> 한 줄이면 등록돼요.
+              Claude Code에서 <b className="display" style={{ color: "var(--terra-deep)" }}>/usage-rank</b> 한 줄이면 등록돼요.
             </p>
-            <CopyButton text="/usage-rank" accent="#d97757" copiedLabel="복사됐어요!">📋 /usage-rank 복사</CopyButton>
+            <CopyButton text="/usage-rank" accent="var(--terra)" copiedLabel="복사됐어요!">/usage-rank 복사</CopyButton>
+            <hr className="hair" style={{ marginTop: 18 }} />
           </div>
         </Section>
 
         {months.length > 0 && (
           <Section>
-            <SegmentedControl value={sel} onChange={setSel} accent="#d97757" options={options} />
+            <div className="kicker" style={{ color: "var(--muted)", marginBottom: 8 }}>월별 순위</div>
+            <SegmentedControl value={sel} onChange={setSel} accent="var(--terra)" options={options} />
           </Section>
         )}
 
@@ -63,24 +78,25 @@ export default function Home() {
             <EmptyState icon={<span style={{ fontSize: 34 }}>🏆</span>} message="아직 기록이 없어요. /usage-rank 로 1등 찜하세요!" />
           ) : (
             rows.map((r, i) => (
-              <ListRow
-                key={r.e.id}
-                accent="#d97757"
-                lead={<span style={{ fontSize: i < 3 ? 22 : 16, fontFamily: "Georgia,serif", fontWeight: 800, color: "#9a9389", minWidth: 26, display: "inline-block", textAlign: "center" }}>{i < 3 ? MEDAL[i] : i + 1}</span>}
-                title={<span style={{ fontWeight: 700 }}>{r.e.nick} <Badge size="sm">${r.plan}/월</Badge></span>}
-                sub={`${won(r.cost_krw)} · 💬 ${r.chats.toLocaleString()} · 🔀 ${r.commits.toLocaleString()}`}
-                trailing={<span style={{ fontFamily: "Georgia,serif", fontWeight: 800, fontSize: 19, color: "#5fa563" }}>{r.ratio}×</span>}
-                onClick={() => router.push(`/u/${r.e.id}`)}
-              />
+              <div key={r.e.id} className="rise" style={{ animationDelay: `${0.04 * i + 0.08}s` }}>
+                <ListRow
+                  accent="var(--terra)"
+                  lead={<span className="display tnum" style={{ fontSize: i < 3 ? 22 : 17, fontWeight: 900, color: i < 3 ? "var(--ink)" : "var(--muted)", minWidth: 28, display: "inline-block", textAlign: "center" }}>{i < 3 ? MEDAL[i] : i + 1}</span>}
+                  title={<span className="display" style={{ fontWeight: 700, fontSize: 16 }}>{r.e.nick} <Badge size="sm">${r.plan}/월</Badge></span>}
+                  sub={<span className="tnum">{won(r.cost_krw)} · 💬 {r.chats.toLocaleString()} · 🔀 {r.commits.toLocaleString()}</span>}
+                  trailing={<span className="display tnum" style={{ fontWeight: 900, fontSize: 21, color: "var(--sage)" }}>{r.ratio}<span style={{ fontSize: 13 }}>×</span></span>}
+                  onClick={() => router.push(`/u/${r.e.id}`)}
+                />
+              </div>
             ))
           )}
         </Section>
 
-        {/* 바닥 고정 푸터 */}
         <div style={{ flex: 1 }} />
         <Section>
-          <p style={{ fontSize: 11.5, color: "#9a9389", lineHeight: 1.6, marginTop: 8 }}>
-            {options.find((o) => o.value === sel)?.label || ""} 본전배율 순위 · 등록은 <b>/usage-rank</b> · 이름 누르면 상세 리포트 · 금액은 가상 환산값
+          <hr className="hair" style={{ margin: "4px 0 12px" }} />
+          <p style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.6 }}>
+            {options.find((o) => o.value === sel)?.label || ""} 본전배율 순위 · 등록은 <b className="display">/usage-rank</b> 명령으로만 · 이름을 누르면 상세 리포트 · 금액은 가상 환산값
           </p>
           <div style={{ marginTop: 12, paddingBottom: 4 }}>
             <PoweredByKit slug="clauderank" />
