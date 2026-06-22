@@ -36,9 +36,8 @@ export default function Home() {
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100%", position: "relative", zIndex: 1 }}>
         {/* 마스트헤드 */}
         <Section>
-          <div className="rise" style={{ paddingTop: 14 }}>
-            <hr className="hair" />
-            <div className="kicker" style={{ margin: "13px 0 10px" }}>구독 가성비 리그 · CLAUDE</div>
+          <div className="rise" style={{ paddingTop: 22 }}>
+            <div className="kicker" style={{ marginBottom: 12 }}>구독 가성비 리그 · CLAUDE</div>
             <h1 className="display" style={{ fontWeight: 900, fontSize: 34, lineHeight: 1.05, letterSpacing: "-0.02em", margin: 0 }}>
               누가 본전을<br />제일 뽑나<span style={{ color: "var(--terra)" }}>?</span>
             </h1>

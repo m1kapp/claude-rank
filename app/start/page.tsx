@@ -61,6 +61,7 @@ export default function StartPage() {
               <li>같은 기기는 익명 ID로 <b>중복 갱신</b> — 여러 번 올려도 한 줄.</li>
               <li>월별 값은 그달 누적 현재치로 갱신(증분 합산 아님).</li>
               <li>등록은 외부 공개라, <b className="display">/usage-report</b>는 한 번 물어보고 <b className="display">/usage-rank</b>는 바로 올립니다.</li>
+              <li><b>닉네임 변경</b>은 <b className="display">/usage-rank 새이름</b> 한 번이면 끝(같은 줄이 갱신).</li>
             </ul>
           </div>
         </Section>
