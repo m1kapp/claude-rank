@@ -71,25 +71,15 @@ export default function UserPage() {
       <Section>
         <div className="rise" style={{ paddingTop: 12 }}>
           <Button variant="light" shape="pill" onClick={() => router.push("/")}>← 랭킹으로</Button>
-          <div className="kicker" style={{ margin: "16px 0 4px" }}>가성비 리포트</div>
-          <h1 className="display" style={{ fontWeight: 900, fontSize: 28, letterSpacing: "-0.02em", margin: "0 0 12px" }}>{entry?.nick || "익명"}</h1>
-          <hr className="hair" />
-          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12, margin: "14px 0 6px" }}>
-            <div>
-              <div className="kicker" style={{ color: "var(--muted)", fontSize: 10, marginBottom: 3 }}>전체 본전배율</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <Badge>${entry?.plan || report.plan_usd_per_month}/월</Badge>
-                <span className="tnum" style={{ color: "var(--muted)", fontSize: 12 }}>정가 {won(report.totals.cost_krw)}</span>
-              </div>
-            </div>
-            <span className="display tnum" style={{ fontSize: 48, fontWeight: 900, color: "var(--sage)", lineHeight: .82, letterSpacing: "-0.03em" }}>
-              {report.totals.ratio}<span style={{ fontSize: 24 }}>×</span>
-            </span>
+          <div className="kicker" style={{ margin: "16px 0 4px" }}>가성비 리포트 · 월별</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 12px" }}>
+            <h1 className="display" style={{ fontWeight: 900, fontSize: 28, letterSpacing: "-0.02em", margin: 0 }}>{entry?.nick || "익명"}</h1>
+            <Badge>${entry?.plan || report.plan_usd_per_month}/월</Badge>
           </div>
-          <hr className="hair" style={{ marginTop: 12 }} />
+          <hr className="hair" />
         </div>
-        {months.length > 1 && (
-          <div style={{ marginTop: 16 }}>
+        {months.length > 0 && (
+          <div style={{ marginTop: 14 }}>
             <SegmentedControl value={cur} onChange={setMo} accent="var(--terra)"
               options={months.map((mm) => ({ value: mm, label: `${mm.split("-")[0].slice(2)}.${+mm.split("-")[1]}월` }))} />
           </div>
