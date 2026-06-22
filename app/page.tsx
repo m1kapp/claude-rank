@@ -64,12 +64,24 @@ export default function Home() {
           </div>
         </Section>
 
-        {months.length > 0 && (
-          <Section>
-            <div className="kicker" style={{ color: "var(--muted)", marginBottom: 8 }}>월별 순위</div>
-            <SegmentedControl value={sel} onChange={setSel} accent="var(--terra)" options={options} />
-          </Section>
-        )}
+        {months.length > 0 && (() => {
+          const nowKST = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 7);
+          const isLive = sel === nowKST;
+          return (
+            <Section>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <span className="kicker" style={{ color: "var(--muted)" }}>월별 순위</span>
+                {isLive && (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "var(--terra)" }}>
+                    <span className="livedot" />LIVE · 진행 중
+                  </span>
+                )}
+              </div>
+              <SegmentedControl value={sel} onChange={setSel} accent="var(--terra)" options={options} />
+              {isLive && <p style={{ fontSize: 11, color: "var(--muted)", margin: "8px 2px 0" }}>이번 달은 진행 중 — <b className="display">/usage-rank</b> 로 언제든 역전 가능 🏃</p>}
+            </Section>
+          );
+        })()}
 
         <Section>
           {loading ? (
