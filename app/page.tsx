@@ -91,9 +91,10 @@ export default function Home() {
         })()}
 
         <Section>
+          <div style={{ marginTop: 14 }}>
           {loading ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: "8px 0" }}>
-              {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" rounded="lg" />)}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" rounded="lg" />)}
             </div>
           ) : rows.length === 0 ? (
             <EmptyState icon={<span style={{ fontSize: 34 }}>🏆</span>} message="아직 기록이 없어요. /usage-rank 로 1등 찜하세요!" />
@@ -101,26 +102,30 @@ export default function Home() {
             rows.map((r, i) => {
               const { tier } = tierForKrw(r.cost_krw);
               return (
-                <div key={r.e.id} className="rise" style={{ animationDelay: `${0.04 * i + 0.08}s`, marginBottom: 10 }}>
-                  <ListRow
-                    accent={tier.color}
-                    lead={<span className="display tnum" style={{ fontSize: i < 3 ? 22 : 17, fontWeight: 900, color: i < 3 ? "var(--ink)" : "var(--muted)", minWidth: 28, display: "inline-block", textAlign: "center" }}>{i < 3 ? MEDAL[i] : i + 1}</span>}
-                    title={<span className="display" style={{ display: "flex", alignItems: "center", gap: 6, width: "100%", fontWeight: 700, fontSize: 16 }}>
-                      <img src={emblemSrc(tier.key)} alt={tier.ko} title={tier.ko} style={{ width: 30, height: 30, objectFit: "contain", flex: "none", filter: "drop-shadow(0 1px 3px rgba(0,0,0,.2))" }} />
+                <button key={r.e.id} className="rise rankrow" onClick={() => router.push(`/u/${r.e.id}`)}
+                  style={{ animationDelay: `${0.04 * i + 0.08}s`, marginBottom: 10, display: "flex", alignItems: "center", gap: 11, width: "100%", textAlign: "left", cursor: "pointer", background: "#fff", border: "1px solid var(--line)", borderLeft: `4px solid ${tier.color}`, borderRadius: 13, padding: "12px 14px", font: "inherit", color: "inherit" }}>
+                  {/* 순위 */}
+                  <span className="display tnum" style={{ fontSize: i < 3 ? 22 : 16, fontWeight: 900, color: i < 3 ? "var(--ink)" : "var(--muted)", width: 26, textAlign: "center", flex: "none" }}>{i < 3 ? MEDAL[i] : i + 1}</span>
+                  {/* 엠블럼 */}
+                  <img src={emblemSrc(tier.key)} alt={tier.ko} title={tier.ko} style={{ width: 34, height: 34, objectFit: "contain", flex: "none", filter: "drop-shadow(0 1px 3px rgba(0,0,0,.2))" }} />
+                  {/* 닉 + 티어 (가변폭) */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="display" style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 700, fontSize: 16, marginBottom: 3 }}>
                       <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.e.nick}</span>
                       <Badge size="sm">${r.plan}/월</Badge>
-                      <span className="tnum" style={{ marginLeft: "auto", fontWeight: 900, fontSize: 21, color: "var(--sage)", flex: "none" }}>{r.ratio}<span style={{ fontSize: 13 }}>×</span></span>
-                    </span>}
-                    sub={<span className="tnum" style={{ display: "inline-flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                      <span className="display" style={{ background: tier.color, color: "#fff", padding: "1px 8px", borderRadius: 999, fontSize: 10.5, fontWeight: 800, letterSpacing: ".02em" }}>{tier.ko}</span>
+                    </div>
+                    <div className="tnum" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", fontSize: 12 }}>
+                      <span className="display" style={{ background: tier.color, color: "#fff", padding: "1px 8px", borderRadius: 999, fontSize: 10.5, fontWeight: 800 }}>{tier.ko}</span>
                       <span style={{ color: "var(--muted)" }}>{won(r.cost_krw)} · 💬 {r.chats.toLocaleString()} · 🔀 {r.commits.toLocaleString()}</span>
-                    </span>}
-                    onClick={() => router.push(`/u/${r.e.id}`)}
-                  />
-                </div>
+                    </div>
+                  </div>
+                  {/* 배율 — 카드 우측 끝 고정 */}
+                  <span className="display tnum" style={{ flex: "none", fontWeight: 900, fontSize: 22, color: "var(--sage)", lineHeight: 1 }}>{r.ratio}<span style={{ fontSize: 13 }}>×</span></span>
+                </button>
               );
             })
           )}
+          </div>
         </Section>
 
         <div style={{ flex: 1 }} />
