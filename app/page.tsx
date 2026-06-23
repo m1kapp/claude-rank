@@ -101,16 +101,20 @@ export default function Home() {
             rows.map((r, i) => {
               const { tier } = tierForKrw(r.cost_krw);
               return (
-                <div key={r.e.id} className="rise" style={{ animationDelay: `${0.04 * i + 0.08}s` }}>
+                <div key={r.e.id} className="rise" style={{ animationDelay: `${0.04 * i + 0.08}s`, marginBottom: 10 }}>
                   <ListRow
                     accent={tier.color}
                     lead={<span className="display tnum" style={{ fontSize: i < 3 ? 22 : 17, fontWeight: 900, color: i < 3 ? "var(--ink)" : "var(--muted)", minWidth: 28, display: "inline-block", textAlign: "center" }}>{i < 3 ? MEDAL[i] : i + 1}</span>}
-                    title={<span className="display" style={{ fontWeight: 700, fontSize: 16, display: "inline-flex", alignItems: "center", gap: 6 }}>
-                      <img src={emblemSrc(tier.key)} alt={tier.ko} title={tier.ko} style={{ width: 26, height: 26, objectFit: "contain" }} />
-                      {r.e.nick} <Badge size="sm">${r.plan}/월</Badge>
+                    title={<span className="display" style={{ display: "flex", alignItems: "center", gap: 6, width: "100%", fontWeight: 700, fontSize: 16 }}>
+                      <img src={emblemSrc(tier.key)} alt={tier.ko} title={tier.ko} style={{ width: 30, height: 30, objectFit: "contain", flex: "none", filter: "drop-shadow(0 1px 3px rgba(0,0,0,.2))" }} />
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.e.nick}</span>
+                      <Badge size="sm">${r.plan}/월</Badge>
+                      <span className="tnum" style={{ marginLeft: "auto", fontWeight: 900, fontSize: 21, color: "var(--sage)", flex: "none" }}>{r.ratio}<span style={{ fontSize: 13 }}>×</span></span>
                     </span>}
-                    sub={<span className="tnum"><b className="display" style={{ color: tier.color }}>{tier.ko}</b> · {won(r.cost_krw)} · 💬 {r.chats.toLocaleString()} · 🔀 {r.commits.toLocaleString()}</span>}
-                    trailing={<span className="display tnum" style={{ fontWeight: 900, fontSize: 21, color: "var(--sage)" }}>{r.ratio}<span style={{ fontSize: 13 }}>×</span></span>}
+                    sub={<span className="tnum" style={{ display: "inline-flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                      <span className="display" style={{ background: tier.color, color: "#fff", padding: "1px 8px", borderRadius: 999, fontSize: 10.5, fontWeight: 800, letterSpacing: ".02em" }}>{tier.ko}</span>
+                      <span style={{ color: "var(--muted)" }}>{won(r.cost_krw)} · 💬 {r.chats.toLocaleString()} · 🔀 {r.commits.toLocaleString()}</span>
+                    </span>}
                     onClick={() => router.push(`/u/${r.e.id}`)}
                   />
                 </div>
