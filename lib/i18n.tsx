@@ -34,11 +34,12 @@ const DICT: Dict = {
   "home.copy": { ko: "/claude-run 복사", en: "Copy /claude-run" },
   "home.copied": { ko: "복사됐어요!", en: "Copied!" },
   "home.monthRank": { ko: "이달의 기록", en: "This month" },
+  "home.plan.all": { ko: "전 종목", en: "All" },
   "home.live": { ko: "LIVE", en: "LIVE" },
   "home.liveNote": { ko: "이번 달도 진행 중 🏃", en: "Still going this month 🏃" },
   "home.empty": { ko: "아직 기록이 없어요. 등록하고 1등 찜하세요!", en: "No entries yet — register and grab #1!" },
   "home.updated": { ko: "갱신 {t} KST", en: "Updated {t} KST" },
-  "home.footer": { ko: "{month} 본전배율 순위 · 이름을 누르면 상세 리포트 · 금액은 가상 환산값", en: "{month} value-multiple ranking · tap a name for the full report · amounts are notional" },
+  "home.footer": { ko: "{month} 본전배율 순위 · 이름 누르면 리포트 · 금액 환산값", en: "{month} value ranking · tap a name for the report · notional" },
 
   // start
   "start.kicker": { ko: "함께하기 · 3분", en: "Join in · 3 min" },
@@ -134,18 +135,13 @@ type I18n = {
 
 const Ctx = createContext<I18n | null>(null);
 
-function detect(): Locale {
-  if (typeof navigator === "undefined") return "ko";
-  return (navigator.language || "").toLowerCase().startsWith("ko") ? "ko" : "en";
-}
-
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("ko");
+  // 기본은 영문. 한글로 바꾸면 localStorage가 기억해서 다음 방문에도 유지.
+  const [locale, setLocaleState] = useState<Locale>("en");
 
-  // 마운트 후 저장값 → 브라우저 언어 순으로 확정 (SSR 일치 위해 기본 ko)
   useEffect(() => {
     const saved = (typeof localStorage !== "undefined" && localStorage.getItem("locale")) as Locale | null;
-    setLocaleState(saved === "ko" || saved === "en" ? saved : detect());
+    if (saved === "ko" || saved === "en") setLocaleState(saved);   // 저장값 없으면 영문 유지
   }, []);
 
   const setLocale = useCallback((l: Locale) => {

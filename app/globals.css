@@ -65,14 +65,17 @@ body {
 /* LIVE 점 (정적, 펄스 최소) */
 .livedot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: inline-block; }
 
-/* 월별 Select 트리거 슬림화 (kit 기본 px-3.5 py-2.5 rounded-xl 가 두툼) */
+/* 월별/플랜 Select 트리거 슬림화 + 내용만큼 넓게(잘림 방지) */
+.month-select { width: auto !important; }
 .month-select > button {
-  padding: 3px 11px !important;
+  width: auto !important;          /* kit w-full 해제 → 라벨 안 잘림 */
+  padding: 3px 12px !important;
   border-radius: 999px !important;
   font-size: 12px !important;
-  gap: 6px;
+  gap: 7px;
+  white-space: nowrap;
 }
-.month-select svg { width: 14px; height: 14px; }
+.month-select svg { width: 14px; height: 14px; flex: none; }
 /* 로딩 중 정적 월 칩 (Select 트리거와 동일한 모양) */
 .month-chip {
   display: inline-flex; align-items: center;

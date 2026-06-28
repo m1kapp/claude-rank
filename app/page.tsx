@@ -30,10 +30,14 @@ export default function Home() {
   const [selRaw, setSel] = useState("");
   const sel = selRaw || months[0] || "";
 
+  // 데이터에 존재하는 플랜들 (내림차순) + 필터 상태 (0 = 전체)
+  const plans = [...new Set(entries.flatMap((e) => Object.values(e.months || {}).map((m: any) => Number(m.plan) || 0)).filter(Boolean))].sort((a, b) => b - a);
+  const [plan, setPlan] = useState<number>(0);
+
   const rows = entries.filter((e) => e.months?.[sel]).map((e) => {
     const ms = e.months![sel];
     return { e, ratio: ms.ratio, chats: ms.chats, commits: ms.commits, cost_krw: ms.cost_krw, plan: ms.plan };
-  }).sort((a, b) => b.ratio - a.ratio);
+  }).filter((r) => !plan || r.plan === plan).sort((a, b) => b.ratio - a.ratio);
 
 
   return (
@@ -81,9 +85,17 @@ export default function Home() {
                     </span>
                   )}
                 </div>
-                {loading
-                  ? <span className="month-chip">{monthLabel(nowKST)}</span>
-                  : <Select className="month-select" value={sel} onChange={(v) => v && setSel(v)} accent="var(--terra)" allowClear={false} options={options} />}
+                {loading ? (
+                  <span className="month-chip">{monthLabel(nowKST)}</span>
+                ) : (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none" }}>
+                    {plans.length > 1 && (
+                      <Select className="month-select" value={plan} onChange={(v) => setPlan(Number(v) || 0)} accent="var(--terra)" allowClear={false}
+                        options={[{ value: 0, label: t("home.plan.all") }, ...plans.map((p) => ({ value: p, label: `${p}m` }))]} />
+                    )}
+                    <Select className="month-select" value={sel} onChange={(v) => v && setSel(v)} accent="var(--terra)" allowClear={false} options={options} />
+                  </div>
+                )}
               </div>
             </Section>
           );
@@ -142,7 +154,7 @@ export default function Home() {
         <div style={{ flex: 1 }} />
         <Section>
           <hr className="hair" style={{ margin: "4px 0 12px" }} />
-          <p style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.6, paddingBottom: 4 }}>
+          <p style={{ fontSize: 10.5, color: "var(--muted)", lineHeight: 1.6, paddingBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {t("home.footer", { month: options.find((o) => o.value === sel)?.label || "" })}
           </p>
         </Section>
