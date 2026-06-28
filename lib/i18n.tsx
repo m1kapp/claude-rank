@@ -158,8 +158,9 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
   const won = useCallback((krw: number) => {
     if (locale === "en") {
-      // 원본 KRW를 compact 표기 (₩38.6M 등)
-      return new Intl.NumberFormat("en", { style: "currency", currency: "KRW", notation: "compact", maximumFractionDigits: 1 }).format(krw);
+      // 영문은 USD로 환산해 $ 표기 ($20.4K 등). cost_krw = usd × 1500 이므로 /1500.
+      const usd = krw / 1500;
+      return new Intl.NumberFormat("en", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 }).format(usd);
     }
     const man = krw / 1_0000;
     return man >= 10000 ? `₩${(man / 10000).toFixed(2)}억` : `₩${Math.round(man).toLocaleString()}만`;
