@@ -130,7 +130,21 @@ export default function UserPage() {
   const [mo, setMo] = useState("");
   const cur = mo || months[months.length - 1] || "";
 
-  if (loading) return <Shell title={t("common.report")}><Section><Skeleton className="h-40 w-full" rounded="xl" /></Section></Shell>;
+  if (loading) return (
+    <Shell title={t("common.report")}>
+      <Section>
+        <div className="rise" style={{ paddingTop: 12, display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ width: 110 }}><Skeleton className="h-8 w-full" rounded="full" /></div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ width: 96 }}><Skeleton className="h-2 w-full" rounded="sm" /></div>
+            <div style={{ width: "42%" }}><Skeleton className="h-8 w-full" rounded="sm" /></div>
+          </div>
+          <Skeleton className="h-40 w-full" rounded="xl" />
+          <div style={{ width: "42%", alignSelf: "flex-end" }}><Skeleton className="h-10 w-full" rounded="full" /></div>
+        </div>
+      </Section>
+    </Shell>
+  );
   if (!data?.report) return <Shell title={t("common.report")}><Section><EmptyState message={t("common.notFound")} /></Section></Shell>;
 
   const { entry, report } = data;

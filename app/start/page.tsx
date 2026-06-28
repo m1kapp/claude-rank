@@ -43,7 +43,7 @@ export default function StartPage() {
         <Section>
           <div className="rise" style={{ animationDelay: ".1s" }}>
             <StepRow n={1} title={t("start.s1.title")} desc={t("start.s1.desc")}>
-              <CodeBlock label="claude code" code={"/plugin marketplace add m1kapp/claude-plugins\n/plugin install usage-report@m1kapp"} accent="var(--terra)" />
+              <CodeBlock label="claude code" code={"/plugin marketplace add m1kapp/claude-plugins\n/plugin install claude-run@m1kapp"} accent="var(--terra)" />
               <p style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 6 }}>{t("start.s1.note.a")} <code>/reload-plugins</code> {t("start.s1.note.b")}</p>
             </StepRow>
 
@@ -68,8 +68,10 @@ export default function StartPage() {
         </Section>
 
         <Section>
-          <Button variant="dark" shape="pill" full onClick={() => router.push("/")}>{t("start.go")}</Button>
-          <div style={{ height: 16 }} />
+          <div style={{ marginTop: 18 }}>
+            <Button variant="dark" shape="pill" full onClick={() => router.push("/")}>{t("start.go")}</Button>
+          </div>
+          <div style={{ height: 28 }} />
         </Section>
       </div>
     </Shell>

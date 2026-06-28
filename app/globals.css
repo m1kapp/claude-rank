@@ -73,6 +73,14 @@ body {
   gap: 6px;
 }
 .month-select svg { width: 14px; height: 14px; }
+/* 로딩 중 정적 월 칩 (Select 트리거와 동일한 모양) */
+.month-chip {
+  display: inline-flex; align-items: center;
+  background: var(--accent); color: #fff;
+  padding: 3px 11px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; line-height: 1.5;
+  white-space: nowrap; flex: none;
+}
 
 /* ── 랭킹 리스트: 카드가 아니라 헤어라인으로 나눈 줄 ── */
 .ranklist { display: flex; flex-direction: column; }

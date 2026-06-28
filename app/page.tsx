@@ -55,9 +55,9 @@ export default function Home() {
           </div>
         </Section>
 
-        {months.length > 0 && (() => {
+        {(loading || months.length > 0) && (() => {
           const nowKST = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 7);
-          const isLive = sel === nowKST;
+          const isLive = (sel || nowKST) === nowKST;
           return (
             <Section>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
@@ -69,9 +69,10 @@ export default function Home() {
                     </span>
                   )}
                 </div>
-                <Select className="month-select" value={sel} onChange={(v) => v && setSel(v)} accent="var(--terra)" allowClear={false} options={options} />
+                {loading
+                  ? <span className="month-chip">{monthLabel(nowKST)}</span>
+                  : <Select className="month-select" value={sel} onChange={(v) => v && setSel(v)} accent="var(--terra)" allowClear={false} options={options} />}
               </div>
-              {isLive && <p style={{ fontSize: 11, color: "var(--muted)", margin: "8px 2px 0" }}>{t("home.liveNote")}</p>}
             </Section>
           );
         })()}
@@ -79,8 +80,18 @@ export default function Home() {
         <Section>
           <div style={{ marginTop: 16 }}>
           {loading ? (
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" rounded="md" />)}
+            <div className="ranklist">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 13, padding: "15px 4px", borderBottom: i < 4 ? "1px solid var(--line)" : "0" }}>
+                  <Skeleton className="h-4 w-4" rounded="sm" />
+                  <Skeleton className="h-2 w-2" rounded="full" />
+                  <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 7 }}>
+                    <div style={{ width: "34%" }}><Skeleton className="h-4 w-full" rounded="sm" /></div>
+                    <div style={{ width: "62%" }}><Skeleton className="h-2 w-full" rounded="sm" /></div>
+                  </div>
+                  <div style={{ width: 46, flex: "none" }}><Skeleton className="h-4 w-full" rounded="sm" /></div>
+                </div>
+              ))}
             </div>
           ) : rows.length === 0 ? (
             <EmptyState icon={<span style={{ fontSize: 30 }}>🏆</span>} message={t("home.empty")} />
