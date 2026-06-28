@@ -5,7 +5,7 @@ import { useI18n } from "../lib/i18n";
 export default function Shell({ title, children }: { title: string; children: React.ReactNode }) {
   const { locale, toggle } = useI18n();
   return (
-    <Watermark color="#100f12" text="claude run" maxWidth={430} speed={60} trackSlug="clauderank">
+    <Watermark color="#100f12" text="claude run" maxWidth={430} speed={60} trackSlug="gs" claimed>
     <AppShell accent="#d4694a" maxHeight={932} style={{ height: "var(--shell-h)" }}>
       <AppShellHeader>
         <div style={{ display: "flex", alignItems: "center", gap: 9, width: "100%" }}>

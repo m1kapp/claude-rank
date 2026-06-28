@@ -28,6 +28,9 @@ const DICT: Dict = {
   "home.lead.a": { ko: "매달 구독료를 API 정가로 환산해 몇 배 뽑는지, 모두의 기록을 모아보는 곳.", en: "A place that gathers everyone's numbers — how many times over we cash out our monthly subscription at API list price." },
   "home.lead.b1": { ko: "Claude Code에 한 줄이면 합류해요.", en: "One line in Claude Code and you're in." },
   "home.cta": { ko: "나도 같이 달리기 →", en: "Run with us →" },
+  "home.invite": { ko: "친구 초대", en: "Invite a friend" },
+  "home.invited": { ko: "링크 복사됨!", en: "Link copied!" },
+  "home.inviteText": { ko: "Claude 구독, 본전 얼마나 뽑고 있나? 같이 달려요 🏃 — Claude Run", en: "How many times over are you cashing out your Claude subscription? Run with us 🏃 — Claude Run" },
   "home.copy": { ko: "/claude-run 복사", en: "Copy /claude-run" },
   "home.copied": { ko: "복사됐어요!", en: "Copied!" },
   "home.monthRank": { ko: "이달의 기록", en: "This month" },
@@ -61,8 +64,12 @@ const DICT: Dict = {
 
   // user / report
   "user.kicker": { ko: "가성비 리포트 · 월별", en: "Value report · monthly" },
-  "user.persona.kicker": { ko: "데이터로 본 성향 · 누적", en: "Profile from the data · all-time" },
+  "user.share": { ko: "자랑하기", en: "Share" },
+  "user.shared": { ko: "복사됨!", en: "Copied!" },
+  "user.shareText": { ko: "{month} Claude 구독 본전 {ratio}배 뽑았어 🏃 너도 해봐 — Claude Run", en: "{month}: cashing out my Claude subscription {ratio}× 🏃 your turn — Claude Run" },
+  "user.persona.kicker": { ko: "이 달의 성향", en: "this month's profile" },
   "user.persona.title": { ko: "개발자 프로필", en: "Developer profile" },
+  "user.persona.ratioLabel": { ko: "이 달 본전 배율", en: "this month's value multiple" },
   "user.monthPick": { ko: "월별 상세", en: "Monthly detail" },
   "user.tierTitle": { ko: "이번 달 가성비 티어", en: "This month's value tier" },
   "user.next.a": { ko: "다음", en: "Next" },

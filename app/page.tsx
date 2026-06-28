@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useFetch, Section, Select, EmptyState, Skeleton, Button } from "@m1kapp/kit";
+import { useFetch, Section, Select, EmptyState, Skeleton, Button, ShareButton } from "@m1kapp/kit";
 import { useRouter } from "next/navigation";
 import Shell from "./Shell";
 import { tierForKrw, tierName } from "../lib/tier";
@@ -49,8 +49,20 @@ export default function Home() {
             <p style={{ fontSize: 13, color: "var(--text)", margin: "16px 0 18px", lineHeight: 1.6 }}>
               {t("home.lead.a")} {t("home.lead.b1")}
             </p>
-            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", margin: "18px 0 28px" }}>
-              <Button variant="dark" shape="pill" onClick={() => router.push("/start")}>{t("home.cta")}</Button>
+            <div style={{ display: "flex", gap: 8, alignItems: "stretch", margin: "18px 0 28px" }}>
+              <div style={{ flex: 1, display: "flex" }}>
+                <Button variant="dark" shape="pill" full onClick={() => router.push("/start")}>{t("home.cta")}</Button>
+              </div>
+              <div className="share-fill" style={{ flex: 1, display: "flex" }}>
+                <ShareButton
+                  className="w-full justify-center"
+                  url={typeof window !== "undefined" ? window.location.origin : "https://clauderun.m1k.app"}
+                  title="Claude Run"
+                  text={t("home.inviteText")}
+                  label={t("home.invite")}
+                  copiedLabel={t("home.invited")}
+                />
+              </div>
             </div>
           </div>
         </Section>

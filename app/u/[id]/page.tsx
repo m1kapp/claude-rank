@@ -1,7 +1,6 @@
 "use client";
-import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useFetch, Section, SectionHeader, Select, StatChip, Badge, Skeleton, EmptyState, Divider, Button } from "@m1kapp/kit";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useFetch, Section, SectionHeader, Select, StatChip, Badge, Skeleton, EmptyState, Divider, Button, ShareButton } from "@m1kapp/kit";
 import Shell from "../../Shell";
 import { TIERS, tierForUsd, emblemSrc, tierName } from "../../../lib/tier";
 import { useI18n } from "../../../lib/i18n";
@@ -125,10 +124,13 @@ export default function UserPage() {
   const { t, won, monthLabel, locale } = useI18n();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const sp = useSearchParams();
   const { data, loading } = useFetch<{ entry: any; report: any }>(`/api/report/${id}`);
   const months = data ? Object.keys(data.report.months).sort() : [];
-  const [mo, setMo] = useState("");
-  const cur = mo || months[months.length - 1] || "";
+  // 월은 쿼리파람(?m=YYYY-MM). 없으면 이번 달, 그것도 없으면 최신 월.
+  const nowKST = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 7);
+  const qm = sp.get("m") || "";
+  const cur = months.includes(qm) ? qm : months.includes(nowKST) ? nowKST : months[months.length - 1] || "";
 
   if (loading) return (
     <Shell title={t("common.report")}>
@@ -148,8 +150,8 @@ export default function UserPage() {
   if (!data?.report) return <Shell title={t("common.report")}><Section><EmptyState message={t("common.notFound")} /></Section></Shell>;
 
   const { entry, report } = data;
-  const pf = persona(aggregate(report.months), locale);
   const m = report.months[cur] || {};
+  const pf = persona(aggregate({ [cur]: m }), locale);  // 선택된 월만 분석 (누적 X)
   const s = m.series || {};
   const ef = m.efficiency || {};
   const dCost = Object.entries(s.daily_cost_krw || {}).map(([k, v]) => ({ k, v: v as number }));
@@ -160,26 +162,42 @@ export default function UserPage() {
     <Shell title={t("title.report")}>
       <Section>
         <div className="rise" style={{ paddingTop: 12 }}>
-          <Button variant="light" shape="pill" onClick={() => router.push("/")}>{t("common.back")}</Button>
-          <div className="kicker" style={{ margin: "16px 0 4px" }}>{t("user.kicker")}</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 12px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+            <Button variant="light" shape="pill" onClick={() => router.push("/")}>{t("common.back")}</Button>
+            <ShareButton
+              className="share-pill"
+              url={`${typeof window !== "undefined" ? window.location.origin : "https://clauderun.m1k.app"}/u/${id}?m=${cur}`}
+              title="Claude Run"
+              text={t("user.shareText", { month: monthLabel(cur), ratio: m.ratio ?? "" })}
+              label={t("user.share")}
+              copiedLabel={t("user.shared")}
+            />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "16px 0 12px" }}>
             <h1 className="display" style={{ fontWeight: 900, fontSize: 28, letterSpacing: "-0.02em", margin: 0 }}>{entry?.nick || t("common.anon")}</h1>
             <Badge>${entry?.plan || report.plan_usd_per_month}{t("common.perMo")}</Badge>
           </div>
           <hr className="hair" />
         </div>
-        {/* 개발자 프로필 (누적, 월 탭과 무관) */}
-        <div className="rise" style={{ marginTop: 16, padding: "16px 16px", background: "var(--card)", border: "1px solid var(--line)", borderRadius: 14 }}>
-          <div className="kicker" style={{ marginBottom: 10 }}>{t("user.persona.kicker")}</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontSize: 34, flex: "none", lineHeight: 1 }}>{pf.emoji}</span>
-            <div style={{ minWidth: 0 }}>
-              <div className="display" style={{ fontWeight: 700, fontSize: 20, letterSpacing: "-0.01em", lineHeight: 1.15 }}>{pf.title}</div>
-              <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 2 }}>{pf.intensity}</div>
-            </div>
+
+        {/* 월 선택 (쿼리파람 ?m=) — 항상 노출, 모든 분석이 이 월에 의존 */}
+        {months.length > 0 && (
+          <div style={{ marginTop: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <span className="kicker" style={{ color: "var(--muted)" }}>{t("user.monthPick")}</span>
+            <Select className="month-select" value={cur} onChange={(v) => v && router.replace(`/u/${id}?m=${v}`, { scroll: false })} accent="var(--terra)" allowClear={false}
+              options={months.slice().reverse().map((mm) => ({ value: mm, label: monthLabel(mm) }))} />
+          </div>
+        )}
+
+        {/* 이 달의 프로필 (선택된 월만) */}
+        <div className="rise" style={{ marginTop: 14, padding: "16px 16px", background: "var(--card)", border: "1px solid var(--line)", borderRadius: 14 }}>
+          <div className="kicker" style={{ marginBottom: 10 }}>{monthLabel(cur)} · {t("user.persona.kicker")}</div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+            <span className="display tnum" style={{ fontSize: 42, fontWeight: 700, color: "var(--sage)", lineHeight: 1, letterSpacing: "-0.02em" }}>{m.ratio}<span style={{ fontSize: 20, color: "var(--muted)" }}>×</span></span>
+            <span style={{ fontSize: 12, color: "var(--muted)" }}>{t("user.persona.ratioLabel")}</span>
           </div>
           {pf.tags.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "5px 6px", marginTop: 12 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "5px 6px", marginTop: 14 }}>
               {pf.tags.map((tag, i) => (
                 <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 500, lineHeight: 1.5, color: "var(--text)", border: "1px solid var(--line)", borderRadius: 999, padding: "0 9px", height: 22 }}>
                   <span style={{ fontSize: 10.5 }}>{tag.icon}</span>{tag.label}
@@ -187,16 +205,8 @@ export default function UserPage() {
               ))}
             </div>
           )}
-          <p style={{ fontSize: 12.5, color: "var(--text)", lineHeight: 1.65, margin: "13px 0 0" }}>{pf.blurb}</p>
         </div>
 
-        {months.length > 1 && (
-          <div style={{ marginTop: 18, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-            <span className="kicker" style={{ color: "var(--muted)" }}>{t("user.monthPick")}</span>
-            <Select className="month-select" value={cur} onChange={(v) => v && setMo(v)} accent="var(--terra)" allowClear={false}
-              options={months.slice().reverse().map((mm) => ({ value: mm, label: monthLabel(mm) }))} />
-          </div>
-        )}
         {typeof m.cost_usd === "number" && (
           <div style={{ marginTop: 14 }}>
             <TierBanner usd={m.cost_usd} krwPerUsd={report.currency_krw_per_usd} />
