@@ -44,14 +44,62 @@ async function writeFile(db: Record<string, Entry>) {
   await fs.writeFile(FILE, JSON.stringify(db, null, 2));
 }
 
+// 닉 정규화 키 (대소문자·앞뒤공백·유니코드 정규화 무시)
+const nickKey = (s: string) => (s || "").normalize("NFKC").trim().toLowerCase();
+
+// id로 저장(닉 변경 = 같은 줄 갱신)하되, 같은 닉을 쓰는 다른 id는 제거해
+// 중복 계정(같은 닉 두 줄)을 막는다. → 닉당 1줄, id당 1줄.
 export async function upsert(e: Entry) {
+  const want = nickKey(e.nick);
   if (useUpstash) {
+    const flat: string[] = (await upstash(["HGETALL", KEY])) || [];
+    const dupIds: string[] = [];
+    for (let i = 0; i < flat.length; i += 2) {
+      const id = flat[i];
+      if (id === e.id) continue;
+      try { if (nickKey(JSON.parse(flat[i + 1]).nick) === want) dupIds.push(id); } catch {}
+    }
     await upstash(["HSET", KEY, e.id, JSON.stringify(e)]);
+    if (dupIds.length) {
+      await upstash(["HDEL", KEY, ...dupIds]);
+      await upstash(["HDEL", RKEY, ...dupIds]);  // 고아 리포트도 정리
+    }
   } else {
     const db = await readFile();
+    for (const [id, ex] of Object.entries(db)) {
+      if (id !== e.id && nickKey(ex.nick) === want) delete db[id];
+    }
     db[e.id] = e;
     await writeFile(db);
   }
+}
+
+// 본인 엔트리 삭제 (claude_ id 는 본인 ~/.claude.json 에서만 나오므로 self-auth)
+export async function removeEntry(id: string): Promise<boolean> {
+  if (useUpstash) {
+    const n = await upstash(["HDEL", KEY, id]);
+    await upstash(["HDEL", RKEY, id]);
+    return Number(n) > 0;
+  } else {
+    const db = await readFile();
+    const existed = id in db;
+    delete db[id];
+    await writeFile(db);
+    try {
+      const r = JSON.parse(await fs.readFile(RFILE, "utf8"));
+      delete r[id];
+      await fs.writeFile(RFILE, JSON.stringify(r));
+    } catch {}
+    return existed;
+  }
+}
+
+// 레거시(비-claude_ 신원) 엔트리 일괄 제거 — 옛 랜덤UUID/시드 정리용. 제거 개수 반환.
+export async function purgeLegacy(): Promise<number> {
+  const list = await all();
+  const legacy = list.filter((e) => !/^claude_[0-9a-f]{32}$/.test(e.id)).map((e) => e.id);
+  for (const id of legacy) await removeEntry(id);
+  return legacy.length;
 }
 
 export async function all(): Promise<Entry[]> {

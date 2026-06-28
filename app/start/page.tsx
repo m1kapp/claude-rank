@@ -2,14 +2,18 @@
 import { Section, CodeBlock, Button, Badge } from "@m1kapp/kit";
 import { useRouter } from "next/navigation";
 import Shell from "../Shell";
+import { useI18n } from "../../lib/i18n";
 
-function StepRow({ n, title, desc, children }: { n: number; title: string; desc?: string; children?: React.ReactNode }) {
+function StepRow({ n, title, desc, last, children }: { n: number; title: string; desc?: string; last?: boolean; children?: React.ReactNode }) {
   return (
-    <div style={{ display: "flex", gap: 14, marginBottom: 22 }}>
-      <div className="display tnum" style={{ flex: "none", width: 30, height: 30, borderRadius: "50%", background: "var(--ink)", color: "var(--paper)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 15 }}>{n}</div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="display" style={{ fontWeight: 700, fontSize: 16, marginBottom: desc ? 2 : 8 }}>{title}</div>
-        {desc && <p style={{ fontSize: 12.5, color: "#7a7064", margin: "0 0 8px", lineHeight: 1.55 }}>{desc}</p>}
+    <div style={{ display: "flex", gap: 15, marginBottom: 30 }}>
+      <div style={{ flex: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+        <div className="display tnum" style={{ width: 34, height: 34, borderRadius: "50%", background: "var(--accent)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16 }}>{n}</div>
+        {!last && <div style={{ flex: 1, width: 1.5, background: "var(--line)", minHeight: 18 }} />}
+      </div>
+      <div style={{ flex: 1, minWidth: 0, paddingBottom: 2 }}>
+        <div className="display" style={{ fontWeight: 700, fontSize: 18, marginBottom: desc ? 4 : 10 }}>{title}</div>
+        {desc && <p style={{ fontSize: 13, color: "var(--text)", margin: "0 0 10px", lineHeight: 1.62 }}>{desc}</p>}
         {children}
       </div>
     </div>
@@ -18,56 +22,53 @@ function StepRow({ n, title, desc, children }: { n: number; title: string; desc?
 
 export default function StartPage() {
   const router = useRouter();
+  const { t } = useI18n();
   return (
-    <Shell title="GET STARTED">
+    <Shell title={t("title.start")}>
       <div style={{ position: "relative", zIndex: 1 }}>
         <Section>
           <div className="rise" style={{ paddingTop: 12 }}>
-            <Button variant="light" shape="pill" onClick={() => router.push("/")}>← 랭킹으로</Button>
-            <div className="kicker" style={{ margin: "16px 0 4px" }}>참가 안내 · 3분</div>
+            <Button variant="light" shape="pill" onClick={() => router.push("/")}>{t("common.back")}</Button>
+            <div className="kicker" style={{ margin: "16px 0 4px" }}>{t("start.kicker")}</div>
             <h1 className="display" style={{ fontWeight: 900, fontSize: 30, letterSpacing: "-0.02em", margin: "0 0 10px", lineHeight: 1.1 }}>
-              나도 랭킹<br />올리기
+              {t("start.h1.l1")}<br />{t("start.h1.l2")}
             </h1>
-            <p style={{ fontSize: 13, color: "#7a7064", lineHeight: 1.65, margin: 0 }}>
-              Claude Code에 플러그인을 설치하고 <b className="display">/usage-rank</b> 한 줄이면 끝.
-              매번 올려도 같은 줄이 갱신될 뿐 중복 안 쌓여요(멱등).
+            <p style={{ fontSize: 13.5, color: "var(--text)", lineHeight: 1.72, margin: 0 }}>
+              {t("start.lead.a")} <b className="display" style={{ color: "var(--ink)" }}>/claude-run</b> {t("start.lead.b")}
             </p>
-            <hr className="hair" style={{ marginTop: 18 }} />
+            <hr className="hair" style={{ marginTop: 22 }} />
           </div>
         </Section>
 
         <Section>
           <div className="rise" style={{ animationDelay: ".1s" }}>
-            <StepRow n={1} title="플러그인 설치" desc="Claude Code 프롬프트에 두 줄을 차례로 입력하세요.">
+            <StepRow n={1} title={t("start.s1.title")} desc={t("start.s1.desc")}>
               <CodeBlock label="claude code" code={"/plugin marketplace add m1kapp/claude-plugins\n/plugin install usage-report@m1kapp"} accent="var(--terra)" />
-              <p style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 6 }}>설치 후 <code>/reload-plugins</code> 한 번.</p>
+              <p style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 6 }}>{t("start.s1.note.a")} <code>/reload-plugins</code> {t("start.s1.note.b")}</p>
             </StepRow>
 
-            <StepRow n={2} title="리포트 만들기" desc="내 구독 가성비 리포트를 생성합니다(브라우저로 열림).">
-              <CodeBlock label="report" code={"/usage-report"} accent="var(--terra)" />
-            </StepRow>
-
-            <StepRow n={3} title="랭킹 등록" desc="닉네임은 처음 한 번만. 이후엔 /usage-rank 만 쳐도 같은 이름으로 올라가요.">
-              <CodeBlock label="rank" code={"/usage-rank 닉네임"} accent="var(--terra)" />
+            <StepRow n={2} last title={t("start.s3.title")} desc={t("start.s3.desc")}>
+              <CodeBlock label="run" code={"/claude-run nickname"} accent="var(--terra)" />
             </StepRow>
           </div>
         </Section>
 
         <Section>
-          <div className="rise" style={{ animationDelay: ".18s", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 14, padding: "16px 16px" }}>
-            <div className="kicker" style={{ marginBottom: 8 }}>알아두기</div>
-            <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12.5, color: "#5a5048", lineHeight: 1.7 }}>
-              <li>본전배율 = API 정가 환산 ÷ 실제 구독료(<Badge size="sm">$200/월</Badge> 등). 금액은 가상 환산값.</li>
-              <li>같은 기기는 익명 ID로 <b>중복 갱신</b> — 여러 번 올려도 한 줄.</li>
-              <li>월별 값은 그달 누적 현재치로 갱신(증분 합산 아님).</li>
-              <li>등록은 외부 공개라, <b className="display">/usage-report</b>는 한 번 물어보고 <b className="display">/usage-rank</b>는 바로 올립니다.</li>
-              <li><b>닉네임 변경</b>은 <b className="display">/usage-rank 새이름</b> 한 번이면 끝(같은 줄이 갱신).</li>
-            </ul>
+          <div className="rise" style={{ animationDelay: ".18s", padding: "18px 18px", background: "var(--card)", border: "1px solid var(--line)", borderRadius: 14 }}>
+            <div className="kicker" style={{ marginBottom: 12 }}>{t("start.note.title")}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+              {[t("start.note.1"), t("start.note.2"), t("start.note.3"), t("start.note.4"), t("start.note.5")].map((line, i) => (
+                <div key={i} style={{ display: "flex", gap: 9, fontSize: 13, color: "var(--text)", lineHeight: 1.55 }}>
+                  <span style={{ flex: "none", color: "var(--accent)", fontWeight: 700 }}>·</span>
+                  <span>{line}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </Section>
 
         <Section>
-          <Button variant="dark" shape="pill" full onClick={() => router.push("/")}>🏆 랭킹 보러가기</Button>
+          <Button variant="dark" shape="pill" full onClick={() => router.push("/")}>{t("start.go")}</Button>
           <div style={{ height: 16 }} />
         </Section>
       </div>

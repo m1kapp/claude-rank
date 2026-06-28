@@ -1,15 +1,27 @@
-/* 에디토리얼 세리프(라틴/숫자) — 한글은 Pretendard 폴백, 숫자 띄어쓰기 안전 */
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,900&display=swap");
+/* 에디토리얼 세리프(라틴/숫자) — 한글은 Pretendard 폴백 */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap");
 
 :root {
-  --cream: #f0ead9;
-  --paper: #faf6ec;
-  --ink: #2a2420;
-  --terra: #c25a3a;
-  --terra-deep: #9e4327;
-  --sage: #5f8f5f;
-  --muted: #9a9085;
-  --line: #e0d7c4;
+  /* ── 차분한 다크: 평평한 면 + 헤어라인 + 액센트 1개 ── */
+  --bg: #100f12;            /* 페이지/셸 둘레 */
+  --surface: #15141a;       /* 셸 내부 */
+  --raise: #1b1a21;         /* 살짝 올라온 면(선택 시) */
+  --ink: #ece8e1;           /* 본문 1차 */
+  --text: #b6afa4;          /* 본문 2차 */
+  --muted: #7e776c;         /* 보조 */
+  --faint: #5b554c;         /* 극보조/차트 라벨 */
+  --line: rgba(255,255,255,.08);   /* 헤어라인 */
+  --line-2: rgba(255,255,255,.05);
+  --accent: #d4694a;        /* 단 하나의 액센트(차분한 테라코타) */
+  --sage: #79b489;          /* 배율 — 차분한 그린 */
+
+  /* 하위호환 매핑 */
+  --paper: var(--surface);
+  --terra: var(--accent);
+  --terra-deep: #e07f60;
+  --text-soft: var(--text);
+  --card: rgba(255,255,255,.035);
+
   --shell-h: 100dvh;
   --display: "Fraunces", "Pretendard Variable", "Pretendard", Georgia, serif;
 }
@@ -22,42 +34,56 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  /* 종이결: 크림 그라데이션 + 미세 그레인 */
-  background:
-    radial-gradient(1200px 600px at 50% -10%, #efe7d4 0%, #e7ddc8 55%, #ddd2b9 100%);
-  position: relative;
-}
-body::before {
-  content: "";
-  position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  opacity: .55; mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  background: var(--bg);
 }
 
 @media (min-width: 480px) {
+  /* 셸을 뷰포트보다 48px 작게 → Watermark가 가운데 정렬하며 위아래 24px 간격.
+     body 패딩을 쓰면 풀스크린 Watermark(100dvh)에 더해져 스크롤이 생기므로 패딩 0. */
   :root { --shell-h: min(940px, calc(100dvh - 48px)); }
-  body { align-items: center; padding: 24px 0; }
+  body { align-items: center; padding: 0; }
+}
+
+/* 셸: 드라마 없이 얇은 보더 + 약한 그림자 */
+.app-shell-root {
+  box-shadow: 0 24px 60px -28px rgba(0,0,0,.7) !important;
 }
 
 /* 유틸 */
 .display { font-family: var(--display); font-optical-sizing: auto; }
 .tnum { font-variant-numeric: tabular-nums; }
 .kicker {
-  font-family: var(--display);
-  font-weight: 600; font-size: 11px; letter-spacing: .28em;
-  text-transform: uppercase; color: var(--terra);
+  font-size: 10.5px; font-weight: 600; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--muted);
 }
 .hair { height: 1px; background: var(--line); border: 0; }
 
-/* 등장 모션 */
-@keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-.rise { animation: riseIn .5s cubic-bezier(.2,.7,.2,1) both; }
+/* 등장 모션 (아주 약하게) */
+@keyframes riseIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.rise { animation: riseIn .4s cubic-bezier(.2,.7,.2,1) both; }
 
-/* LIVE 펄스 점 */
-.livedot { width: 7px; height: 7px; border-radius: 50%; background: var(--terra); display: inline-block; animation: pulse 1.4s ease-in-out infinite; }
-@keyframes pulse { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(194,90,58,.5); } 50% { opacity: .5; box-shadow: 0 0 0 5px rgba(194,90,58,0); } }
+/* LIVE 점 (정적, 펄스 최소) */
+.livedot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: inline-block; }
 
-/* 랭킹 카드 호버 */
-.rankrow { transition: transform .12s ease, box-shadow .12s ease; }
-.rankrow:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(42,38,34,.1); }
-.rankrow:active { transform: translateY(0); }
+/* 월별 Select 트리거 슬림화 (kit 기본 px-3.5 py-2.5 rounded-xl 가 두툼) */
+.month-select > button {
+  padding: 3px 11px !important;
+  border-radius: 999px !important;
+  font-size: 12px !important;
+  gap: 6px;
+}
+.month-select svg { width: 14px; height: 14px; }
+
+/* ── 랭킹 리스트: 카드가 아니라 헤어라인으로 나눈 줄 ── */
+.ranklist { display: flex; flex-direction: column; }
+.rankrow {
+  display: flex; align-items: center; gap: 13px;
+  width: 100%; text-align: left; font: inherit; color: inherit;
+  background: transparent; border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 15px 4px;
+  cursor: pointer;
+  transition: background .12s ease, padding .12s ease;
+}
+.rankrow:last-child { border-bottom: 0; }
+.rankrow:hover { background: rgba(255,255,255,.025); }

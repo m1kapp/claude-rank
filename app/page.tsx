@@ -1,20 +1,24 @@
 "use client";
 import { useState } from "react";
-import { useFetch, Section, SegmentedControl, ListRow, EmptyState, Skeleton, Badge, PoweredByKit, CopyButton, Button } from "@m1kapp/kit";
+import { useFetch, Section, Select, EmptyState, Skeleton, Button } from "@m1kapp/kit";
 import { useRouter } from "next/navigation";
 import Shell from "./Shell";
-import { tierForKrw, emblemSrc } from "../lib/tier";
+import { tierForKrw, tierName } from "../lib/tier";
+import { useI18n } from "../lib/i18n";
 
 type MonthStat = { ratio: number; chats: number; commits: number; cost_krw: number; plan: number };
-type Entry = { id: string; nick: string; plan: number; ratio: number; chats: number; commits: number; cost_krw: number; months?: Record<string, MonthStat> };
+type Entry = { id: string; nick: string; plan: number; ratio: number; chats: number; commits: number; cost_krw: number; updated?: string; months?: Record<string, MonthStat> };
 
-function won(krw: number) {
-  const man = krw / 1_0000;
-  return man >= 10000 ? `₩${(man / 10000).toFixed(2)}억` : `₩${Math.round(man).toLocaleString()}만`;
+// 제출 시각 → KST "M/D HH:MM"
+function fmtKST(iso?: string) {
+  if (!iso) return "";
+  const pt = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(new Date(iso)).map((p) => [p.type, p.value]));
+  return `${+pt.month}/${+pt.day} ${pt.hour}:${pt.minute}`;
 }
-const MEDAL = ["🥇", "🥈", "🥉"];
+
 
 export default function Home() {
+  const { t, locale, won, monthLabel } = useI18n();
   const { data, loading } = useFetch<{ entries: Entry[] }>("/api/leaderboard");
   const router = useRouter();
   const entries = data?.entries ?? [];
@@ -22,7 +26,7 @@ export default function Home() {
   const monthSet = new Set<string>();
   entries.forEach((e) => Object.keys(e.months || {}).forEach((m) => monthSet.add(m)));
   const months = [...monthSet].sort().reverse();
-  const options = months.map((m) => ({ value: m, label: `${m.split("-")[0].slice(2)}.${+m.split("-")[1]}월` }));
+  const options = months.map((m) => ({ value: m, label: monthLabel(m) }));
   const [selRaw, setSel] = useState("");
   const sel = selRaw || months[0] || "";
 
@@ -30,44 +34,24 @@ export default function Home() {
     const ms = e.months![sel];
     return { e, ratio: ms.ratio, chats: ms.chats, commits: ms.commits, cost_krw: ms.cost_krw, plan: ms.plan };
   }).sort((a, b) => b.ratio - a.ratio);
-  const top = rows[0];
+
 
   return (
-    <Shell title="THE LEAGUE">
+    <Shell title={t("title.league")}>
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100%", position: "relative", zIndex: 1 }}>
         {/* 마스트헤드 */}
         <Section>
-          <div className="rise" style={{ paddingTop: 22 }}>
-            <div className="kicker" style={{ marginBottom: 12 }}>구독 가성비 리그 · CLAUDE</div>
-            <h1 className="display" style={{ fontWeight: 900, fontSize: 34, lineHeight: 1.05, letterSpacing: "-0.02em", margin: 0 }}>
-              누가 본전을<br />제일 뽑나<span style={{ color: "var(--terra)" }}>?</span>
+          <div className="rise" style={{ paddingTop: 24 }}>
+            <div className="kicker" style={{ marginBottom: 14 }}>{t("home.kicker")}</div>
+            <h1 className="display" style={{ fontWeight: 600, fontSize: 33, lineHeight: 1.08, letterSpacing: "-0.02em", margin: 0 }}>
+              {t("home.h1.l1")}<br />{t("home.h1.l2")}<span style={{ color: "var(--accent)" }}>!</span>
             </h1>
-            {top && (() => {
-              const { tier } = tierForKrw(top.cost_krw);
-              return (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, margin: "16px 0 2px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <img src={emblemSrc(tier.key)} alt={tier.ko} style={{ width: 46, height: 46, objectFit: "contain", filter: "drop-shadow(0 2px 5px rgba(0,0,0,.25))" }} />
-                    <div>
-                      <div className="kicker" style={{ color: "var(--muted)", fontSize: 10, marginBottom: 2 }}>현재 선두 · <span style={{ color: tier.color }}>{tier.ko}</span></div>
-                      <div className="display" style={{ fontSize: 18, fontWeight: 700 }}>{top.e.nick}</div>
-                    </div>
-                  </div>
-                  <div className="display tnum" style={{ fontSize: 52, fontWeight: 900, color: "var(--terra)", lineHeight: .82, letterSpacing: "-0.03em" }}>
-                    {top.ratio}<span style={{ fontSize: 26 }}>×</span>
-                  </div>
-                </div>
-              );
-            })()}
-            <p style={{ fontSize: 12.5, color: "#7a7064", margin: "14px 0 12px", lineHeight: 1.6 }}>
-              매달 구독료를 API 정가로 환산하면 몇 배를 뽑는지 겨루는 랭킹.
-              Claude Code에서 <b className="display" style={{ color: "var(--terra-deep)" }}>/usage-rank</b> 한 줄이면 등록돼요.
+            <p style={{ fontSize: 13, color: "var(--text)", margin: "16px 0 18px", lineHeight: 1.6 }}>
+              {t("home.lead.a")} {t("home.lead.b1")}
             </p>
-            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-              <Button variant="dark" shape="pill" onClick={() => router.push("/start")}>나도 등록하기 →</Button>
-              <CopyButton text="/usage-rank" accent="var(--terra)" copiedLabel="복사됐어요!">/usage-rank 복사</CopyButton>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", margin: "18px 0 28px" }}>
+              <Button variant="dark" shape="pill" onClick={() => router.push("/start")}>{t("home.cta")}</Button>
             </div>
-            <hr className="hair" style={{ marginTop: 18 }} />
           </div>
         </Section>
 
@@ -76,54 +60,58 @@ export default function Home() {
           const isLive = sel === nowKST;
           return (
             <Section>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span className="kicker" style={{ color: "var(--muted)" }}>월별 순위</span>
-                {isLive && (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "var(--terra)" }}>
-                    <span className="livedot" />LIVE · 진행 중
-                  </span>
-                )}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                  <span className="kicker" style={{ color: "var(--muted)" }}>{t("home.monthRank")}</span>
+                  {isLive && (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "var(--terra)" }}>
+                      <span className="livedot" />{t("home.live")}
+                    </span>
+                  )}
+                </div>
+                <Select className="month-select" value={sel} onChange={(v) => v && setSel(v)} accent="var(--terra)" allowClear={false} options={options} />
               </div>
-              <SegmentedControl value={sel} onChange={setSel} accent="var(--terra)" options={options} />
-              {isLive && <p style={{ fontSize: 11, color: "var(--muted)", margin: "8px 2px 0" }}>이번 달은 진행 중 — <b className="display">/usage-rank</b> 로 언제든 역전 가능 🏃</p>}
+              {isLive && <p style={{ fontSize: 11, color: "var(--muted)", margin: "8px 2px 0" }}>{t("home.liveNote")}</p>}
             </Section>
           );
         })()}
 
         <Section>
-          <div style={{ marginTop: 14 }}>
+          <div style={{ marginTop: 16 }}>
           {loading ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" rounded="lg" />)}
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" rounded="md" />)}
             </div>
           ) : rows.length === 0 ? (
-            <EmptyState icon={<span style={{ fontSize: 34 }}>🏆</span>} message="아직 기록이 없어요. /usage-rank 로 1등 찜하세요!" />
+            <EmptyState icon={<span style={{ fontSize: 30 }}>🏆</span>} message={t("home.empty")} />
           ) : (
-            rows.map((r, i) => {
-              const { tier } = tierForKrw(r.cost_krw);
-              return (
-                <button key={r.e.id} className="rise rankrow" onClick={() => router.push(`/u/${r.e.id}`)}
-                  style={{ animationDelay: `${0.04 * i + 0.08}s`, marginBottom: 10, display: "flex", alignItems: "center", gap: 11, width: "100%", textAlign: "left", cursor: "pointer", background: "#fff", border: "1px solid var(--line)", borderLeft: `4px solid ${tier.color}`, borderRadius: 13, padding: "12px 14px", font: "inherit", color: "inherit" }}>
-                  {/* 순위 */}
-                  <span className="display tnum" style={{ fontSize: i < 3 ? 22 : 16, fontWeight: 900, color: i < 3 ? "var(--ink)" : "var(--muted)", width: 26, textAlign: "center", flex: "none" }}>{i < 3 ? MEDAL[i] : i + 1}</span>
-                  {/* 엠블럼 */}
-                  <img src={emblemSrc(tier.key)} alt={tier.ko} title={tier.ko} style={{ width: 34, height: 34, objectFit: "contain", flex: "none", filter: "drop-shadow(0 1px 3px rgba(0,0,0,.2))" }} />
-                  {/* 닉 + 티어 (가변폭) */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="display" style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 700, fontSize: 16, marginBottom: 3 }}>
-                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.e.nick}</span>
-                      <Badge size="sm">${r.plan}/월</Badge>
+            <div className="ranklist">
+              {rows.map((r, i) => {
+                const { tier } = tierForKrw(r.cost_krw);
+                const tn = tierName(tier, locale);
+                return (
+                  <button key={r.e.id} className="rise rankrow" onClick={() => router.push(`/u/${r.e.id}`)}
+                    style={{ animationDelay: `${0.03 * i + 0.05}s` }}>
+                    {/* 순위 */}
+                    <span className="display tnum" style={{ fontSize: 15, fontWeight: 600, color: i < 3 ? "var(--ink)" : "var(--faint)", width: 20, textAlign: "right", flex: "none" }}>{i + 1}</span>
+                    {/* 티어 색점 */}
+                    <span style={{ width: 7, height: 7, borderRadius: "50%", background: tier.color, flex: "none" }} />
+                    {/* 닉 + 메타 */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="display" style={{ fontWeight: 600, fontSize: 15.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 2 }}>{r.e.nick}</div>
+                      <div className="tnum" style={{ fontSize: 11.5, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {tn.toLowerCase()} · {won(r.cost_krw)} · ${r.plan}{t("common.perMo")}
+                      </div>
                     </div>
-                    <div className="tnum" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", fontSize: 12 }}>
-                      <span className="display" style={{ background: tier.color, color: "#fff", padding: "1px 8px", borderRadius: 999, fontSize: 10.5, fontWeight: 800 }}>{tier.ko}</span>
-                      <span style={{ color: "var(--muted)" }}>{won(r.cost_krw)} · 💬 {r.chats.toLocaleString()} · 🔀 {r.commits.toLocaleString()}</span>
+                    {/* 배율 + 개인 갱신시각 */}
+                    <div style={{ flex: "none", textAlign: "right" }}>
+                      <span className="display tnum" style={{ fontWeight: 600, fontSize: 19, color: "var(--sage)", lineHeight: 1 }}>{r.ratio}<span style={{ fontSize: 12, color: "var(--muted)" }}>×</span></span>
+                      {r.e.updated && <div className="tnum" style={{ fontSize: 9.5, color: "var(--faint)", marginTop: 3 }}>{fmtKST(r.e.updated)}</div>}
                     </div>
-                  </div>
-                  {/* 배율 — 카드 우측 끝 고정 */}
-                  <span className="display tnum" style={{ flex: "none", fontWeight: 900, fontSize: 22, color: "var(--sage)", lineHeight: 1 }}>{r.ratio}<span style={{ fontSize: 13 }}>×</span></span>
-                </button>
-              );
-            })
+                  </button>
+                );
+              })}
+            </div>
           )}
           </div>
         </Section>
@@ -131,12 +119,9 @@ export default function Home() {
         <div style={{ flex: 1 }} />
         <Section>
           <hr className="hair" style={{ margin: "4px 0 12px" }} />
-          <p style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.6 }}>
-            {options.find((o) => o.value === sel)?.label || ""} 본전배율 순위 · 등록은 <b className="display">/usage-rank</b> 명령으로만 · 이름을 누르면 상세 리포트 · 금액은 가상 환산값
+          <p style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.6, paddingBottom: 4 }}>
+            {t("home.footer", { month: options.find((o) => o.value === sel)?.label || "" })}
           </p>
-          <div style={{ marginTop: 12, paddingBottom: 4 }}>
-            <PoweredByKit slug="clauderank" />
-          </div>
         </Section>
       </div>
     </Shell>
