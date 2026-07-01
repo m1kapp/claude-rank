@@ -7,7 +7,7 @@ import { tierForKrw, tierName } from "../lib/tier";
 import { useI18n } from "../lib/i18n";
 
 type MonthStat = { ratio: number; chats: number; commits: number; cost_krw: number; plan: number };
-type Entry = { id: string; nick: string; plan: number; ratio: number; chats: number; commits: number; cost_krw: number; updated?: string; months?: Record<string, MonthStat> };
+type Entry = { id: string; nick: string; plan: number; ratio: number; chats: number; commits: number; cost_krw: number; updated?: string; verified?: boolean; months?: Record<string, MonthStat> };
 
 // 제출 시각 → KST "M/D HH:MM"
 function fmtKST(iso?: string) {
@@ -39,7 +39,9 @@ export default function Home() {
   const rows = entries.filter((e) => e.months?.[sel]).map((e) => {
     const ms = e.months![sel];
     return { e, ratio: ms.ratio, chats: ms.chats, commits: ms.commits, cost_krw: ms.cost_krw, plan: ms.plan };
-  }).filter((r) => !plan || r.plan === plan).sort((a, b) => b.ratio - a.ratio);
+  }).filter((r) => !plan || r.plan === plan)
+    // 검증된 러너(✅) 상단 노출 → 그 안에서 배율순, 그다음 미검증 배율순
+    .sort((a, b) => (b.e.verified ? 1 : 0) - (a.e.verified ? 1 : 0) || b.ratio - a.ratio);
 
 
   return (
@@ -139,7 +141,10 @@ export default function Home() {
                     <span style={{ width: 7, height: 7, borderRadius: "50%", background: tier.color, flex: "none" }} />
                     {/* 닉 + 메타 */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="display" style={{ fontWeight: 600, fontSize: 15.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 2 }}>{r.e.nick}</div>
+                      <div className="display" style={{ display: "flex", alignItems: "center", gap: 5, minWidth: 0, fontWeight: 600, fontSize: 15.5, marginBottom: 2 }}>
+                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.e.nick}</span>
+                        {r.e.verified && <span title={t("home.verified")} aria-label="verified" style={{ flex: "none", fontSize: 11, fontWeight: 800, color: "var(--sage)", display: "inline-flex", alignItems: "center" }}>✓</span>}
+                      </div>
                       <div className="tnum" style={{ fontSize: 11.5, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {tn.toLowerCase()} · {won(r.cost_krw)} · ${r.plan}{t("common.perMo")}
                       </div>

@@ -173,8 +173,11 @@ export default function UserPage() {
               copiedLabel={t("user.shared")}
             />
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "16px 0 12px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "16px 0 12px", flexWrap: "wrap" }}>
             <h1 className="display" style={{ fontWeight: 900, fontSize: 28, letterSpacing: "-0.02em", margin: 0 }}>{entry?.nick || t("common.anon")}</h1>
+            {entry?.verified && (
+              <span title={t("home.verified")} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12, fontWeight: 800, color: "var(--sage)", border: "1px solid var(--sage)", borderRadius: 999, padding: "1px 8px" }}>✓ {t("user.verified")}</span>
+            )}
             <Badge>${entry?.plan || report.plan_usd_per_month}{t("common.perMo")}</Badge>
           </div>
           <hr className="hair" />

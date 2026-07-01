@@ -15,6 +15,7 @@ export type Entry = {
   cost_krw: number;
   months: Record<string, MonthStat>;  // 월별 랭킹용 (모든 기기 합산)
   devices?: number;      // 합산된 기기 수 (기기별 슬롯 개수)
+  verified?: boolean;    // ✅ 검증 뱃지 (어드민이 라이브 ccusage 증명 확인 후 부여) — 읽기 시 스탬핑
   updated: string;       // ISO
 };
 
@@ -81,13 +82,14 @@ export async function removeEntry(id: string): Promise<boolean> {
     const n = await upstash(["HDEL", KEY, id]);
     await upstash(["HDEL", RKEY, id]);
     await upstash(["HDEL", DKEY, id]);   // 기기 슬롯도 정리 (계정 전체 탈퇴)
+    await upstash(["HDEL", VKEY, id]);   // 검증 뱃지도 해제
     return Number(n) > 0;
   } else {
     const db = await readFile();
     const existed = id in db;
     delete db[id];
     await writeFile(db);
-    for (const f of [RFILE, DFILE]) {
+    for (const f of [RFILE, DFILE, VFILE]) {
       try {
         const r = JSON.parse(await fs.readFile(f, "utf8"));
         delete r[id];
@@ -107,15 +109,44 @@ export async function purgeLegacy(): Promise<number> {
 }
 
 export async function all(): Promise<Entry[]> {
+  const verified = await getVerifiedSet();
+  let out: Entry[];
   if (useUpstash) {
     const flat: string[] = (await upstash(["HGETALL", KEY])) || [];
-    const out: Entry[] = [];
+    out = [];
     for (let i = 1; i < flat.length; i += 2) {
       try { out.push(JSON.parse(flat[i])); } catch {}
     }
-    return out;
   } else {
-    return Object.values(await readFile());
+    out = Object.values(await readFile());
+  }
+  // 검증 상태는 별도 저장소에서 읽기 시 스탬핑 (제출로 셀프 검증 불가)
+  return out.map((e) => (verified.has(e.id) ? { ...e, verified: true } : e));
+}
+
+// --- 검증 뱃지 저장 (제출과 완전 분리 · 어드민만 세팅) ---
+const VKEY = "claude-rank:verified";
+const VFILE = path.join(process.cwd(), ".data", "verified.json");
+
+export async function getVerifiedSet(): Promise<Set<string>> {
+  if (useUpstash) {
+    const keys: string[] = (await upstash(["HKEYS", VKEY])) || [];
+    return new Set(keys);
+  } else {
+    try { return new Set(Object.keys(JSON.parse(await fs.readFile(VFILE, "utf8")))); } catch { return new Set(); }
+  }
+}
+
+export async function setVerified(id: string, on: boolean, at: string = new Date().toISOString()): Promise<void> {
+  if (useUpstash) {
+    if (on) await upstash(["HSET", VKEY, id, at]);
+    else await upstash(["HDEL", VKEY, id]);
+  } else {
+    let db: Record<string, string> = {};
+    try { db = JSON.parse(await fs.readFile(VFILE, "utf8")); } catch {}
+    if (on) db[id] = at; else delete db[id];
+    await fs.mkdir(path.dirname(VFILE), { recursive: true });
+    await fs.writeFile(VFILE, JSON.stringify(db));
   }
 }
 

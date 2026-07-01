@@ -31,7 +31,7 @@ export default function StartPage() {
             <Button variant="light" shape="pill" onClick={() => router.push("/")}>{t("common.back")}</Button>
             <div className="kicker" style={{ margin: "16px 0 4px" }}>{t("start.kicker")}</div>
             <h1 className="display" style={{ fontWeight: 900, fontSize: 30, letterSpacing: "-0.02em", margin: "0 0 10px", lineHeight: 1.1 }}>
-              {t("start.h1.l1")}<br />{t("start.h1.l2")}
+              {t("start.h1.l1")} {t("start.h1.l2")}
             </h1>
             <p style={{ fontSize: 13.5, color: "var(--text)", lineHeight: 1.72, margin: 0 }}>
               {t("start.lead.a")} <b className="display" style={{ color: "var(--ink)" }}>/claude-run</b> {t("start.lead.b")}
