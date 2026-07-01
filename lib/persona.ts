@@ -74,7 +74,7 @@ export type Persona = {
   blurb: string;       // 이력서풍 1~2문장
 };
 
-export function persona(a: Agg, locale: Locale): Persona {
+export function persona(a: Agg, locale: Locale, plan = 0): Persona {
   const tot = a.hourly.reduce((x, y) => x + y, 0) || 1;
   const band = (hs: number[]) => hs.reduce((x, h) => x + a.hourly[h], 0) / tot;
   const morning = band([6, 7, 8, 9, 10, 11]);
@@ -97,10 +97,11 @@ export function persona(a: Agg, locale: Locale): Persona {
   else if (big >= small) sessKey = L("마라토너", "Marathoner");
   else sessKey = L("올라운드 플레이어", "Hybrid");
 
-  // 3) 모델 취향
+  // 3) 모델 취향 (비용 비중)
   const mtot = sum(a.models) || 1;
   const opus = Object.entries(a.models).filter(([k]) => k.startsWith("opus")).reduce((x, [, v]) => x + v, 0);
   const opusShare = opus / mtot;
+  const nonOpusShare = 1 - opusShare;
   const distinct = Object.values(a.models).filter((v) => v / mtot >= 0.05).length;
 
   // 4) 주말 성향
@@ -112,8 +113,17 @@ export function persona(a: Agg, locale: Locale): Persona {
 
   // ── 태그 조립 ──
   const tags: Trait[] = [];
-  if (opusShare >= 0.7) tags.push({ icon: "💎", label: L("퀄리티 집착 · Opus", "Quality-first · Opus") });
-  else if (distinct >= 4) tags.push({ icon: "🎛️", label: L("멀티모델 운용", "Multi-model") });
+  // 모델 태그: 고플랜($200)은 Opus가 기본이라 "Opus 위주"는 정보량 0 → 비-디폴트 행동만 라벨링.
+  // (저플랜에선 Opus가 실제 선택이라 태그 유지 — plan 으로 구분)
+  if (distinct >= 4) {
+    tags.push({ icon: "🎛️", label: L("멀티모델 운용", "Multi-model") });
+  } else if (nonOpusShare >= 0.25) {
+    // 비싼 Opus 대신 Haiku/Sonnet을 적재적소 — 비용 비중 25%↑면 저비용 모델을 꽤 씀
+    tags.push({ icon: "⚡", label: L("효율 배분 · 저비용 모델", "Efficient mix · budget models") });
+  } else if (opusShare >= 0.7 && plan > 0 && plan < 200) {
+    tags.push({ icon: "💎", label: L("퀄리티 집착 · Opus", "Quality-first · Opus") });
+  }
+  // 고플랜 순수 Opus → 모델 태그 없음. 캐릭터는 캐시/세션/시간대가 끌고 감.
   if (a.cacheHit >= 90) tags.push({ icon: "♻️", label: L(`캐시 장인 ${Math.round(a.cacheHit)}%`, `Cache master ${Math.round(a.cacheHit)}%`) });
   // 입력(캐시읽기 포함) vs 출력 — 토큰 대 토큰. 캐시읽기는 매 턴 모델이 읽는 입력이라 입력에 합산.
   // 보정: agentic Claude Code는 캐시가 99.9%+, 출력 1당 입력 수백~1,300:1이 흔함 → 양극단만 라벨.

@@ -151,7 +151,7 @@ export default function UserPage() {
 
   const { entry, report } = data;
   const m = report.months[cur] || {};
-  const pf = persona(aggregate({ [cur]: m }), locale);  // 선택된 월만 분석 (누적 X)
+  const pf = persona(aggregate({ [cur]: m }), locale, Number(m.plan_usd) || 0);  // 선택된 월만 분석 (누적 X)
   const s = m.series || {};
   const ef = m.efficiency || {};
   const dCost = Object.entries(s.daily_cost_krw || {}).map(([k, v]) => ({ k, v: v as number }));

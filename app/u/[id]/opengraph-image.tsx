@@ -43,7 +43,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
 
   const totalUsd = Object.values<any>(report.months || {}).reduce((a, m) => a + (Number(m.cost_usd) || 0), 0);
   const { tier } = tierForUsd(totalUsd);
-  const pf = persona(aggregate(report.months || {}), "ko");
+  const pf = persona(aggregate(report.months || {}), "ko", Number(entry.plan) || 0);
   const tags = pf.tags.slice(0, 3);
 
   return new ImageResponse(
