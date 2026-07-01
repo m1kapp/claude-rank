@@ -165,6 +165,10 @@ export default function UserPage() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
             <Button variant="light" shape="pill" onClick={() => router.push("/")}>{t("common.back")}</Button>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <a className="share-pill" href={`/u/${id}/wrapped?m=${cur}`}
+                style={{ display: "inline-flex", alignItems: "center", gap: 5, textDecoration: "none", color: "var(--ink)", border: "1px solid var(--line)", borderRadius: 999, padding: "0 14px", height: 34, fontSize: 13, fontWeight: 600 }}>
+                🎁 {t("user.wrapped")}
+              </a>
               <a className="share-pill" href={`/u/${id}/opengraph-image`} target="_blank" rel="noopener noreferrer"
                 style={{ display: "inline-flex", alignItems: "center", gap: 5, textDecoration: "none", color: "var(--ink)", border: "1px solid var(--line)", borderRadius: 999, padding: "0 14px", height: 34, fontSize: 13, fontWeight: 600 }}>
                 🎴 {t("user.card")}

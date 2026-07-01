@@ -52,6 +52,7 @@ const DICT: Dict = {
   "home.verified": { ko: "검증된 러너 — 라이브 사용량 증명 확인됨", en: "Verified runner — live usage proof confirmed" },
   "user.verified": { ko: "검증됨", en: "Verified" },
   "user.card": { ko: "카드", en: "Card" },
+  "user.wrapped": { ko: "Wrapped", en: "Wrapped" },
   "start.step.add": { ko: "마켓플레이스 등록", en: "Add the marketplace" },
   "start.step.install": { ko: "플러그인 설치", en: "Install the plugin" },
   "start.step.reload": { ko: "플러그인 리로드 (한 번)", en: "Reload plugins (once)" },
