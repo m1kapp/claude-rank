@@ -42,13 +42,22 @@ export default function StartPage() {
 
         <Section>
           <div className="rise" style={{ animationDelay: ".1s" }}>
-            <StepRow n={1} title={t("start.s1.title")} desc={t("start.s1.desc")}>
-              <CodeBlock label="claude code" code={"/plugin marketplace add m1kapp/claude-plugins\n/plugin install claude-run@m1kapp"} accent="var(--terra)" />
-              <p style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 6 }}>{t("start.s1.note.a")} <code>/reload-plugins</code> {t("start.s1.note.b")}</p>
+            <p style={{ fontSize: 12.5, color: "var(--muted)", margin: "0 0 18px", lineHeight: 1.6 }}>{t("start.s1.desc")}</p>
+
+            <StepRow n={1} title={t("start.step.add")}>
+              <CodeBlock label="claude code" code={"/plugin marketplace add m1kapp/claude-plugins"} accent="var(--terra)" />
             </StepRow>
 
-            <StepRow n={2} last title={t("start.s3.title")} desc={t("start.s3.desc")}>
-              <CodeBlock label="run" code={"/claude-run nickname"} accent="var(--terra)" />
+            <StepRow n={2} title={t("start.step.install")}>
+              <CodeBlock label="claude code" code={"/plugin install claude-run@m1kapp"} accent="var(--terra)" />
+            </StepRow>
+
+            <StepRow n={3} title={t("start.step.reload")}>
+              <CodeBlock label="claude code" code={"/reload-plugins"} accent="var(--terra)" />
+            </StepRow>
+
+            <StepRow n={4} last title={t("start.s3.title")} desc={t("start.s3.desc")}>
+              <CodeBlock label="run" code={"/claude-run"} accent="var(--terra)" />
             </StepRow>
           </div>
         </Section>

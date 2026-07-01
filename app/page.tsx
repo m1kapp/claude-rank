@@ -25,7 +25,9 @@ export default function Home() {
 
   const monthSet = new Set<string>();
   entries.forEach((e) => Object.keys(e.months || {}).forEach((m) => monthSet.add(m)));
-  const months = [...monthSet].sort().reverse();
+  // 엔트리가 없어도(빈 상태) 상단 필터를 보이게 — 현재 달을 기본으로 채운다.
+  const nowMonth = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 7);
+  const months = monthSet.size ? [...monthSet].sort().reverse() : [nowMonth];
   const options = months.map((m) => ({ value: m, label: monthLabel(m) }));
   const [selRaw, setSel] = useState("");
   const sel = selRaw || months[0] || "";
@@ -93,7 +95,11 @@ export default function Home() {
                       <Select className="month-select" value={plan} onChange={(v) => setPlan(Number(v) || 0)} accent="var(--terra)" allowClear={false}
                         options={[{ value: 0, label: t("home.plan.all") }, ...plans.map((p) => ({ value: p, label: `${p}m` }))]} />
                     )}
-                    <Select className="month-select" value={sel} onChange={(v) => v && setSel(v)} accent="var(--terra)" allowClear={false} options={options} />
+                    {options.length > 1 ? (
+                      <Select className="month-select" value={sel} onChange={(v) => v && setSel(v)} accent="var(--terra)" allowClear={false} options={options} />
+                    ) : (
+                      <span className="month-chip">{monthLabel(sel || nowMonth)}</span>
+                    )}
                   </div>
                 )}
               </div>
