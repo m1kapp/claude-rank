@@ -44,19 +44,16 @@ export default function StartPage() {
           <div className="rise" style={{ animationDelay: ".1s" }}>
             <p style={{ fontSize: 12.5, color: "var(--muted)", margin: "0 0 18px", lineHeight: 1.6 }}>{t("start.s1.desc")}</p>
 
+            <StepRow n={0} title={t("start.step.remove")} desc={t("start.step.remove.desc")}>
+              <CodeBlock label="claude code" code={"/plugin marketplace remove m1kapp"} accent="var(--terra)" />
+            </StepRow>
+
             <StepRow n={1} title={t("start.step.add")}>
               <CodeBlock label="claude code" code={"/plugin marketplace add m1kapp/claude-plugins"} accent="var(--terra)" />
             </StepRow>
 
             <StepRow n={2} title={t("start.step.install")}>
               <CodeBlock label="claude code" code={"/plugin install claude-run@m1kapp"} accent="var(--terra)" />
-              <p style={{ fontSize: 11.5, color: "var(--muted)", margin: "8px 0 6px", lineHeight: 1.55 }}>{t("start.step.install.fallback")}</p>
-              <CodeBlock label={t("start.reinstall.label")} code={"/plugin marketplace remove m1kapp"} accent="var(--muted)" />
-              <div style={{ height: 6 }} />
-              <CodeBlock label="claude code" code={"/plugin marketplace add m1kapp/claude-plugins"} accent="var(--muted)" />
-              <div style={{ height: 6 }} />
-              <CodeBlock label="claude code" code={"/plugin install claude-run@m1kapp"} accent="var(--muted)" />
-              <p style={{ fontSize: 11, color: "var(--faint)", marginTop: 5 }}>{t("start.reinstall.note")}</p>
             </StepRow>
 
             <StepRow n={3} title={t("start.step.reload")} desc={t("start.step.reload.desc")}>
