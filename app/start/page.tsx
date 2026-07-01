@@ -52,12 +52,12 @@ export default function StartPage() {
               <CodeBlock label="claude code" code={"/plugin install claude-run@m1kapp"} accent="var(--terra)" />
             </StepRow>
 
-            <StepRow n={3} title={t("start.step.reload")}>
+            <StepRow n={3} title={t("start.step.reload")} desc={t("start.step.reload.desc")}>
               <CodeBlock label="claude code" code={"/reload-plugins"} accent="var(--terra)" />
             </StepRow>
 
             <StepRow n={4} last title={t("start.s3.title")} desc={t("start.s3.desc")}>
-              <CodeBlock label="run" code={"/claude-run"} accent="var(--terra)" />
+              <CodeBlock label="run" code={"/claude-run:claude-run"} accent="var(--terra)" />
             </StepRow>
           </div>
         </Section>
@@ -66,7 +66,7 @@ export default function StartPage() {
           <div className="rise" style={{ animationDelay: ".18s", padding: "18px 18px", background: "var(--card)", border: "1px solid var(--line)", borderRadius: 14 }}>
             <div className="kicker" style={{ marginBottom: 12 }}>{t("start.note.title")}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-              {[t("start.note.1"), t("start.note.2"), t("start.note.3"), t("start.note.4"), t("start.note.5")].map((line, i) => (
+              {[t("start.note.6"), t("start.note.1"), t("start.note.2"), t("start.note.3"), t("start.note.4"), t("start.note.5")].map((line, i) => (
                 <div key={i} style={{ display: "flex", gap: 9, fontSize: 13, color: "var(--text)", lineHeight: 1.55 }}>
                   <span style={{ flex: "none", color: "var(--accent)", fontWeight: 700 }}>·</span>
                   <span>{line}</span>
