@@ -32,8 +32,8 @@ export default function Home() {
   const [selRaw, setSel] = useState("");
   const sel = selRaw || months[0] || "";
 
-  // 데이터에 존재하는 플랜들 (내림차순) + 필터 상태 (0 = 전체)
-  const plans = [...new Set(entries.flatMap((e) => Object.values(e.months || {}).map((m: any) => Number(m.plan) || 0)).filter(Boolean))].sort((a, b) => b - a);
+  // 종목(요금제) 필터 — 표준 3종목(200/100/20) 항상 노출 + 데이터에 있는 그 외 플랜 포함
+  const plans = [...new Set([200, 100, 20, ...entries.flatMap((e) => Object.values(e.months || {}).map((m: any) => Number(m.plan) || 0)).filter(Boolean)])].sort((a, b) => b - a);
   const [plan, setPlan] = useState<number>(0);
 
   const rows = entries.filter((e) => e.months?.[sel]).map((e) => {
@@ -93,10 +93,9 @@ export default function Home() {
                   <span className="month-chip">{monthLabel(nowKST)}</span>
                 ) : (
                   <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none" }}>
-                    {plans.length > 1 && (
-                      <Select className="month-select" value={plan} onChange={(v) => setPlan(Number(v) || 0)} accent="var(--terra)" allowClear={false}
-                        options={[{ value: 0, label: t("home.plan.all") }, ...plans.map((p) => ({ value: p, label: `${p}m` }))]} />
-                    )}
+                    {/* 종목(요금제) 필터 — 항상 노출 (월 옆에 200/100/20 선택) */}
+                    <Select className="month-select" value={plan} onChange={(v) => setPlan(Number(v) || 0)} accent="var(--terra)" allowClear={false}
+                      options={[{ value: 0, label: t("home.plan.all") }, ...plans.map((p) => ({ value: p, label: `${p}m` }))]} />
                     {options.length > 1 ? (
                       <Select className="month-select" value={sel} onChange={(v) => v && setSel(v)} accent="var(--terra)" allowClear={false} options={options} />
                     ) : (
