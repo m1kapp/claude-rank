@@ -50,6 +50,9 @@ export default function StartPage() {
 
             <StepRow n={2} title={t("start.step.install")}>
               <CodeBlock label="claude code" code={"/plugin install claude-run@m1kapp"} accent="var(--terra)" />
+              <p style={{ fontSize: 11.5, color: "var(--muted)", margin: "8px 0 6px", lineHeight: 1.55 }}>{t("start.step.install.fallback")}</p>
+              <CodeBlock label={t("start.reinstall.label")} code={"/plugin marketplace remove m1kapp\n/plugin marketplace add m1kapp/claude-plugins\n/plugin install claude-run@m1kapp"} accent="var(--muted)" />
+              <p style={{ fontSize: 11, color: "var(--faint)", marginTop: 5 }}>{t("start.reinstall.note")}</p>
             </StepRow>
 
             <StepRow n={3} title={t("start.step.reload")} desc={t("start.step.reload.desc")}>
