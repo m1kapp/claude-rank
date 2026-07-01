@@ -164,14 +164,20 @@ export default function UserPage() {
         <div className="rise" style={{ paddingTop: 12 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
             <Button variant="light" shape="pill" onClick={() => router.push("/")}>{t("common.back")}</Button>
-            <ShareButton
-              className="share-pill"
-              url={`${typeof window !== "undefined" ? window.location.origin : "https://clauderun.m1k.app"}/u/${id}?m=${cur}`}
-              title="Claude Run"
-              text={t("user.shareText", { month: monthLabel(cur), ratio: m.ratio ?? "" })}
-              label={t("user.share")}
-              copiedLabel={t("user.shared")}
-            />
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <a className="share-pill" href={`/u/${id}/opengraph-image`} target="_blank" rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: 5, textDecoration: "none", color: "var(--ink)", border: "1px solid var(--line)", borderRadius: 999, padding: "0 14px", height: 34, fontSize: 13, fontWeight: 600 }}>
+                🎴 {t("user.card")}
+              </a>
+              <ShareButton
+                className="share-pill"
+                url={`${typeof window !== "undefined" ? window.location.origin : "https://clauderun.m1k.app"}/u/${id}?m=${cur}`}
+                title="Claude Run"
+                text={t("user.shareText", { month: monthLabel(cur), ratio: m.ratio ?? "" })}
+                label={t("user.share")}
+                copiedLabel={t("user.shared")}
+              />
+            </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "16px 0 12px", flexWrap: "wrap" }}>
             <h1 className="display" style={{ fontWeight: 900, fontSize: 28, letterSpacing: "-0.02em", margin: 0 }}>{entry?.nick || t("common.anon")}</h1>

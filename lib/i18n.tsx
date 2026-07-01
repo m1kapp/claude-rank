@@ -51,6 +51,7 @@ const DICT: Dict = {
   "start.s1.desc": { ko: "아래 명령을 위에서부터 하나씩 붙여넣어 실행하세요. 한 번에 몰아서 붙여넣지 말고, 한 줄 끝나면 다음 줄.", en: "Paste each command below one at a time, top to bottom. Don't paste them all at once — finish one, then the next." },
   "home.verified": { ko: "검증된 러너 — 라이브 사용량 증명 확인됨", en: "Verified runner — live usage proof confirmed" },
   "user.verified": { ko: "검증됨", en: "Verified" },
+  "user.card": { ko: "카드", en: "Card" },
   "start.step.add": { ko: "마켓플레이스 등록", en: "Add the marketplace" },
   "start.step.install": { ko: "플러그인 설치", en: "Install the plugin" },
   "start.step.reload": { ko: "플러그인 리로드 (한 번)", en: "Reload plugins (once)" },
