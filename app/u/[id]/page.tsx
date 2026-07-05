@@ -21,12 +21,14 @@ const mcolor = (m: string) => MODEL_COLORS[m] || "#999";
 
 // 원래 리포트 스타일 세로 막대 + 평균선 + (요일축)
 function Bars({ data, color, avg, fmt, wk }: {
-  data: { k: string; v: number; c?: string }[]; color?: string; avg?: boolean; fmt?: (n: number) => string; wk?: boolean;
+  data: { k: string; v: number; c?: string; proj?: boolean }[]; color?: string; avg?: boolean; fmt?: (n: number) => string; wk?: boolean;
 }) {
   const { t, weekdays } = useI18n();
   if (!data.length) return null;
   const max = Math.max(...data.map((d) => d.v)) || 1;
-  const avgv = data.reduce((a, d) => a + d.v, 0) / data.length;
+  const real = data.filter((d) => !d.proj);
+  const avgv = (real.length ? real : data).reduce((a, d) => a + d.v, 0) / (real.length || data.length);
+  const projStart = data.findIndex((d) => d.proj);
   const wlabel = (ds: string) => {
     const wd = (new Date(ds + "T00:00:00").getDay() + 6) % 7;
     const col = wd === 6 ? "#c15f3c" : wd === 5 ? "#6a9bcc" : "var(--faint)";
@@ -35,11 +37,16 @@ function Bars({ data, color, avg, fmt, wk }: {
   return (
     <div style={{ position: "relative", display: "flex", alignItems: "flex-end", gap: 2, height: 120, paddingTop: 6, borderBottom: "2px solid var(--line)", marginBottom: 6 }}>
       {data.map((d, i) => (
-        <div key={i} title={`${d.k} · ${d.v}`} style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", height: "100%" }}>
-          <div style={{ width: "76%", height: `${(d.v / max) * 100}%`, minHeight: d.v ? 1 : 0, background: d.c || color || "#6a9bcc", borderRadius: "3px 3px 0 0" }} />
+        <div key={i} title={`${d.k} · ${d.v}${d.proj ? " (예상)" : ""}`} style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", height: "100%" }}>
+          <div style={{ width: "76%", height: `${(d.v / max) * 100}%`, minHeight: d.v ? 1 : 0, background: d.c || color || "#6a9bcc", borderRadius: "3px 3px 0 0", opacity: d.proj ? 0.3 : 1 }} />
           <div style={{ fontSize: 8, color: "var(--faint)", marginTop: 2, textAlign: "center", lineHeight: 1.25 }}>{wk ? +d.k.slice(8) : d.k}{wk && wlabel(d.k)}</div>
         </div>
       ))}
+      {projStart > 0 && (
+        <div style={{ position: "absolute", top: 0, bottom: 0, left: `${(projStart / data.length) * 100}%`, borderLeft: "1px dashed var(--faint)", opacity: 0.6 }}>
+          <span style={{ position: "absolute", top: -2, left: 3, fontSize: 8, color: "var(--faint)" }}>예상 →</span>
+        </div>
+      )}
       {avg && (
         <div style={{ position: "absolute", left: 0, right: 0, bottom: `${Math.min((avgv / max) * 100, 100)}%`, height: 0, borderTop: "1.5px dashed var(--terra)" }}>
           <span style={{ position: "absolute", right: 0, top: -14, fontSize: 9, fontWeight: 700, color: "var(--terra-deep)", background: "rgba(11,10,12,.85)", padding: "0 4px", borderRadius: 3 }}>{t("common.avg")} {(fmt || ((n) => `${Math.round(n)}`))(avgv)}</span>
@@ -154,7 +161,19 @@ export default function UserPage() {
   const pf = persona(aggregate({ [cur]: m }), locale, Number(m.plan_usd) || 0);  // 선택된 월만 분석 (누적 X)
   const s = m.series || {};
   const ef = m.efficiency || {};
-  const dCost = Object.entries(s.daily_cost_krw || {}).map(([k, v]) => ({ k, v: v as number }));
+  // 일별 정가환산: 현재월이면 남은 날을 평균으로 "예상" 채움 (이대로면 이만큼)
+  const dcRaw = Object.entries(s.daily_cost_krw || {}).map(([k, v]) => ({ k, v: v as number }));
+  let dCost: { k: string; v: number; proj?: boolean }[] = dcRaw;
+  if (cur === nowKST && dcRaw.length) {
+    const [yy, mo] = cur.split("-").map(Number);
+    const daysInMonth = new Date(yy, mo, 0).getDate();
+    const lastDay = Math.max(...dcRaw.map((d) => +d.k.slice(8)));
+    const avgDay = dcRaw.reduce((a, d) => a + d.v, 0) / dcRaw.length;
+    const future = [];
+    for (let dd = lastDay + 1; dd <= daysInMonth; dd++)
+      future.push({ k: `${cur}-${String(dd).padStart(2, "0")}`, v: avgDay, proj: true });
+    dCost = [...dcRaw, ...future];
+  }
   const hourly = Array.from({ length: 24 }, (_, h) => ({ k: String(h), v: (s.hourly || {})[h] || 0, c: h <= 5 ? "#8b6db5" : "#6a9bcc" }));
   const buckets = ["1-5", "6-10", "11-20", "21-50", "50+"].map((k) => ({ k, v: (s.buckets || {})[k] || 0, c: "#d97757" }));
 
