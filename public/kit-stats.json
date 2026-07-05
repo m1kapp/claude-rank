@@ -1,0 +1,95 @@
+{
+  "generatedAt": "2026-07-05T10:21:02.172Z",
+  "kitVersion": "0.0.28",
+  "source": {
+    "dir": "app",
+    "files": 16,
+    "totalLines": 1280,
+    "codeLines": 1114
+  },
+  "kit": {
+    "features": [
+      {
+        "name": "Watermark",
+        "loc": 244,
+        "category": "component"
+      },
+      {
+        "name": "Select",
+        "loc": 109,
+        "category": "component"
+      },
+      {
+        "name": "ToastProvider",
+        "loc": 93,
+        "category": "component"
+      },
+      {
+        "name": "AppShell",
+        "loc": 76,
+        "category": "component"
+      },
+      {
+        "name": "Button",
+        "loc": 61,
+        "category": "component"
+      },
+      {
+        "name": "CodeBlock",
+        "loc": 37,
+        "category": "component"
+      },
+      {
+        "name": "Badge",
+        "loc": 35,
+        "category": "component"
+      },
+      {
+        "name": "Skeleton",
+        "loc": 20,
+        "category": "component"
+      },
+      {
+        "name": "EmptyState",
+        "loc": 19,
+        "category": "component"
+      },
+      {
+        "name": "Section",
+        "loc": 17,
+        "category": "component"
+      },
+      {
+        "name": "StatChip",
+        "loc": 17,
+        "category": "component"
+      },
+      {
+        "name": "Divider",
+        "loc": 3,
+        "category": "component"
+      }
+    ],
+    "savedLines": 731,
+    "savedKB": 29,
+    "savedA4": 9,
+    "savedPercent": 40,
+    "usage": {
+      "component": {
+        "used": 16,
+        "total": 52,
+        "percent": 31
+      },
+      "hook": {
+        "used": 0,
+        "total": 13,
+        "percent": 0
+      },
+      "util": {
+        "used": 1,
+        "total": 22,
+        "percent": 5
+      }
+    }
+  }
+}
