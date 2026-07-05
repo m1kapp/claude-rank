@@ -2,117 +2,189 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { all, getReport } from "../../../lib/store";
-import { aggregate, persona } from "../../../lib/persona";
 import { tierForUsd } from "../../../lib/tier";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Claude Run 카드";
+export const alt = "Claude Run 본전 계산서";
 
-const BG = "#14110f", INK = "#ece8e1", MUTED = "#8a8178", SAGE = "#5fa563", TERRA = "#d97757", LINE = "#2b2622", CARD = "#1c1815";
+// Claude 웜 팔레트
+const BG = "#17120e";
+const TERRA = "#d97757", CLAY = "#e0a58a";
+const SAGE = "#77c98a";
+const GOLD = "#e0b25a";
+const CREAM = "#efe7db", CREAM2 = "#cdbfae", MUTED = "#8a7a6b", FAINT = "#5a4c3e";
+const HAIR = "#342718", LINE = "#3a2d1f";
+
+const won = (n: number) => "₩" + Math.round(n).toLocaleString("ko-KR");
+const fmtRatio = (r: number) => (r >= 20 ? String(Math.round(r)) : r.toFixed(1));
+const planLabel = (p: number) => (p >= 200 ? "$200 MAX 20×" : p >= 100 ? "$100 MAX 5×" : p >= 20 ? "$20 PRO" : `$${p}`);
 
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
   try {
-  const { id } = await params;
-  // 폰트는 assets/fonts 에서 fs로 로드. Vercel 번들 포함은 next.config.js
-  // outputFileTracingIncludes 로 보장.
-  const fontDir = join(process.cwd(), "assets", "fonts");
-  const bold = readFileSync(join(fontDir, "Pretendard-Bold.otf"));
-  const regular = readFileSync(join(fontDir, "Pretendard-Regular.otf"));
-  const fonts = [
-    { name: "Pretendard", data: bold, weight: 700 as const, style: "normal" as const },
-    { name: "Pretendard", data: regular, weight: 400 as const, style: "normal" as const },
-  ];
+    const { id } = await params;
+    const fontDir = join(process.cwd(), "assets", "fonts");
+    const bold = readFileSync(join(fontDir, "Pretendard-Bold.otf"));
+    const regular = readFileSync(join(fontDir, "Pretendard-Regular.otf"));
+    const fonts = [
+      { name: "Pretendard", data: bold, weight: 700 as const, style: "normal" as const },
+      { name: "Pretendard", data: regular, weight: 400 as const, style: "normal" as const },
+    ];
 
-  const entry = (await all()).find((e) => e.id === id);
-  const report = await getReport(id);
+    const entry = (await all()).find((e) => e.id === id);
+    const report = await getReport(id);
 
-  // 데이터 없으면 브랜드 폴백 카드
-  if (!entry || !report) {
+    if (!entry || !report) {
+      return new ImageResponse(
+        (
+          <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: BG, color: CREAM }}>
+            <div style={{ fontSize: 72, fontWeight: 700, display: "flex" }}>🏃 Claude Run</div>
+            <div style={{ fontSize: 28, color: MUTED, marginTop: 12 }}>clauderun.m1k.app</div>
+          </div>
+        ),
+        { ...size, fonts },
+      );
+    }
+
+    // ── 표시 월 결정 (프로필 페이지와 동일: 현재 KST월 우선, 없으면 최신월) ──
+    const kst = new Date(Date.now() + 9 * 3600e3);
+    const nowKST = kst.toISOString().slice(0, 7);
+    const dom = Number(kst.toISOString().slice(8, 10));
+    const monthsSorted = Object.keys(report.months || {}).sort();
+    const cur = monthsSorted.includes(nowKST) ? nowKST : monthsSorted[monthsSorted.length - 1] || "";
+    const m: any = report.months?.[cur] || {};
+
+    const krw = Number(report.currency_krw_per_usd) || 1500;
+    const ratio = Number(m.ratio) || 0;
+    const planUsd = Number(m.plan_usd) || Number(entry.plan) || 0;
+    const sub = planUsd * krw;                      // 구독료(리스트가)
+    const apiKrw = Number(m.cost_krw) || 0;         // API 환산가치
+    const chats = Number(m.chats) || 0;
+    const perChat = chats ? apiKrw / chats : 0;     // 회당 API 비용
+    const profit = apiKrw - sub;                    // 순이득
+    const won0 = ratio >= 1;
+
+    // ── 예상 배율 (현재월 & 월 진행중일 때만) ──
+    const [yy, mm] = nowKST.split("-").map(Number);
+    const daysInMonth = new Date(yy, mm, 0).getDate();
+    const showProj = cur === nowKST && dom > 0 && dom < daysInMonth && ratio > 0;
+    const projRatio = showProj ? (ratio * daysInMonth) / dom : 0;
+    const daysLeft = daysInMonth - dom;
+
+    const totalUsd = Object.values<any>(report.months || {}).reduce((a, x) => a + (Number(x.cost_usd) || 0), 0);
+    const { tier } = tierForUsd(totalUsd);
+    const monLabel = cur ? `${Number(cur.slice(5, 7))}월` : "";
+
     return new ImageResponse(
       (
-        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: BG, color: INK }}>
-          <div style={{ fontSize: 72, fontWeight: 700 }}>🏃 Claude Run</div>
-          <div style={{ fontSize: 28, color: MUTED, marginTop: 12 }}>clauderank.m1k.app</div>
+        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "row", background: BG, color: CREAM, fontFamily: "Pretendard" }}>
+          {/* ── LEFT: 히어로 ── */}
+          <div style={{ width: 476, display: "flex", flexDirection: "column", padding: "50px 44px 44px" }}>
+            <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+              <span style={{ fontSize: 22, display: "flex" }}>🏃</span>
+              <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: 3, color: CREAM2, marginLeft: 10 }}>CLAUDE RUN</span>
+              <span style={{ marginLeft: "auto", fontSize: 15, color: FAINT, letterSpacing: 2 }}>{cur.replace("-", ".")}</span>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", marginTop: "auto", marginBottom: "auto" }}>
+              <span style={{ fontSize: 15, letterSpacing: 6, color: MUTED, marginBottom: 2 }}>본전배율 · {monLabel}</span>
+              <div style={{ display: "flex", alignItems: "flex-start" }}>
+                <span style={{ fontSize: 66, fontWeight: 700, color: CLAY, marginRight: 8, marginTop: 20 }}>×</span>
+                <span style={{ fontSize: 152, fontWeight: 700, color: TERRA, lineHeight: 0.9, letterSpacing: -4 }}>{fmtRatio(ratio)}</span>
+              </div>
+              <div style={{ fontSize: 21, color: CREAM2, marginTop: 14, display: "flex", alignItems: "baseline" }}>
+                {won0 ? (
+                  <div style={{ display: "flex", alignItems: "baseline" }}>낸 돈보다<span style={{ color: TERRA, fontWeight: 700, margin: "0 6px" }}>{fmtRatio(ratio)}배</span>뽑아썼음</div>
+                ) : (
+                  <div style={{ display: "flex", alignItems: "baseline" }}>아직 본전 전 ·<span style={{ color: GOLD, fontWeight: 700, marginLeft: 6 }}>{fmtRatio(ratio)}배</span></div>
+                )}
+              </div>
+
+              {showProj && (
+                <div style={{ display: "flex", alignItems: "center", marginTop: 20, border: `1px dashed #6a5220`, borderRadius: 11, padding: "10px 15px", background: "#20180c" }}>
+                  <span style={{ fontSize: 14, color: MUTED }}>{`${mm}/${dom} · ${daysLeft}일 남음`}</span>
+                  <span style={{ fontSize: 14, color: FAINT, margin: "0 10px" }}>→</span>
+                  <span style={{ fontSize: 14, color: GOLD }}>이대로면</span>
+                  <span style={{ fontSize: 18, color: GOLD, fontWeight: 700, margin: "0 6px" }}>≈×{fmtRatio(projRatio)}</span>
+                  <span style={{ fontSize: 14, color: MUTED }}>예정</span>
+                </div>
+              )}
+
+              <div style={{ display: "flex", marginTop: 18 }}>
+                <div style={{ display: "flex", alignItems: "center", fontSize: 14, fontWeight: 700, color: tier.color, border: `1px solid ${tier.color}55`, background: "#141a20", borderRadius: 999, padding: "8px 15px" }}>
+                  {tier.key.toUpperCase()} · {tier.ko}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", fontSize: 14, fontWeight: 700, color: TERRA, border: `1px solid ${LINE}`, background: "#241812", borderRadius: 999, padding: "8px 15px", marginLeft: 9 }}>
+                  {planLabel(planUsd)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── 퍼포레이션 ── */}
+          <div style={{ display: "flex", width: 0, borderLeft: `2px dashed ${HAIR}`, margin: "34px 0" }} />
+
+          {/* ── RIGHT: 계산서 ── */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "46px 52px 42px 48px" }}>
+            <div style={{ display: "flex", alignItems: "center", width: "100%", fontSize: 13, letterSpacing: 2, color: FAINT, marginBottom: 12 }}>
+              <span>{entry.nick} · 본전 계산서</span>
+              <span style={{ marginLeft: "auto" }}>KRW</span>
+            </div>
+
+            <LedgerRow k="구독료" note="리스트가" v={won(sub)} />
+            <LedgerRow k="API 환산가치" v={won(apiKrw)} />
+            <LedgerRow k="이번 달 채팅" v={`${chats.toLocaleString("ko-KR")} 회`} />
+            <LedgerRow k="채팅 1회당 API 비용" v={won(perChat)} hl />
+
+            <div style={{ display: "flex", borderTop: `1px dashed ${HAIR}`, marginTop: 10 }} />
+
+            <div style={{ display: "flex", alignItems: "baseline", width: "100%", marginTop: 14 }}>
+              <span style={{ fontSize: 21, fontWeight: 700, color: CREAM }}>순이득</span>
+              <span style={{ marginLeft: "auto", fontSize: 38, fontWeight: 700, color: profit >= 0 ? SAGE : GOLD, letterSpacing: -1 }}>
+                {(profit >= 0 ? "+" : "") + won(profit)}
+              </span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", width: "100%", fontSize: 14, color: MUTED, marginTop: 8 }}>
+              <span>누적 ×{fmtRatio(Number(entry.ratio) || 0)} · 전체 {(Number(entry.chats) || 0).toLocaleString("ko-KR")}챗 · 커밋 {Number(entry.commits) || 0}</span>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "flex-end", width: "100%", marginTop: "auto" }}>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontSize: 22, fontWeight: 700, color: CREAM }}>님은 몇 배 뽑음?</span>
+                <span style={{ fontSize: 17, color: TERRA, marginTop: 7 }}>clauderun.m1k.app</span>
+                <span style={{ fontSize: 13, color: FAINT, marginTop: 2 }}>@{entry.nick}</span>
+              </div>
+              <div style={{ display: "flex", marginLeft: "auto", alignItems: "center", fontSize: 15, fontWeight: 700, letterSpacing: 2, color: won0 ? TERRA : GOLD, border: `2px solid ${won0 ? TERRA : GOLD}`, borderRadius: 9, padding: "11px 18px", transform: "rotate(-5deg)" }}>
+                {won0 ? "본전 뽑음" : "본전 전"}
+              </div>
+            </div>
+          </div>
         </div>
       ),
       { ...size, fonts },
     );
-  }
-
-  const totalUsd = Object.values<any>(report.months || {}).reduce((a, m) => a + (Number(m.cost_usd) || 0), 0);
-  const { tier } = tierForUsd(totalUsd);
-  const pf = persona(aggregate(report.months || {}), "ko", Number(entry.plan) || 0);
-  const tags = pf.tags.slice(0, 3);
-
-  return new ImageResponse(
-    (
-      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: BG, color: INK, padding: 64, fontFamily: "Pretendard" }}>
-        {/* 헤더 */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 26, color: MUTED, fontWeight: 700, letterSpacing: 2 }}>
-            <span style={{ color: TERRA }}>🏃</span> CLAUDE RUN
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, background: CARD, border: `2px solid ${tier.color}`, borderRadius: 999, padding: "8px 22px" }}>
-            <span style={{ fontSize: 26, fontWeight: 700, color: tier.color, letterSpacing: 1 }}>{tier.key.toUpperCase()}</span>
-            <span style={{ fontSize: 22, color: MUTED }}>{tier.ko}</span>
-          </div>
-        </div>
-
-        {/* 닉 + 페르소나 */}
-        <div style={{ display: "flex", flexDirection: "column", marginTop: 44 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <span style={{ fontSize: 68, fontWeight: 700, letterSpacing: -1 }}>{entry.nick}</span>
-            {entry.verified && (
-              <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 26, fontWeight: 700, color: SAGE, border: `2px solid ${SAGE}`, borderRadius: 999, padding: "2px 16px" }}>✓ 검증됨</span>
-            )}
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 14, fontSize: 34, color: INK }}>
-            <span>{pf.emoji}</span>
-            <span style={{ fontWeight: 700 }}>{pf.title}</span>
-            <span style={{ fontSize: 26, color: MUTED }}>· {pf.intensity}</span>
-          </div>
-        </div>
-
-        {/* 히어로: 본전배율 */}
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 22, marginTop: "auto" }}>
-          <div style={{ display: "flex", alignItems: "baseline" }}>
-            <span style={{ fontSize: 190, fontWeight: 700, color: SAGE, lineHeight: 0.9, letterSpacing: -4 }}>{entry.ratio}</span>
-            <span style={{ fontSize: 90, fontWeight: 700, color: SAGE }}>×</span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", paddingBottom: 24 }}>
-            <span style={{ fontSize: 30, fontWeight: 700, color: INK }}>본전배율</span>
-            <span style={{ fontSize: 24, color: MUTED }}>${entry.plan}/월 구독 대비 정가 환산</span>
-          </div>
-        </div>
-
-        {/* 태그 + 푸터 */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 34, borderTop: `1px solid ${LINE}`, paddingTop: 28 }}>
-          <div style={{ display: "flex", gap: 10 }}>
-            {tags.map((tg, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 22, color: INK, background: CARD, border: `1px solid ${LINE}`, borderRadius: 999, padding: "8px 18px" }}>
-                <span>{tg.icon}</span>
-                <span>{tg.label}</span>
-              </div>
-            ))}
-          </div>
-          <span style={{ fontSize: 24, color: MUTED }}>clauderank.m1k.app</span>
-        </div>
-      </div>
-    ),
-    { ...size, fonts },
-  );
   } catch {
-    // 어떤 이유로든 실패하면 링크 unfurl이 깨지지 않게 브랜드 폴백 이미지
     return new ImageResponse(
       (
-        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: BG, color: INK }}>
-          <div style={{ fontSize: 72 }}>🏃 Claude Run</div>
-          <div style={{ fontSize: 28, color: MUTED, marginTop: 12 }}>clauderank.m1k.app</div>
+        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: BG, color: CREAM }}>
+          <div style={{ fontSize: 72, display: "flex" }}>🏃 Claude Run</div>
+          <div style={{ fontSize: 28, color: MUTED, marginTop: 12 }}>clauderun.m1k.app</div>
         </div>
       ),
       size,
     );
   }
+}
+
+function LedgerRow({ k, v, note, hl }: { k: string; v: string; note?: string; hl?: boolean }) {
+  return (
+    <div style={{ display: "flex", alignItems: "baseline", width: "100%", padding: "11px 0" }}>
+      <span style={{ fontSize: 19, color: hl ? CREAM2 : MUTED, display: "flex", alignItems: "baseline" }}>
+        {k}
+        {note && <span style={{ fontSize: 13, color: FAINT, marginLeft: 7 }}>{note}</span>}
+      </span>
+      <span style={{ marginLeft: "auto", fontSize: 19, color: hl ? TERRA : CREAM }}>{v}</span>
+    </div>
+  );
 }
