@@ -32,12 +32,12 @@ function Bars({ data, color, avg, fmt, wk }: {
   const wlabel = (ds: string) => {
     const wd = (new Date(ds + "T00:00:00").getDay() + 6) % 7;
     const col = wd === 6 ? "#c15f3c" : wd === 5 ? "#6a9bcc" : "var(--faint)";
-    return <span style={{ display: "block", fontSize: 8, color: col }}>{weekdays[wd]}</span>;
+    return <span style={{ display: "block", fontSize: 8, color: col }}>{weekdays[wd]?.charAt(0)}</span>;
   };
   return (
-    <div style={{ position: "relative", display: "flex", alignItems: "flex-end", gap: 2, height: 120, paddingTop: 6, borderBottom: "2px solid var(--line)", marginBottom: 6 }}>
+    <div style={{ position: "relative", display: "flex", alignItems: "flex-end", gap: 1, height: 120, paddingTop: 6, borderBottom: "2px solid var(--line)", marginBottom: 6 }}>
       {data.map((d, i) => (
-        <div key={i} title={`${d.k} · ${d.v}${d.proj ? " (예상)" : ""}`} style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", height: "100%" }}>
+        <div key={i} title={`${d.k} · ${d.v}${d.proj ? " (예상)" : ""}`} style={{ flex: "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", height: "100%" }}>
           <div style={{ width: "76%", height: `${(d.v / max) * 100}%`, minHeight: d.v ? 1 : 0, background: d.c || color || "#6a9bcc", borderRadius: "3px 3px 0 0", opacity: d.proj ? 0.3 : 1 }} />
           <div style={{ fontSize: 8, color: "var(--faint)", marginTop: 2, textAlign: "center", lineHeight: 1.25 }}>{wk ? +d.k.slice(8) : d.k}{wk && wlabel(d.k)}</div>
         </div>
