@@ -25,7 +25,6 @@ export default function Home() {
   const entries = data?.entries ?? [];
   // 재검증 중엔 기존 화면 유지 + 헤더 로딩바 — 스켈레톤은 첫 로드에만
   const showSkeleton = loading && !data;
-  const refreshing = loading && !!data;
 
   const monthSet = new Set<string>();
   entries.forEach((e) => Object.keys(e.months || {}).forEach((m) => monthSet.add(m)));
@@ -49,7 +48,7 @@ export default function Home() {
 
 
   return (
-    <Shell title={t("title.league")} refreshing={refreshing}>
+    <Shell title={t("title.league")}>
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100%", position: "relative", zIndex: 1 }}>
         {/* 마스트헤드 */}
         <Section>

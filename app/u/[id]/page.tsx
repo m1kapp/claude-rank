@@ -132,7 +132,6 @@ export default function UserPage() {
   const router = useRouter();
   const sp = useSearchParams();
   const { data, loading } = useFetch<{ entry: any; report: any }>(`/api/report/${id}`, { staleTime: 60_000 });
-  const refreshing = loading && !!data;
   const months = data ? Object.keys(data.report.months).sort() : [];
   // 월은 쿼리파람(?m=YYYY-MM). 없으면 이번 달, 그것도 없으면 최신 월.
   const nowKST = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 7);
@@ -194,7 +193,7 @@ export default function UserPage() {
   const buckets = ["1-5", "6-10", "11-20", "21-50", "50+"].map((k) => ({ k, v: (s.buckets || {})[k] || 0, c: "#d97757" }));
 
   return (
-    <Shell title={t("title.report")} refreshing={refreshing}>
+    <Shell title={t("title.report")}>
       <Section>
         <div className="rise" style={{ paddingTop: 12 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>

@@ -27,7 +27,6 @@ export default function WrappedPage() {
   const router = useRouter();
   const sp = useSearchParams();
   const { data, loading } = useFetch<{ entry: any; report: any }>(`/api/report/${id}`, { staleTime: 60_000 });
-  const refreshing = loading && !!data;
   const L = (ko: string, en: string) => (locale === "en" ? en : ko);
   const LX = (ko: React.ReactNode, en: React.ReactNode) => (locale === "en" ? en : ko);
 
@@ -67,7 +66,7 @@ export default function WrappedPage() {
   const shareUrl = `${typeof window !== "undefined" ? window.location.origin : "https://clauderank.m1k.app"}/u/${id}/wrapped?m=${cur}`;
 
   return (
-    <Shell title="Wrapped" refreshing={refreshing}>
+    <Shell title="Wrapped">
       <Section>
         <div className="rise" style={{ paddingTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Button variant="light" shape="pill" onClick={() => router.push(`/u/${id}?m=${cur}`)}>{t("common.back")}</Button>
