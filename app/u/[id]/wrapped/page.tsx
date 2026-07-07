@@ -26,7 +26,8 @@ export default function WrappedPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const sp = useSearchParams();
-  const { data, loading } = useFetch<{ entry: any; report: any }>(`/api/report/${id}`);
+  const { data, loading } = useFetch<{ entry: any; report: any }>(`/api/report/${id}`, { staleTime: 60_000 });
+  const refreshing = loading && !!data;
   const L = (ko: string, en: string) => (locale === "en" ? en : ko);
   const LX = (ko: React.ReactNode, en: React.ReactNode) => (locale === "en" ? en : ko);
 
@@ -35,7 +36,7 @@ export default function WrappedPage() {
   const qm = sp.get("m") || "";
   const cur = months.includes(qm) ? qm : months.includes(nowKST) ? nowKST : months[months.length - 1] || "";
 
-  if (loading) return (
+  if (loading && !data) return (
     <Shell title="Wrapped">
       <Section><div className="rise" style={{ paddingTop: 12, display: "flex", flexDirection: "column", gap: 14 }}>
         <Skeleton className="h-10 w-full" rounded="xl" /><Skeleton className="h-40 w-full" rounded="xl" /><Skeleton className="h-40 w-full" rounded="xl" />
@@ -66,7 +67,7 @@ export default function WrappedPage() {
   const shareUrl = `${typeof window !== "undefined" ? window.location.origin : "https://clauderank.m1k.app"}/u/${id}/wrapped?m=${cur}`;
 
   return (
-    <Shell title="Wrapped">
+    <Shell title="Wrapped" refreshing={refreshing}>
       <Section>
         <div className="rise" style={{ paddingTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Button variant="light" shape="pill" onClick={() => router.push(`/u/${id}?m=${cur}`)}>{t("common.back")}</Button>

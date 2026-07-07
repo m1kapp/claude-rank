@@ -19,9 +19,13 @@ function fmtKST(iso?: string) {
 
 export default function Home() {
   const { t, locale, won, monthLabel } = useI18n();
-  const { data, loading } = useFetch<{ entries: Entry[] }>("/api/leaderboard");
+  // staleTime: 재방문 시 메모리 캐시 즉시 표시, 오래됐을 때만 재요청
+  const { data, loading } = useFetch<{ entries: Entry[] }>("/api/leaderboard", { staleTime: 60_000 });
   const router = useRouter();
   const entries = data?.entries ?? [];
+  // 재검증 중엔 기존 화면 유지 + 헤더 로딩바 — 스켈레톤은 첫 로드에만
+  const showSkeleton = loading && !data;
+  const refreshing = loading && !!data;
 
   const monthSet = new Set<string>();
   entries.forEach((e) => Object.keys(e.months || {}).forEach((m) => monthSet.add(m)));
@@ -45,7 +49,7 @@ export default function Home() {
 
 
   return (
-    <Shell title={t("title.league")}>
+    <Shell title={t("title.league")} refreshing={refreshing}>
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100%", position: "relative", zIndex: 1 }}>
         {/* 마스트헤드 */}
         <Section>
@@ -75,7 +79,7 @@ export default function Home() {
           </div>
         </Section>
 
-        {(loading || months.length > 0) && (() => {
+        {(showSkeleton || months.length > 0) && (() => {
           const nowKST = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 7);
           const isLive = (sel || nowKST) === nowKST;
           return (
@@ -89,7 +93,7 @@ export default function Home() {
                     </span>
                   )}
                 </div>
-                {loading ? (
+                {showSkeleton ? (
                   <span className="month-chip">{monthLabel(nowKST)}</span>
                 ) : (
                   <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none" }}>
@@ -110,7 +114,7 @@ export default function Home() {
 
         <Section>
           <div style={{ marginTop: 16 }}>
-          {loading ? (
+          {showSkeleton ? (
             <div className="ranklist">
               {[0, 1, 2, 3, 4].map((i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 13, padding: "15px 4px", borderBottom: i < 4 ? "1px solid var(--line)" : "0" }}>
@@ -132,7 +136,7 @@ export default function Home() {
                 const { tier } = tierForKrw(r.cost_krw);
                 const tn = tierName(tier, locale);
                 return (
-                  <button key={r.e.id} className="rise rankrow" onClick={() => router.push(`/u/${r.e.id}`)}
+                  <button key={r.e.id} className="rise rankrow" onClick={() => router.push(`/u/${r.e.id}?m=${sel}`)}
                     style={{ animationDelay: `${0.03 * i + 0.05}s` }}>
                     {/* 순위 */}
                     <span className="display tnum" style={{ fontSize: 15, fontWeight: 600, color: i < 3 ? "var(--ink)" : "var(--faint)", width: 20, textAlign: "right", flex: "none" }}>{i + 1}</span>

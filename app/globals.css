@@ -104,3 +104,12 @@ body {
 }
 .rankrow:last-child { border-bottom: 0; }
 .rankrow:hover { background: rgba(255,255,255,.025); }
+
+/* 헤더 하단 스윕 로딩바 — 데이터 재검증 중 표시 (sticky 헤더에 absolute 앵커) */
+.toploader { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; overflow: hidden; pointer-events: none; }
+.toploader::before {
+  content: ""; position: absolute; top: 0; height: 100%; width: 38%;
+  background: linear-gradient(90deg, transparent, var(--terra), transparent);
+  border-radius: 2px; animation: toploaderSweep 1.1s ease-in-out infinite;
+}
+@keyframes toploaderSweep { from { left: -38%; } to { left: 100%; } }

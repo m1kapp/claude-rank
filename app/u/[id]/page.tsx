@@ -57,7 +57,6 @@ function Bars({ data, color, avg, fmt, wk }: {
 }
 const cap = (t: string) => <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 13 }}>{t}</div>;
 const subhead = (txt: string) => <div className="kicker" style={{ color: "var(--muted)", margin: "24px 0 12px" }}>{txt}</div>;
-const series = (o: Record<string, number>, c?: string) => Object.entries(o || {}).map(([k, v]) => ({ k, v: v as number, c }));
 
 // 가성비 티어 배너 (롤 엠블럼 + 10단 사다리)
 function TierBanner({ usd, krwPerUsd }: { usd: number; krwPerUsd: number }) {
@@ -132,14 +131,15 @@ export default function UserPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const sp = useSearchParams();
-  const { data, loading } = useFetch<{ entry: any; report: any }>(`/api/report/${id}`);
+  const { data, loading } = useFetch<{ entry: any; report: any }>(`/api/report/${id}`, { staleTime: 60_000 });
+  const refreshing = loading && !!data;
   const months = data ? Object.keys(data.report.months).sort() : [];
   // 월은 쿼리파람(?m=YYYY-MM). 없으면 이번 달, 그것도 없으면 최신 월.
   const nowKST = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 7);
   const qm = sp.get("m") || "";
   const cur = months.includes(qm) ? qm : months.includes(nowKST) ? nowKST : months[months.length - 1] || "";
 
-  if (loading) return (
+  if (loading && !data) return (
     <Shell title={t("common.report")}>
       <Section>
         <div className="rise" style={{ paddingTop: 12, display: "flex", flexDirection: "column", gap: 14 }}>
@@ -161,8 +161,24 @@ export default function UserPage() {
   const pf = persona(aggregate({ [cur]: m }), locale, Number(m.plan_usd) || 0);  // 선택된 월만 분석 (누적 X)
   const s = m.series || {};
   const ef = m.efficiency || {};
+  // 안 쓴 날도 0으로 채워 달력처럼 연속 표시 — 첫 기록 월은 첫 기록일부터, 이후 월은 1일부터, 현재월은 오늘(KST)까지
+  const todayKST = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+  const fillDays = (o: Record<string, number>, c?: string) => {
+    const keys = Object.keys(o || {}).sort();
+    if (!keys.length) return [];
+    const [yy, mo] = cur.split("-").map(Number);
+    const daysInMonth = new Date(yy, mo, 0).getDate();
+    const start = cur === months[0] ? +keys[0].slice(8) : 1;
+    const end = cur === nowKST ? Math.min(+todayKST.slice(8), daysInMonth) : daysInMonth;
+    const out: { k: string; v: number; c?: string }[] = [];
+    for (let dd = start; dd <= Math.max(end, +keys[keys.length - 1].slice(8)); dd++) {
+      const k = `${cur}-${String(dd).padStart(2, "0")}`;
+      out.push({ k, v: (o[k] as number) || 0, c });
+    }
+    return out;
+  };
   // 일별 정가환산: 현재월이면 남은 날을 평균으로 "예상" 채움 (이대로면 이만큼)
-  const dcRaw = Object.entries(s.daily_cost_krw || {}).map(([k, v]) => ({ k, v: v as number }));
+  const dcRaw = fillDays(s.daily_cost_krw);
   let dCost: { k: string; v: number; proj?: boolean }[] = dcRaw;
   if (cur === nowKST && dcRaw.length) {
     const [yy, mo] = cur.split("-").map(Number);
@@ -178,7 +194,7 @@ export default function UserPage() {
   const buckets = ["1-5", "6-10", "11-20", "21-50", "50+"].map((k) => ({ k, v: (s.buckets || {})[k] || 0, c: "#d97757" }));
 
   return (
-    <Shell title={t("title.report")}>
+    <Shell title={t("title.report")} refreshing={refreshing}>
       <Section>
         <div className="rise" style={{ paddingTop: 12 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
@@ -286,7 +302,7 @@ export default function UserPage() {
         {/* 토글 없이 쭉 분석 */}
         {subhead(t("user.seg.day"))}
         <div style={{ display: "flex", gap: 8, marginBottom: 12 }}><StatChip label={t("user.day.activeDays")} value={m.active_days} /><StatChip label={t("user.day.perDay")} value={Math.round(m.per_day)} /></div>
-        <Bars data={series(s.daily_chats, "#6a9bcc")} avg wk />{cap(t("user.day.cap"))}
+        <Bars data={fillDays(s.daily_chats, "#6a9bcc")} avg wk />{cap(t("user.day.cap"))}
 
         {subhead(t("user.seg.sess"))}
         <div style={{ display: "flex", gap: 8, marginBottom: 12 }}><StatChip label={t("user.sess.sessions")} value={m.sessions} /><StatChip label={t("user.sess.perSession")} value={Math.round(m.per_session)} /><StatChip label={t("user.sess.max")} value={m.max_session} /></div>
@@ -300,7 +316,7 @@ export default function UserPage() {
 
         {subhead(t("user.seg.commit"))}
         <div style={{ display: "flex", gap: 8, marginBottom: 12 }}><StatChip label={t("user.commit.commit")} value={m.git?.commit || 0} /><StatChip label={t("user.commit.push")} value={m.git?.push || 0} /></div>
-        <Bars data={series(s.daily_commits, "#5fa563")} avg wk />{cap(t("user.commit.cap"))}
+        <Bars data={fillDays(s.daily_commits, "#5fa563")} avg wk />{cap(t("user.commit.cap"))}
       </Section>
     </Shell>
   );
