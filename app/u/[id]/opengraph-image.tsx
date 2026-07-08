@@ -17,6 +17,9 @@ const GOLD = "#e0b25a";
 const CREAM = "#efe7db", CREAM2 = "#cdbfae", MUTED = "#8a7a6b", FAINT = "#5a4c3e";
 const HAIR = "#342718", LINE = "#3a2d1f";
 
+// ImageResponse 기본값이 max-age=31536000 immutable — 데이터 갱신 반영되게 짧은 CDN 캐시로 교체
+const OG_HEADERS = { "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=600" };
+
 const won = (n: number) => "₩" + Math.round(n).toLocaleString("ko-KR");
 const fmtRatio = (r: number) => (r >= 20 ? String(Math.round(r)) : r.toFixed(1));
 const planLabel = (p: number) => (p >= 200 ? "$200 MAX 20×" : p >= 100 ? "$100 MAX 5×" : p >= 20 ? "$20 PRO" : `$${p}`);
@@ -43,7 +46,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             <div style={{ fontSize: 28, color: MUTED, marginTop: 12 }}>clauderun.m1k.app</div>
           </div>
         ),
-        { ...size, fonts },
+        { ...size, fonts, headers: OG_HEADERS },
       );
     }
 
@@ -162,7 +165,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           </div>
         </div>
       ),
-      { ...size, fonts },
+      { ...size, fonts, headers: OG_HEADERS },
     );
   } catch {
     return new ImageResponse(
@@ -172,7 +175,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           <div style={{ fontSize: 28, color: MUTED, marginTop: 12 }}>clauderun.m1k.app</div>
         </div>
       ),
-      size,
+      { ...size, headers: OG_HEADERS },
     );
   }
 }

@@ -1,11 +1,24 @@
 {
-  "generatedAt": "2026-07-05T10:21:02.172Z",
-  "kitVersion": "0.0.28",
+  "generatedAt": "2026-07-08T12:23:43.735Z",
+  "kitVersion": "0.0.30",
   "source": {
     "dir": "app",
     "files": 16,
-    "totalLines": 1280,
-    "codeLines": 1114
+    "totalLines": 1300,
+    "codeLines": 1131
+  },
+  "quality": {
+    "score": 61,
+    "grade": "C",
+    "branchDensity": 27,
+    "branches": 305,
+    "functions": 106,
+    "avgFileLines": 71,
+    "longFiles": 1,
+    "maxFile": {
+      "path": "app/u/[id]/page.tsx",
+      "lines": 295
+    }
   },
   "kit": {
     "features": [
@@ -27,6 +40,11 @@
       {
         "name": "AppShell",
         "loc": 76,
+        "category": "component"
+      },
+      {
+        "name": "FetchProgress",
+        "loc": 75,
         "category": "component"
       },
       {
@@ -55,6 +73,11 @@
         "category": "component"
       },
       {
+        "name": "Divider",
+        "loc": 18,
+        "category": "component"
+      },
+      {
         "name": "Section",
         "loc": 17,
         "category": "component"
@@ -63,22 +86,17 @@
         "name": "StatChip",
         "loc": 17,
         "category": "component"
-      },
-      {
-        "name": "Divider",
-        "loc": 3,
-        "category": "component"
       }
     ],
-    "savedLines": 731,
-    "savedKB": 29,
-    "savedA4": 9,
-    "savedPercent": 40,
+    "savedLines": 821,
+    "savedKB": 32,
+    "savedA4": 10,
+    "savedPercent": 42,
     "usage": {
       "component": {
-        "used": 16,
-        "total": 52,
-        "percent": 31
+        "used": 17,
+        "total": 57,
+        "percent": 30
       },
       "hook": {
         "used": 0,
@@ -87,8 +105,8 @@
       },
       "util": {
         "used": 1,
-        "total": 22,
-        "percent": 5
+        "total": 23,
+        "percent": 4
       }
     }
   }
