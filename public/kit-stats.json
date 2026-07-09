@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-07-09T06:36:18.110Z",
-  "kitVersion": "0.0.30",
+  "generatedAt": "2026-07-09T06:51:57.123Z",
+  "kitVersion": "0.0.31",
   "source": {
     "dir": "",
     "files": 25,
@@ -157,7 +157,7 @@
     "features": [
       {
         "name": "Watermark",
-        "loc": 244,
+        "loc": 189,
         "category": "component"
       },
       {
@@ -221,15 +221,15 @@
         "category": "component"
       }
     ],
-    "savedLines": 821,
-    "savedKB": 32,
+    "savedLines": 766,
+    "savedKB": 30,
     "savedA4": 10,
-    "savedPercent": 30,
+    "savedPercent": 29,
     "usage": {
       "component": {
         "used": 17,
-        "total": 57,
-        "percent": 30
+        "total": 59,
+        "percent": 29
       },
       "hook": {
         "used": 0,
@@ -238,7 +238,7 @@
       },
       "util": {
         "used": 1,
-        "total": 23,
+        "total": 26,
         "percent": 4
       }
     }
