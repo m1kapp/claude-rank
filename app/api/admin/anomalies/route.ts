@@ -6,6 +6,24 @@ import { all, getReport } from "../../../../lib/store";
 // 하드 증거는 아님 — 검증(라이브 ccusage) 대상을 좁히는 후보 리스트.
 type Flag = { key: string; detail: string };
 
+// ④ 시간대 분포 검사 (모든 월 합산) — 균일하거나 한 시간대에 몰리면 조작 의심
+function hourlyFlag(report: any): Flag | null {
+  const hourly = Array(24).fill(0);
+  for (const m of Object.values<any>(report?.months || {})) {
+    const h = (m.series && m.series.hourly) || {};
+    for (let i = 0; i < 24; i++) hourly[i] += Number(h[i]) || 0;
+  }
+  const htot = hourly.reduce((a, b) => a + b, 0);
+  if (htot < 100) return null;
+  const mean = htot / 24;
+  const sd = Math.sqrt(hourly.reduce((a, v) => a + (v - mean) ** 2, 0) / 24);
+  const cv = mean ? sd / mean : 0;
+  const peak = Math.max(...hourly);
+  if (cv < 0.4) return { key: "flat_hourly", detail: `시간대 균일(CV ${cv.toFixed(2)}) — 조작 의심` };
+  if (peak / htot > 0.9) return { key: "single_hour", detail: `한 시간대에 ${Math.round((peak / htot) * 100)}% 몰림` };
+  return null;
+}
+
 function flagsFor(e: any, report: any): Flag[] {
   const f: Flag[] = [];
   const cost = Number(e.cost_krw) || 0;
@@ -21,21 +39,8 @@ function flagsFor(e: any, report: any): Flag[] {
   const perDay = days ? cost / days : cost;
   if (perDay >= 3_000_000) f.push({ key: "high_per_day", detail: `일평균 ${Math.round(perDay / 10000)}만원` });
 
-  // ④ 시간대 분포 검사 (모든 월 합산)
-  const hourly = Array(24).fill(0);
-  for (const m of Object.values<any>(report?.months || {})) {
-    const h = (m.series && m.series.hourly) || {};
-    for (let i = 0; i < 24; i++) hourly[i] += Number(h[i]) || 0;
-  }
-  const htot = hourly.reduce((a, b) => a + b, 0);
-  if (htot >= 100) {
-    const mean = htot / 24;
-    const sd = Math.sqrt(hourly.reduce((a, v) => a + (v - mean) ** 2, 0) / 24);
-    const cv = mean ? sd / mean : 0;
-    const peak = Math.max(...hourly);
-    if (cv < 0.4) f.push({ key: "flat_hourly", detail: `시간대 균일(CV ${cv.toFixed(2)}) — 조작 의심` });
-    else if (peak / htot > 0.9) f.push({ key: "single_hour", detail: `한 시간대에 ${Math.round((peak / htot) * 100)}% 몰림` });
-  }
+  const hf = hourlyFlag(report);
+  if (hf) f.push(hf);
 
   // ⑤ 세션당 채팅이 비상식적 (봇/스크립트)
   if (chats > 0 && days > 0 && chats / days > 2000) f.push({ key: "insane_chats_per_day", detail: `일평균 ${Math.round(chats / days)}채팅` });
