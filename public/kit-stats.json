@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-09T01:18:05.445Z",
+  "generatedAt": "2026-07-09T02:24:39.464Z",
   "kitVersion": "0.0.30",
   "source": {
     "dir": "",
@@ -22,8 +22,49 @@
     }
   },
   "quality": {
-    "score": 51,
+    "engine": "ast",
+    "score": 20,
     "grade": "D",
+    "cc": {
+      "functions": 165,
+      "avg": 3.9,
+      "p90": 7,
+      "max": 44,
+      "over10": 11,
+      "over20": 8,
+      "worst": [
+        {
+          "name": "persona",
+          "cc": 44,
+          "file": "lib/persona.ts",
+          "line": 77
+        },
+        {
+          "name": "aggregate",
+          "cc": 39,
+          "file": "lib/persona.ts",
+          "line": 24
+        },
+        {
+          "name": "WrappedPage",
+          "cc": 38,
+          "file": "app/u/[id]/wrapped/page.tsx",
+          "line": 24
+        },
+        {
+          "name": "Image",
+          "cc": 31,
+          "file": "app/u/[id]/opengraph-image.tsx",
+          "line": 27
+        },
+        {
+          "name": "(anonymous)",
+          "cc": 30,
+          "file": "app/api/submit/route.ts",
+          "line": 44
+        }
+      ]
+    },
     "branchDensity": 28.9,
     "branches": 509,
     "functions": 171,
