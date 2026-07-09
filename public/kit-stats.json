@@ -1,78 +1,78 @@
 {
-  "generatedAt": "2026-07-09T06:13:19.111Z",
+  "generatedAt": "2026-07-09T06:36:18.110Z",
   "kitVersion": "0.0.30",
   "source": {
     "dir": "",
-    "files": 21,
-    "totalLines": 2061,
-    "codeLines": 1759,
+    "files": 25,
+    "totalLines": 2266,
+    "codeLines": 1905,
     "breakdown": {
       "frontend": {
-        "files": 9,
-        "codeLines": 1107
+        "files": 10,
+        "codeLines": 1155
       },
       "backend": {
         "files": 8,
-        "codeLines": 197
+        "codeLines": 211
       },
       "shared": {
-        "files": 4,
-        "codeLines": 455
+        "files": 7,
+        "codeLines": 539
       }
     }
   },
   "quality": {
     "engine": "ast2",
-    "score": 43,
-    "grade": "D",
+    "score": 100,
+    "grade": "A+",
     "cognitive": {
-      "avg": 3.2,
-      "p90": 7,
-      "max": 50,
-      "over15": 9,
-      "over25": 8,
+      "avg": 2.2,
+      "p90": 6,
+      "max": 14,
+      "over15": 0,
+      "over25": 0,
       "worst": [
         {
-          "name": "persona",
-          "cog": 50,
-          "cc": 44,
-          "file": "lib/persona.ts",
-          "line": 77
+          "name": "cardData",
+          "cog": 14,
+          "cc": 18,
+          "file": "app/u/[id]/opengraph-image.tsx",
+          "line": 51
         },
         {
-          "name": "aggregate",
-          "cog": 43,
-          "cc": 39,
-          "file": "lib/persona.ts",
-          "line": 24
+          "name": "flagsFor",
+          "cog": 13,
+          "cc": 16,
+          "file": "app/api/admin/anomalies/route.ts",
+          "line": 27
         },
         {
-          "name": "WrappedPage",
-          "cog": 38,
-          "cc": 38,
-          "file": "app/u/[id]/wrapped/page.tsx",
-          "line": 24
-        },
-        {
-          "name": "(anonymous)",
-          "cog": 31,
-          "cc": 30,
+          "name": "monthsValidationError",
+          "cog": 13,
+          "cc": 13,
           "file": "app/api/submit/route.ts",
-          "line": 44
+          "line": 61
         },
         {
-          "name": "mergeReports",
-          "cog": 30,
-          "cc": 25,
-          "file": "lib/store.ts",
-          "line": 239
+          "name": "Image",
+          "cog": 13,
+          "cc": 14,
+          "file": "app/u/[id]/opengraph-image.tsx",
+          "line": 85
+        },
+        {
+          "name": "hourlyFlag",
+          "cog": 11,
+          "cc": 11,
+          "file": "app/api/admin/anomalies/route.ts",
+          "line": 10
         }
       ]
     },
     "duplication": {
-      "percent": 2.2,
+      "percent": 1.6,
       "dupTokens": 241,
-      "totalTokens": 10777,
+      "totalTokens": 14975,
       "blocks": 24,
       "worstFiles": [
         {
@@ -104,53 +104,53 @@
       ]
     },
     "cc": {
-      "functions": 165,
-      "avg": 3.9,
+      "functions": 218,
+      "avg": 3.1,
       "p90": 7,
-      "max": 44,
-      "over10": 11,
-      "over20": 8,
+      "max": 18,
+      "over10": 8,
+      "over20": 0,
       "worst": [
         {
-          "name": "persona",
-          "cc": 44,
-          "file": "lib/persona.ts",
-          "line": 77
-        },
-        {
-          "name": "aggregate",
-          "cc": 39,
-          "file": "lib/persona.ts",
-          "line": 24
-        },
-        {
-          "name": "WrappedPage",
-          "cc": 38,
-          "file": "app/u/[id]/wrapped/page.tsx",
-          "line": 24
-        },
-        {
-          "name": "Image",
-          "cc": 31,
+          "name": "cardData",
+          "cc": 18,
           "file": "app/u/[id]/opengraph-image.tsx",
+          "line": 51
+        },
+        {
+          "name": "flagsFor",
+          "cc": 16,
+          "file": "app/api/admin/anomalies/route.ts",
           "line": 27
         },
         {
-          "name": "(anonymous)",
-          "cc": 30,
+          "name": "Image",
+          "cc": 14,
+          "file": "app/u/[id]/opengraph-image.tsx",
+          "line": 85
+        },
+        {
+          "name": "monthsValidationError",
+          "cc": 13,
           "file": "app/api/submit/route.ts",
-          "line": 44
+          "line": 61
+        },
+        {
+          "name": "(anonymous)",
+          "cc": 12,
+          "file": "app/api/submit/route.ts",
+          "line": 82
         }
       ]
     },
-    "branchDensity": 28.9,
-    "branches": 509,
-    "functions": 171,
-    "avgFileLines": 84,
-    "longFiles": 2,
+    "branchDensity": 24.5,
+    "branches": 466,
+    "functions": 225,
+    "avgFileLines": 76,
+    "longFiles": 0,
     "maxFile": {
-      "path": "app/u/[id]/page.tsx",
-      "lines": 295
+      "path": "app/u/[id]/wrapped/page.tsx",
+      "lines": 191
     }
   },
   "kit": {
@@ -224,7 +224,7 @@
     "savedLines": 821,
     "savedKB": 32,
     "savedA4": 10,
-    "savedPercent": 32,
+    "savedPercent": 30,
     "usage": {
       "component": {
         "used": 17,
