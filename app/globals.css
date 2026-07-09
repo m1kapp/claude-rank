@@ -22,7 +22,9 @@
   --text-soft: var(--text);
   --card: rgba(255,255,255,.035);
 
-  --shell-h: 100dvh;
+  /* 100dvh 그대로면 AppShell이 뷰포트 전체를 차지해 Watermark의 powered-by
+     푸터 바가 들어갈 여백이 0이 돼 화면에서 사라짐 — 살짝 줄여 여백 확보 */
+  --shell-h: calc(100dvh - 32px);
   --display: "Fraunces", "Pretendard Variable", "Pretendard", Georgia, serif;
 }
 
