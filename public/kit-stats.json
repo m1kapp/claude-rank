@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-09T02:24:39.464Z",
+  "generatedAt": "2026-07-09T06:13:19.111Z",
   "kitVersion": "0.0.30",
   "source": {
     "dir": "",
@@ -22,9 +22,87 @@
     }
   },
   "quality": {
-    "engine": "ast",
-    "score": 20,
+    "engine": "ast2",
+    "score": 43,
     "grade": "D",
+    "cognitive": {
+      "avg": 3.2,
+      "p90": 7,
+      "max": 50,
+      "over15": 9,
+      "over25": 8,
+      "worst": [
+        {
+          "name": "persona",
+          "cog": 50,
+          "cc": 44,
+          "file": "lib/persona.ts",
+          "line": 77
+        },
+        {
+          "name": "aggregate",
+          "cog": 43,
+          "cc": 39,
+          "file": "lib/persona.ts",
+          "line": 24
+        },
+        {
+          "name": "WrappedPage",
+          "cog": 38,
+          "cc": 38,
+          "file": "app/u/[id]/wrapped/page.tsx",
+          "line": 24
+        },
+        {
+          "name": "(anonymous)",
+          "cog": 31,
+          "cc": 30,
+          "file": "app/api/submit/route.ts",
+          "line": 44
+        },
+        {
+          "name": "mergeReports",
+          "cog": 30,
+          "cc": 25,
+          "file": "lib/store.ts",
+          "line": 239
+        }
+      ]
+    },
+    "duplication": {
+      "percent": 2.2,
+      "dupTokens": 241,
+      "totalTokens": 10777,
+      "blocks": 24,
+      "worstFiles": [
+        {
+          "file": "app/api/admin/verify/route.ts",
+          "dupTokens": 119
+        },
+        {
+          "file": "app/api/admin/purge/route.ts",
+          "dupTokens": 72
+        },
+        {
+          "file": "app/api/remove/route.ts",
+          "dupTokens": 50
+        }
+      ],
+      "worstBlocks": [
+        [
+          "app/api/admin/purge/route.ts:6",
+          "app/api/admin/verify/route.ts:7"
+        ],
+        [
+          "app/api/admin/purge/route.ts:6",
+          "app/api/admin/verify/route.ts:7"
+        ],
+        [
+          "app/api/admin/purge/route.ts:6",
+          "app/api/admin/verify/route.ts:7"
+        ]
+      ]
+    },
     "cc": {
       "functions": 165,
       "avg": 3.9,
