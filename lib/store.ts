@@ -28,6 +28,9 @@ const FILE = dataFile("db.json");
 // 닉 정규화 키 (대소문자·앞뒤공백·유니코드 정규화 무시)
 const nickKey = (s: string) => (s || "").normalize("NFKC").trim().toLowerCase();
 
+// 깨진 JSON은 null로 (파싱 실패를 삼켜 호출부 분기를 단순하게 유지)
+const safeParse = (s: string): any => { try { return JSON.parse(s); } catch { return null; } };
+
 // HGETALL 평면 배열에서, 같은 닉을 쓰는 다른 id 목록을 찾는다.
 function dupNickIds(flat: string[], selfId: string, want: string): string[] {
   const dups: string[] = [];
@@ -63,35 +66,60 @@ export async function upsert(e: Entry) {
   }
 }
 
+// JSON 파일 하나를 한 번만 읽어 여러 id를 지우고 한 번만 쓴다.
+// (id마다 파일을 다시 읽지 않으므로 루프 밖에서 호출하면 파일 접근은 파일당 1회)
+async function deleteKeysFromFile(file: string, ids: string[]) {
+  try {
+    const r = JSON.parse(await fs.readFile(file, "utf8"));
+    for (const id of ids) delete r[id];
+    await fs.writeFile(file, JSON.stringify(r));
+  } catch {}
+}
+
+// upstash 부수 저장소(리포트·기기·검증)에서 id들을 한 번에 지운다.
+async function upstashPurge(ids: string[]) {
+  await upstash(["HDEL", RKEY, ...ids]);   // 고아 리포트
+  await upstash(["HDEL", DKEY, ...ids]);   // 기기 슬롯 (계정 전체 탈퇴)
+  await upstash(["HDEL", VKEY, ...ids]);   // 검증 뱃지 해제
+}
+
+// 파일 폴백 부수 저장소(리포트·기기·검증)에서 id들을 한 번에 지운다.
+async function filePurge(ids: string[]) {
+  await deleteKeysFromFile(RFILE, ids);
+  await deleteKeysFromFile(DFILE, ids);
+  await deleteKeysFromFile(VFILE, ids);
+}
+
 // 본인 엔트리 삭제 (claude_ id 는 본인 ~/.claude.json 에서만 나오므로 self-auth)
 export async function removeEntry(id: string): Promise<boolean> {
   if (useUpstash) {
     const n = await upstash(["HDEL", KEY, id]);
-    await upstash(["HDEL", RKEY, id]);
-    await upstash(["HDEL", DKEY, id]);   // 기기 슬롯도 정리 (계정 전체 탈퇴)
-    await upstash(["HDEL", VKEY, id]);   // 검증 뱃지도 해제
+    await upstashPurge([id]);
     return Number(n) > 0;
-  } else {
-    const db = await readJson<Record<string, Entry>>(FILE, {});
-    const existed = id in db;
-    delete db[id];
-    await writeJson(FILE, db, 2);
-    for (const f of [RFILE, DFILE, VFILE]) {
-      try {
-        const r = JSON.parse(await fs.readFile(f, "utf8"));
-        delete r[id];
-        await fs.writeFile(f, JSON.stringify(r));
-      } catch {}
-    }
-    return existed;
   }
+  const db = await readJson<Record<string, Entry>>(FILE, {});
+  const existed = id in db;
+  delete db[id];
+  await writeJson(FILE, db, 2);
+  await filePurge([id]);
+  return existed;
 }
 
 // 레거시(비-claude_ 신원) 엔트리 일괄 제거 — 옛 랜덤UUID/시드 정리용. 제거 개수 반환.
+// id마다 removeEntry를 돌리면 저장소를 id 수만큼 다시 읽으므로, 한 번에 배치 삭제한다.
 export async function purgeLegacy(): Promise<number> {
   const list = await all();
   const legacy = list.filter((e) => !/^claude_[0-9a-f]{32}$/.test(e.id)).map((e) => e.id);
-  for (const id of legacy) await removeEntry(id);
+  if (!legacy.length) return 0;
+  if (useUpstash) {
+    await upstash(["HDEL", KEY, ...legacy]);
+    await upstashPurge(legacy);
+  } else {
+    const db = await readJson<Record<string, Entry>>(FILE, {});
+    for (const id of legacy) delete db[id];
+    await writeJson(FILE, db, 2);
+    await filePurge(legacy);
+  }
   return legacy.length;
 }
 
@@ -156,4 +184,28 @@ export async function getReport(id: string): Promise<any | null> {
   } else {
     return (await readJson<Record<string, any>>(RFILE, {}))[id] ?? null;
   }
+}
+
+async function reportsFromUpstash(want: Set<string>): Promise<Record<string, any>> {
+  const out: Record<string, any> = {};
+  const flat: string[] = (await upstash(["HGETALL", RKEY])) || [];
+  for (let i = 0; i + 1 < flat.length; i += 2) {
+    if (!want.has(flat[i])) continue;
+    out[flat[i]] = safeParse(flat[i + 1]);
+  }
+  return out;
+}
+
+function reportsFromFile(db: Record<string, any>, ids: string[]): Record<string, any> {
+  const out: Record<string, any> = {};
+  for (const id of ids) if (id in db) out[id] = db[id];
+  return out;
+}
+
+// 여러 id의 리포트를 저장소 접근 1번으로 모아온다. id마다 getReport를 부르면
+// 파일/HGET을 id 수만큼 반복하므로, 루프 전에 이걸로 한 번에 읽어 인덱싱한다.
+export async function getReports(ids: string[]): Promise<Record<string, any>> {
+  if (!ids.length) return {};
+  if (useUpstash) return reportsFromUpstash(new Set(ids));
+  return reportsFromFile(await readJson<Record<string, any>>(RFILE, {}), ids);
 }

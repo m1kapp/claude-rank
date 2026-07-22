@@ -1,5 +1,5 @@
 import { handler, ok, badRequest } from "@m1kapp/kit/server";
-import { all, getReport } from "../../../../lib/store";
+import { all, getReports } from "../../../../lib/store";
 
 // 위조 의심 이상탐지 (어드민). body: { secret, limit? }
 // 상위 배율 제출들의 리포트 시계열을 뜯어 "사람이 실제로 쓴 것 같지 않은" 신호를 플래그.
@@ -57,9 +57,11 @@ export const POST = handler(async (req) => {
   const limit = Math.min(Math.max(Number(body?.limit) || 60, 1), 200);
   const entries = (await all()).sort((a, b) => b.ratio - a.ratio).slice(0, limit);
 
+  // 리포트는 루프 전에 한 번에 읽어둔다 (id마다 저장소를 다시 읽지 않도록)
+  const reports = await getReports(entries.map((e) => e.id));
   const rows = [];
   for (const e of entries) {
-    const report = await getReport(e.id);
+    const report = reports[e.id] ?? null;
     const flags = flagsFor(e, report);
     rows.push({
       id: e.id,

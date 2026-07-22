@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-07-09T06:51:57.123Z",
-  "kitVersion": "0.0.31",
+  "generatedAt": "2026-07-22T13:24:57.351Z",
+  "kitVersion": "0.0.37",
   "source": {
     "dir": "",
     "files": 25,
-    "totalLines": 2266,
-    "codeLines": 1905,
+    "totalLines": 2320,
+    "codeLines": 1943,
     "breakdown": {
       "frontend": {
         "files": 10,
@@ -13,11 +13,11 @@
       },
       "backend": {
         "files": 8,
-        "codeLines": 211
+        "codeLines": 212
       },
       "shared": {
         "files": 7,
-        "codeLines": 539
+        "codeLines": 576
       }
     }
   },
@@ -26,7 +26,7 @@
     "score": 100,
     "grade": "A+",
     "cognitive": {
-      "avg": 2.2,
+      "avg": 2.1,
       "p90": 6,
       "max": 14,
       "over15": 0,
@@ -72,7 +72,7 @@
     "duplication": {
       "percent": 1.6,
       "dupTokens": 241,
-      "totalTokens": 14975,
+      "totalTokens": 15404,
       "blocks": 24,
       "worstFiles": [
         {
@@ -103,9 +103,20 @@
         ]
       ]
     },
+    "io": {
+      "readers": 17,
+      "uncachedReaders": 17,
+      "loopSites": 0,
+      "uncachedLoopSites": 0,
+      "worst": []
+    },
+    "renderGates": {
+      "hostages": 0,
+      "worst": []
+    },
     "cc": {
-      "functions": 218,
-      "avg": 3.1,
+      "functions": 226,
+      "avg": 3,
       "p90": 7,
       "max": 18,
       "over10": 8,
@@ -143,10 +154,10 @@
         }
       ]
     },
-    "branchDensity": 24.5,
-    "branches": 466,
-    "functions": 225,
-    "avgFileLines": 76,
+    "branchDensity": 24.4,
+    "branches": 475,
+    "functions": 233,
+    "avgFileLines": 78,
     "longFiles": 0,
     "maxFile": {
       "path": "app/u/[id]/wrapped/page.tsx",
@@ -157,7 +168,7 @@
     "features": [
       {
         "name": "Watermark",
-        "loc": 189,
+        "loc": 190,
         "category": "component"
       },
       {
@@ -172,7 +183,7 @@
       },
       {
         "name": "AppShell",
-        "loc": 76,
+        "loc": 78,
         "category": "component"
       },
       {
@@ -221,15 +232,15 @@
         "category": "component"
       }
     ],
-    "savedLines": 766,
+    "savedLines": 769,
     "savedKB": 30,
     "savedA4": 10,
-    "savedPercent": 29,
+    "savedPercent": 28,
     "usage": {
       "component": {
         "used": 17,
-        "total": 59,
-        "percent": 29
+        "total": 60,
+        "percent": 28
       },
       "hook": {
         "used": 0,
