@@ -19,6 +19,7 @@ export type Entry = {
   months: Record<string, MonthStat>;  // 월별 랭킹용 (모든 기기 합산)
   devices?: number;      // 합산된 기기 수 (기기별 슬롯 개수)
   verified?: boolean;    // ✅ 검증 뱃지 (어드민이 라이브 ccusage 증명 확인 후 부여) — 읽기 시 스탬핑
+  created?: string;      // 최초 등록 ISO (재제출해도 유지) — 생존일 집계용
   updated: string;       // ISO
 };
 
@@ -47,8 +48,16 @@ async function upsertFile(e: Entry, want: string) {
   for (const [id, ex] of Object.entries(db)) {
     if (id !== e.id && nickKey(ex.nick) === want) delete db[id];
   }
-  db[e.id] = e;
+  db[e.id] = { ...e, created: db[e.id]?.created || e.created || e.updated };
   await writeJson(FILE, db, 2);
+}
+
+// HGETALL 평면 배열에서 내 기존 엔트리의 created를 찾는다 (없으면 undefined).
+function createdOf(flat: string[], id: string): string | undefined {
+  for (let i = 0; i < flat.length; i += 2) {
+    if (flat[i] === id) return safeParse(flat[i + 1])?.created;
+  }
+  return undefined;
 }
 
 // id로 저장(닉 변경 = 같은 줄 갱신)하되, 같은 닉을 쓰는 다른 id는 제거해
@@ -59,7 +68,9 @@ export async function upsert(e: Entry) {
 
   const flat: string[] = (await upstash(["HGETALL", KEY])) || [];
   const dupIds = dupNickIds(flat, e.id, want);
-  await upstash(["HSET", KEY, e.id, JSON.stringify(e)]);
+  // 최초 등록 시각은 재제출해도 보존 (이탈까지 며칠 남았는지 집계용)
+  const kept: Entry = { ...e, created: createdOf(flat, e.id) || e.created || e.updated };
+  await upstash(["HSET", KEY, e.id, JSON.stringify(kept)]);
   if (dupIds.length) {
     await upstash(["HDEL", KEY, ...dupIds]);
     await upstash(["HDEL", RKEY, ...dupIds]);  // 고아 리포트도 정리
@@ -90,11 +101,22 @@ async function filePurge(ids: string[]) {
   await deleteKeysFromFile(VFILE, ids);
 }
 
+export async function getEntry(id: string): Promise<Entry | null> {
+  if (useUpstash) {
+    const v = await upstash(["HGET", KEY, id]);
+    return v ? safeParse(v) : null;
+  }
+  return (await readJson<Record<string, Entry>>(FILE, {}))[id] ?? null;
+}
+
 // 본인 엔트리 삭제 (claude_ id 는 본인 ~/.claude.json 에서만 나오므로 self-auth)
+// 삭제는 완전 삭제 — 대신 "누구인지 알 수 없는" 월별 이탈 집계만 남긴다(recordChurn).
 export async function removeEntry(id: string): Promise<boolean> {
+  const before = await getEntry(id);
   if (useUpstash) {
     const n = await upstash(["HDEL", KEY, id]);
     await upstashPurge([id]);
+    if (before) await recordChurn(before);
     return Number(n) > 0;
   }
   const db = await readJson<Record<string, Entry>>(FILE, {});
@@ -102,6 +124,7 @@ export async function removeEntry(id: string): Promise<boolean> {
   delete db[id];
   await writeJson(FILE, db, 2);
   await filePurge([id]);
+  if (before) await recordChurn(before);
   return existed;
 }
 
@@ -137,6 +160,75 @@ export async function all(): Promise<Entry[]> {
   }
   // 검증 상태는 별도 저장소에서 읽기 시 스탬핑 (제출로 셀프 검증 불가)
   return out.map((e) => (verified.has(e.id) ? { ...e, verified: true } : e));
+}
+
+// --- 이탈 집계 (비식별) ---
+// 탈퇴하면 기록은 통째로 사라지므로 "몇 명이 언제 나갔는지"를 서버가 영영 모른다.
+// id·닉·상세는 저장하지 않고, 월별 합계만 남겨 이탈률만 볼 수 있게 한다.
+const CKEY = "claude-rank:churn";
+const CFILE = dataFile("churn.json");
+
+export type ChurnMonth = {
+  count: number;                    // 그 달 탈퇴 수
+  plans: Record<string, number>;    // 종목별 탈퇴 수
+  alive_days_sum: number;           // 등록~탈퇴 생존일 합 (created 있는 건만)
+  alive_n: number;                  // 생존일을 셀 수 있었던 건수
+  ratio_sum: number;                // 탈퇴 시점 누적 배율 합 (평균 계산용)
+};
+
+const emptyChurn = (): ChurnMonth => ({ count: 0, plans: {}, alive_days_sum: 0, alive_n: 0, ratio_sum: 0 });
+
+// 기존 월 집계에 엔트리 하나를 더한다 (순수 함수 — 저장소와 무관).
+function foldChurn(cur: ChurnMonth, e: Entry, at: Date): ChurnMonth {
+  const next: ChurnMonth = { ...cur, plans: { ...cur.plans } };
+  const plan = String(Number(e.plan) || 0);
+  next.count += 1;
+  next.plans[plan] = (next.plans[plan] || 0) + 1;
+  next.ratio_sum += Number(e.ratio) || 0;
+  const born = e.created ? Date.parse(e.created) : NaN;
+  if (Number.isFinite(born)) {
+    next.alive_days_sum += Math.max(0, Math.round((at.getTime() - born) / 86400e3));
+    next.alive_n += 1;
+  }
+  return next;
+}
+
+async function recordChurn(e: Entry, at: Date = new Date()): Promise<void> {
+  const mk = new Date(at.getTime() + 9 * 3600e3).toISOString().slice(0, 7);  // KST 기준 월
+  if (useUpstash) {
+    const cur = safeParse((await upstash(["HGET", CKEY, mk])) || "") || emptyChurn();
+    await upstash(["HSET", CKEY, mk, JSON.stringify(foldChurn(cur, e, at))]);
+    return;
+  }
+  const db = await readJson<Record<string, ChurnMonth>>(CFILE, {});
+  db[mk] = foldChurn(db[mk] || emptyChurn(), e, at);
+  await writeJson(CFILE, db, 2);
+}
+
+export async function getChurn(): Promise<Record<string, ChurnMonth>> {
+  if (useUpstash) {
+    const flat: string[] = (await upstash(["HGETALL", CKEY])) || [];
+    const out: Record<string, ChurnMonth> = {};
+    for (let i = 0; i + 1 < flat.length; i += 2) {
+      const v = safeParse(flat[i + 1]);
+      if (v) out[flat[i]] = v;
+    }
+    return out;
+  }
+  return readJson<Record<string, ChurnMonth>>(CFILE, {});
+}
+
+// --- 순위 계산 (웹 랭킹과 같은 정렬: 검증 우선 → 그 달 배율) ---
+// plan=0 이면 전체 종목 합산, 아니면 같은 종목(요금제)끼리만.
+export function rankIn(entries: Entry[], id: string, month: string, plan: number): { rank: number; total: number } {
+  const rows = entries
+    .filter((e) => {
+      const m = e.months?.[month];
+      return !!m && (!plan || (Number(m.plan) || 0) === plan);
+    })
+    .sort((a, b) => (b.verified ? 1 : 0) - (a.verified ? 1 : 0) || (b.months![month].ratio - a.months![month].ratio));
+  const i = rows.findIndex((r) => r.id === id);
+  return { rank: i < 0 ? 0 : i + 1, total: rows.length };
 }
 
 // --- 검증 뱃지 저장 (제출과 완전 분리 · 어드민만 세팅) ---

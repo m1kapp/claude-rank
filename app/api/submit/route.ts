@@ -1,5 +1,5 @@
 import { handler, ok, badRequest } from "@m1kapp/kit/server";
-import { upsert, saveReport, saveDeviceReport, slotReports, mergeReports, type Entry } from "../../../lib/store";
+import { upsert, saveReport, saveDeviceReport, slotReports, mergeReports, all, rankIn, type Entry } from "../../../lib/store";
 
 const num = (v: any) => Number(v) || 0;
 
@@ -108,5 +108,12 @@ export const POST = handler(async (req) => {
   const e = entryFromReport(id, nick, merged);
   await upsert(e);
   await saveReport(id, merged);   // 상세페이지도 합산 리포트를 보게 됨
-  return ok({ ok: true, entry: e });
+
+  // 제출 직후 "지금 몇 위인지"를 돌려준다 — CLI가 다시 달릴 이유를 주는 유일한 신호.
+  // 기준 달: 이번 달(KST) 기록이 있으면 이번 달, 없으면 가장 최근 달.
+  const nowMonth = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 7);
+  const mks = Object.keys(e.months).sort();
+  const month = e.months[nowMonth] ? nowMonth : (mks[mks.length - 1] || nowMonth);
+  const { rank, total } = rankIn(await all(), id, month, e.plan);
+  return ok({ ok: true, entry: e, month, rank, total });
 });
