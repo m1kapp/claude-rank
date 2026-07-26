@@ -57,20 +57,28 @@ try:
             m = ms[cur]
             mon = int(cur[5:7]); ratio = m.get('ratio', 0); chats = int(m.get('chats', 0)); cost = m.get('cost_krw', 0)
             print(f'✅ 갱신 완료! {mon}월 본전배율 {ratio}× · 채팅 {chats:,} · 정가 ₩{cost:,.0f}')
+            # 순위 — 같은 종목·이번 달 기준 (서버가 계산해서 내려줌)
+            rank = int(d.get('rank') or 0); total = int(d.get('total') or 0); plan = int(e.get('plan') or 0)
+            if rank and total:
+                print(f'🏅 {plan}달러 종목 {mon}월 {rank}위 / {total}명')
             i = mkeys.index(cur)
             dim = calendar.monthrange(int(cur[:4]), mon)[1]
             elapsed = kst.day if cur == now_m else dim
+            # 페이스는 '활동일 하루' 기준으로 비교한다.
+            # 달력 전체 일수로 나누면, 전달에 며칠만 쓴 사람(설치 첫 달·보존기간 밖 데이터)의
+            # 분모가 부풀어 '전달 대비 1000배' 같은 헛숫자가 나온다.
+            cad = int(m.get('active_days') or 0)
             if i > 0:
-                pk = mkeys[i-1]; pm = ms[pk]
-                pdim = calendar.monthrange(int(pk[:4]), int(pk[5:7]))[1]
-                cd = cost / max(elapsed, 1); pd = pm.get('cost_krw', 0) / pdim
-                if pd > 0:
+                pm = ms[mkeys[i-1]]
+                pad = int(pm.get('active_days') or 0); pcost = pm.get('cost_krw', 0)
+                # 전달 활동일이 3일 미만이면 비교 자체가 무의미 — 줄을 아예 생략
+                if pad >= 3 and cad >= 1 and pcost > 0:
+                    cd = cost / cad; pd = pcost / pad
                     f = cd / pd
                     fs = f'{f:.1f}배' if f < 10 else f'{f:.0f}배'
-                    line = f'📈 페이스: 하루 ₩{cd:,.0f} — 전달(하루 ₩{pd:,.0f}) 대비 {fs} ' + ('빠름' if f >= 1 else '느림')
-                    if cur == now_m and elapsed < dim:
-                        line += f' · 이대로면 ×{ratio * dim / max(elapsed, 1):.1f} 예상'
-                    print(line)
+                    print(f'📈 페이스: 활동일 하루 ₩{cd:,.0f} — 전달(하루 ₩{pd:,.0f}) 대비 {fs} ' + ('빠름' if f >= 1 else '느림'))
+            if cur == now_m and elapsed < dim:
+                print(f'🔮 이대로면 이번 달 ×{ratio * dim / max(elapsed, 1):.1f} 예상')
         except Exception:
             print(f\"✅ 합류 완료! 본전배율 {e['ratio']}× · 채팅 {e['chats']:,}\")
     else:
