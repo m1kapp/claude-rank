@@ -45,15 +45,15 @@ export default function StartPage() {
             <p style={{ fontSize: 12.5, color: "var(--muted)", margin: "0 0 18px", lineHeight: 1.6 }}>{t("start.s1.desc")}</p>
 
             <StepRow n={0} title={t("start.step.remove")} desc={t("start.step.remove.desc")}>
-              <CodeBlock label="claude code" code={"/plugin marketplace remove m1kapp"} accent="var(--terra)" />
+              <CodeBlock label="claude code" code={"/plugin marketplace remove m1kapp\n/plugin marketplace remove m1kskills"} accent="var(--terra)" />
             </StepRow>
 
             <StepRow n={1} title={t("start.step.add")}>
-              <CodeBlock label="claude code" code={"/plugin marketplace add m1kapp/claude-plugins"} accent="var(--terra)" />
+              <CodeBlock label="claude code" code={"/plugin marketplace add m1kapp/claude-rank"} accent="var(--terra)" />
             </StepRow>
 
             <StepRow n={2} title={t("start.step.install")}>
-              <CodeBlock label="claude code" code={"/plugin install claude-run@m1kapp"} accent="var(--terra)" />
+              <CodeBlock label="claude code" code={"/plugin install claude-run@claude-rank"} accent="var(--terra)" />
             </StepRow>
 
             <StepRow n={3} title={t("start.step.reload")} desc={t("start.step.reload.desc")}>

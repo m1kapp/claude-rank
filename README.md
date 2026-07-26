@@ -1,11 +1,25 @@
 # claude-rank
 
-Claude 구독 가성비 랭킹 — [usage-report](https://github.com/m1kapp/claude-plugins) 스킬로 만든 JSON을 제출해 본전배율을 겨루는 리더보드.
+Claude 구독 가성비 랭킹 — "API 정가로 환산하면 몇 배 뽑았나(본전배율)"를 겨루는 리더보드.
+서비스([clauderun.m1k.app](https://clauderun.m1k.app))와 제출용 **Claude Code 플러그인**이 같이 있습니다.
+
+## 설치 (플러그인)
+
+```
+/plugin marketplace add m1kapp/claude-rank
+/plugin install claude-run@claude-rank
+/reload-plugins
+/claude-run
+```
+
+> 예전에 `m1kapp` 이나 `m1kskills` 마켓플레이스로 설치했다면 먼저 제거하세요:
+> `/plugin marketplace remove m1kapp` · `/plugin marketplace remove m1kskills`
+> 자세한 안내: [clauderun.m1k.app/start](https://clauderun.m1k.app/start)
 
 ## 동작
-- `/usage-report` → `~/claude-usage-report.json` 생성
-- 제출 페이지에서 닉네임 + JSON 붙여넣기 → 등록
-- 익명 고유 ID로 중복 제출 자동 갱신, 플랜($200/$100) 배지 표시
+- `/claude-run` → 로컬 사용량(ccusage) 집계 후 랭킹에 자동 제출
+- Claude 계정 UUID 해시로 신원 확인 → 기기·깃헙 바꿔도 한 줄로 갱신, 중복·허수 차단
+- 플랜($200/$100) 배지 표시, `/claude-run-out` 으로 내 기록만 삭제
 
 ## 로컬 실행
 ```bash

@@ -74,7 +74,7 @@ const DICT: Dict = {
   "start.note.3": { ko: "월별 값은 그달 누적 현재치로 갱신돼요(증분 합산 아님).", en: "Monthly values are the running total for that month (not incremental sums)." },
   "start.note.4": { ko: "한 번이라도 /claude-run 하면 바로 합류 — 추가 확인 없이 올라가요.", en: "One /claude-run and you're in — no extra confirmation needed." },
   "start.note.5": { ko: "빠지고 싶으면 /claude-run-out 한 줄이면 내 기록만 삭제돼요.", en: "Want out? /claude-run-out removes just your own record." },
-  "start.note.6": { ko: "이미 설치했다면 재설치 필요 없어요 — 그냥 “랭킹 갱신해줘”. 최신 갱신은 /plugin marketplace update m1kapp, 자동은 /plugin → Marketplaces → m1kapp → Enable auto-update.", en: "Already installed? No reinstall needed — just say “update my ranking”. Latest: /plugin marketplace update m1kapp. Auto: /plugin → Marketplaces → m1kapp → Enable auto-update." },
+  "start.note.6": { ko: "이미 설치했다면 재설치 필요 없어요 — 그냥 “랭킹 갱신해줘”. 최신 갱신은 /plugin marketplace update claude-rank, 자동은 /plugin → Marketplaces → claude-rank → Enable auto-update.", en: "Already installed? No reinstall needed — just say “update my ranking”. Latest: /plugin marketplace update claude-rank. Auto: /plugin → Marketplaces → claude-rank → Enable auto-update." },
   "start.go": { ko: "🏃 같이 달리러 가기", en: "🏃 See everyone running" },
 
   // user / report
