@@ -13,7 +13,7 @@
     {
       "name": "claude-run",
       "displayName": "Claude Run",
-      "description": "내 Claude 사용량을 clauderank.m1k.app 가성비 랭킹에 갱신(같이 달리기). /claude-run(갱신)·/claude-run-out(삭제). Claude 계정 기준이라 중복·허수 방지. ccusage 기반.",
+      "description": "내 Claude 사용량을 clauderank.m1k.app 가성비 랭킹에 갱신(같이 달리기). /claude-run(갱신)·/claude-run-daily(하루 1회 자동 갱신 on/off)·/claude-run-out(삭제). Claude 계정 기준이라 중복·허수 방지. ccusage 기반.",
       "source": "./plugins/claude-run",
       "category": "productivity",
       "keywords": [

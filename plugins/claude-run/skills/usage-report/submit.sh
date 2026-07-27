@@ -95,7 +95,9 @@ if [ -n "$EID" ]; then
   MYURL="$ENDPOINT/u/$EID"
   echo "🔗 내 리포트: $MYURL"
   echo "🏃 같이 달리기: $ENDPOINT"
-  if   command -v open     >/dev/null 2>&1; then open "$MYURL"     >/dev/null 2>&1 || true
+  # 자동 갱신(/claude-run-daily)처럼 사람이 안 보는 실행에선 브라우저를 열지 않는다.
+  if [ -n "$USAGE_REPORT_NO_OPEN" ]; then :
+  elif command -v open     >/dev/null 2>&1; then open "$MYURL"     >/dev/null 2>&1 || true
   elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$MYURL" >/dev/null 2>&1 || true
   elif command -v start    >/dev/null 2>&1; then start "$MYURL"    >/dev/null 2>&1 || true
   fi
