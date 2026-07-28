@@ -17,8 +17,12 @@ const GOLD = "#e0b25a";
 const CREAM = "#efe7db", CREAM2 = "#cdbfae", MUTED = "#8a7a6b", FAINT = "#5a4c3e";
 const HAIR = "#342718", LINE = "#3a2d1f";
 
-// ImageResponse 기본값이 max-age=31536000 immutable — 데이터 갱신 반영되게 짧은 CDN 캐시로 교체
-const OG_HEADERS = { "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=600" };
+// ImageResponse 기본값이 max-age=31536000 immutable — 데이터 갱신 반영되게 짧은 CDN 캐시로 교체.
+// max-age=0 만으로는 부족하다: 검증자(ETag)가 없으면 브라우저가 재검증을 건너뛰고
+// 디스크 캐시의 옛 카드를 그대로 그린다. 제출 시각으로 ETag 를 준다.
+const OG_HEADERS = { "Cache-Control": "public, max-age=0, must-revalidate, s-maxage=300, stale-while-revalidate=600" };
+const ogHeaders = (updated?: string) =>
+  updated ? { ...OG_HEADERS, ETag: `W/"${updated}"` } : OG_HEADERS;
 
 const won = (n: number) => "₩" + Math.round(n).toLocaleString("ko-KR");
 const fmtRatio = (r: number) => (r >= 20 ? String(Math.round(r)) : r.toFixed(1));
@@ -179,7 +183,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           </div>
         </div>
       ),
-      { ...size, fonts, headers: OG_HEADERS },
+      { ...size, fonts, headers: ogHeaders(entry.updated) },
     );
   } catch {
     return fallbackImage();

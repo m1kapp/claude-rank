@@ -20,7 +20,9 @@ function Header({ id, cur, months, entry, report }: { id: string; cur: string; m
           <Button variant="light" shape="pill" onClick={() => router.push("/")} aria-label={t("common.back")}>←</Button>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <a className="share-pill" href={`/u/${id}/wrapped?m=${cur}`} style={pill}>🎁 {t("user.wrapped")}</a>
-            <a className="share-pill" href={`/u/${id}/opengraph-image`} target="_blank" rel="noopener noreferrer" style={pill}>🎴 {t("user.card")}</a>
+            {/* 카드는 PNG라 브라우저가 디스크 캐시에 물고 있는다(ETag 없음 → 재검증도 안 함).
+                제출 시각을 쿼리로 붙여 갱신하면 새 URL이 되어 옛 카드가 안 나온다. */}
+            <a className="share-pill" href={`/u/${id}/opengraph-image?v=${encodeURIComponent(entry?.updated || cur)}`} target="_blank" rel="noopener noreferrer" style={pill}>🎴 {t("user.card")}</a>
             <ShareButton
               className="share-pill"
               url={`${typeof window !== "undefined" ? window.location.origin : "https://clauderank.m1k.app"}/u/${id}?m=${cur}`}
