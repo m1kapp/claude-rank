@@ -438,6 +438,43 @@ for m in months:
 out_json = out[:-5] + ".json" if out.endswith(".html") else out + ".json"
 open(out_json, "w").write(json.dumps(summary, ensure_ascii=False, indent=2))
 
+# === 실행 이력 (~/.usage-report-history.jsonl) ===
+# 누적 수치는 원래 줄어들 수 없다. 줄었다면 (a) 트랜스크립트가 사라졌거나
+# (b) 집계 방식이 바뀐 것 — 둘을 구분하려면 코퍼스 크기를 같이 남겨야 한다.
+try:
+    import glob as _glob, datetime as _dt
+    _base = _os.path.expanduser("~/.claude/projects")
+    _files = _glob.glob(_os.path.join(_base, "**", "*.jsonl"), recursive=True)
+    _corpus = {"files": len(_files), "bytes": sum(_os.path.getsize(f) for f in _files)}
+    _cur = max(months) if months else ""
+    _rec = {
+        "at": _dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+        "month": _cur,
+        "cost_krw": summary["months"].get(_cur, {}).get("cost_krw", 0),
+        "chats": summary["months"].get(_cur, {}).get("chats") or 0,
+        "corpus": _corpus,
+    }
+    _hp = _os.path.expanduser("~/.usage-report-history.jsonl")
+    _prev = None
+    try:
+        for _ln in open(_hp):
+            _o = json.loads(_ln)
+            if _o.get("month") == _cur:
+                _prev = _o
+    except Exception:
+        pass
+    with open(_hp, "a") as _fh:
+        _fh.write(json.dumps(_rec, ensure_ascii=False) + "\n")
+    if _prev and _prev.get("cost_krw", 0) > _rec["cost_krw"] * 1.02:
+        _pc, _cc = _prev["corpus"]["files"], _corpus["files"]
+        _why = (f"트랜스크립트가 {_pc - _cc}개 사라짐" if _cc < _pc
+                else "파일 수는 그대로 — 집계 방식(ccusage 등)이 바뀐 쪽")
+        print(f"⚠️  {_cur} 누적이 지난 실행보다 줄었습니다 "
+              f"(₩{_prev['cost_krw']:,} → ₩{_rec['cost_krw']:,}, 채팅 {_prev.get('chats',0):,} → {_rec['chats']:,}) — {_why}")
+        print(f"    이력: {_hp}")
+except Exception:
+    pass
+
 _rtk_msg = f"  | 🔪RTK ₩{rtk_won(rtk_total_saved)} 아낌 ({rtk_total_saved/1_000_000:.1f}M컷)" if rtk_total_saved > 0 else ""
 print(f"OK  {nmon}개월  정가 ₩{won(grand)}  순이득 ₩{won(grand-PLAN*nmon)}  ({ratio:.0f}배){_rtk_msg}")
 print(f"    HTML: {out}")

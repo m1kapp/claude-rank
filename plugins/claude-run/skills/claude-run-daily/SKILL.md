@@ -21,11 +21,11 @@ bash "$RP/daily.sh" "$ARGUMENTS"   # on | off | status (생략 시 status)
 
 ## 동작
 
-- **on** — 실행기(`~/.usage-report-daily.sh`)를 만들고 스케줄러에 등록한 뒤, **즉시 1회 실행**해서 되는지 보여준다.
-  - macOS: launchd(`~/Library/LaunchAgents/app.m1k.clauderun.daily.plist`), 매일 12:30·23:30 중 **첫 기회에 1회**
-  - 그 외: cron 매일 23:30
-- **off** — 스케줄러 해제 + 실행기 삭제. 랭킹 기록은 그대로 남는다(빼려면 `/claude-run-out`).
-- **status** — 켜짐/꺼짐, 마지막 갱신일, 최근 로그 3줄.
+- **on** — 실행기(`~/.usage-report-daily.sh`)를 만들고 두 군데 등록한 뒤, **즉시 1회 실행**해서 되는지 보여준다.
+  - **세션시작 훅** — 그날 클로드 코드를 **처음 켜는 시점**에 1회. `~/.claude/settings.json` 의 `SessionStart` 에 한 줄 추가되며, 백그라운드로 던지고 즉시 빠져서 세션 시작을 붙잡지 않는다.
+  - **백스톱** — 그날 클로드 코드를 아예 안 켠 경우 대비. macOS launchd(`~/Library/LaunchAgents/app.m1k.clauderun.daily.plist`) / 그 외 cron, 매일 23:30.
+- **off** — 훅·스케줄러 해제 + 실행기 삭제. 다른 훅은 건드리지 않는다. 랭킹 기록은 그대로 남는다(빼려면 `/claude-run-out`).
+- **status** — 훅/백스톱 각각의 등록 여부, 마지막 갱신일, 최근 로그 3줄.
 
 ## 안내
 
@@ -34,3 +34,4 @@ bash "$RP/daily.sh" "$ARGUMENTS"   # on | off | status (생략 시 status)
 - 실패하면 스탬프를 안 찍으므로 **다음 실행에 자동 재시도**한다.
 - CPU를 오래 쓰지 않게 `nice`로 낮은 우선순위·백그라운드로 돈다.
 - 남의 기기에 자동 업로드를 켜는 성격이라, **본인이 명시적으로 켤 때만** 쓴다. 켜져 있는 게 부담되면 `/claude-run-daily off` 한 줄로 흔적 없이 걷힌다.
+- 갱신할 때마다 `~/.usage-report-history.jsonl` 에 수치와 트랜스크립트 개수·용량을 남긴다. 누적이 지난번보다 줄면 경고하고, **파일이 사라진 것인지 집계가 바뀐 것인지**까지 구분해서 알려준다.

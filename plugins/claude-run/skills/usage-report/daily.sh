@@ -76,7 +76,6 @@ write_plist() {
   <array><string>/bin/bash</string><string>$RUNNER</string></array>
   <key>StartCalendarInterval</key>
   <array>
-    <dict><key>Hour</key><integer>12</integer><key>Minute</key><integer>30</integer></dict>
     <dict><key>Hour</key><integer>23</integer><key>Minute</key><integer>30</integer></dict>
   </array>
   <key>LowPriorityIO</key><true/>
@@ -88,17 +87,50 @@ PLIST_EOF
 
 cron_line() { echo "30 23 * * * /bin/bash $RUNNER  # clauderank-daily"; }
 
+# ── SessionStart 훅: 그날 클로드 코드를 처음 켜는 시점에 1회 ──
+# 고정 시각만 쓰면 맥이 자거나 책상에 없던 날은 통째로 날아간다.
+# 훅은 백그라운드로 던지고 즉시 빠져나온다(세션 시작을 절대 붙잡지 않음).
+HOOK_CMD='(nohup bash "$HOME/.usage-report-daily.sh" >/dev/null 2>&1 &) ; exit 0  # clauderank-daily'
+hook() {  # hook install|remove
+  python3 - "$1" "$HOOK_CMD" <<'PY'
+import json, os, sys
+mode, cmd = sys.argv[1], sys.argv[2]
+p = os.path.expanduser("~/.claude/settings.json")
+try:
+    d = json.load(open(p))
+except Exception:
+    d = {}
+hooks = d.get("hooks") or {}
+entries = [e for e in (hooks.get("SessionStart") or [])
+           if "clauderank-daily" not in json.dumps(e)]      # 우리 것 먼저 제거(중복 방지)
+if mode == "install":
+    entries.append({"hooks": [{"type": "command", "command": cmd}]})
+if entries:
+    hooks["SessionStart"] = entries
+else:
+    hooks.pop("SessionStart", None)
+if hooks:
+    d["hooks"] = hooks
+else:
+    d.pop("hooks", None)
+os.makedirs(os.path.dirname(p), exist_ok=True)
+open(p, "w").write(json.dumps(d, ensure_ascii=False, indent=2))
+PY
+}
+hook_on() { grep -q 'clauderank-daily' "$HOME/.claude/settings.json" 2>/dev/null; }
+
 case "$ACTION" in
   on)
     write_runner
+    hook install
     if [ "$IS_MAC" = 1 ]; then
       write_plist
       launchctl unload "$PLIST" 2>/dev/null || true
       launchctl load "$PLIST"
-      echo "✅ 자동 갱신 켜짐 (매일 12:30·23:30 중 첫 기회에 1회)"
+      echo "✅ 자동 갱신 켜짐 — 그날 클로드 코드 처음 켤 때 1회 (못 켠 날 대비 23:30 백스톱)"
     else
       ( crontab -l 2>/dev/null | grep -v 'clauderank-daily'; cron_line ) | crontab -
-      echo "✅ 자동 갱신 켜짐 (매일 23:30, cron)"
+      echo "✅ 자동 갱신 켜짐 — 그날 클로드 코드 처음 켤 때 1회 (백스톱 cron 23:30)"
     fi
     echo "   설치 위치: $RUNNER"
     echo "   로그: $LOG · 끄기: /claude-run-daily off"
@@ -107,6 +139,7 @@ case "$ACTION" in
     tail -n 1 "$LOG" 2>/dev/null || echo "(로그 없음 — 오늘 이미 갱신했으면 건너뜁니다)"
     ;;
   off)
+    hook remove
     if [ "$IS_MAC" = 1 ]; then
       launchctl unload "$PLIST" 2>/dev/null || true
       rm -f "$PLIST"
@@ -118,17 +151,18 @@ case "$ACTION" in
     ;;
   status)
     if [ "$IS_MAC" = 1 ]; then
-      if [ -f "$PLIST" ] && launchctl list 2>/dev/null | grep -q "$LABEL"; then
-        echo "🟢 자동 갱신 켜져 있음 (매일 12:30·23:30 중 1회)"
-      else
-        echo "⚪ 꺼져 있음 — 켜려면 /claude-run-daily on"
-      fi
+      SCHED=0; [ -f "$PLIST" ] && launchctl list 2>/dev/null | grep -q "$LABEL" && SCHED=1
+      SNAME="launchd 23:30 백스톱"
     else
-      if crontab -l 2>/dev/null | grep -q 'clauderank-daily'; then
-        echo "🟢 자동 갱신 켜져 있음 (cron 매일 23:30)"
-      else
-        echo "⚪ 꺼져 있음 — 켜려면 /claude-run-daily on"
-      fi
+      SCHED=0; crontab -l 2>/dev/null | grep -q 'clauderank-daily' && SCHED=1
+      SNAME="cron 23:30 백스톱"
+    fi
+    if hook_on || [ "$SCHED" = 1 ]; then
+      echo "🟢 자동 갱신 켜져 있음"
+      echo "   · 세션시작 훅(그날 처음 켤 때 1회): $(hook_on && echo 등록됨 || echo '없음')"
+      echo "   · $SNAME: $([ "$SCHED" = 1 ] && echo 등록됨 || echo '없음')"
+    else
+      echo "⚪ 꺼져 있음 — 켜려면 /claude-run-daily on"
     fi
     echo "   마지막 갱신일: $(cat "$HOME/.usage-report-lastrun" 2>/dev/null || echo '없음')"
     [ -f "$LOG" ] && { echo "   최근 로그:"; tail -n 3 "$LOG" | sed 's/^/     /'; } || true
