@@ -31,11 +31,17 @@ TODAY=$(date +%F)
 mkdir "$LOCK" 2>/dev/null || exit 0
 trap 'rmdir "$LOCK" 2>/dev/null' EXIT
 
-# 설치된 플러그인 중 최신 버전의 usage-report 를 쓴다
-BASE="$HOME/.claude/plugins/cache/m1kapp/claude-run"
-VER=$(ls "$BASE" 2>/dev/null | sort -V | tail -1)
-RP="$BASE/$VER/skills/usage-report"
-[ -d "$RP" ] || RP="$HOME/.claude/skills/usage-report"
+# 설치된 플러그인 중 최신 버전의 usage-report 를 쓴다.
+# 마켓플레이스 이름은 고정하지 않는다 — 어느 마켓으로 깔았든(claude-rank/m1kapp/…) 찾아낸다.
+RP=""; BEST=""
+for d in "$HOME"/.claude/plugins/cache/*/claude-run/*/skills/usage-report; do
+  [ -d "$d" ] || continue
+  v="${d%/skills/usage-report}"; v="${v##*/}"
+  if [ -z "$BEST" ] || [ "$(printf '%s\n%s\n' "$BEST" "$v" | sort -V | tail -1)" = "$v" ]; then
+    BEST="$v"; RP="$d"
+  fi
+done
+[ -n "$RP" ] || RP="$HOME/.claude/skills/usage-report"
 if [ ! -d "$RP" ]; then
   echo "$(date '+%F %T') ✗ usage-report 스킬을 못 찾음" >> "$LOG"; exit 1
 fi

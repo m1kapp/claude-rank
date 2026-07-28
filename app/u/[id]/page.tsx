@@ -23,7 +23,7 @@ function Header({ id, cur, months, entry, report }: { id: string; cur: string; m
             <a className="share-pill" href={`/u/${id}/opengraph-image`} target="_blank" rel="noopener noreferrer" style={pill}>🎴 {t("user.card")}</a>
             <ShareButton
               className="share-pill"
-              url={`${typeof window !== "undefined" ? window.location.origin : "https://clauderun.m1k.app"}/u/${id}?m=${cur}`}
+              url={`${typeof window !== "undefined" ? window.location.origin : "https://clauderank.m1k.app"}/u/${id}?m=${cur}`}
               title="Claude Run"
               text={t("user.shareText", { month: monthLabel(cur), ratio: m.ratio ?? "" })}
               label={t("user.share")}

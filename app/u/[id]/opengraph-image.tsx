@@ -40,7 +40,7 @@ function fallbackImage(fonts?: Font[]) {
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: BG, color: CREAM }}>
         <div style={{ fontSize: 72, fontWeight: 700, display: "flex" }}>🏃 Claude Run</div>
-        <div style={{ fontSize: 28, color: MUTED, marginTop: 12 }}>clauderun.m1k.app</div>
+        <div style={{ fontSize: 28, color: MUTED, marginTop: 12 }}>clauderank.m1k.app</div>
       </div>
     ),
     { ...size, ...(fonts ? { fonts } : {}), headers: OG_HEADERS },
@@ -169,7 +169,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             <div style={{ display: "flex", alignItems: "flex-end", width: "100%", marginTop: "auto" }}>
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <span style={{ fontSize: 22, fontWeight: 700, color: CREAM }}>님은 몇 배 뽑음?</span>
-                <span style={{ fontSize: 17, color: TERRA, marginTop: 7 }}>clauderun.m1k.app</span>
+                <span style={{ fontSize: 17, color: TERRA, marginTop: 7 }}>clauderank.m1k.app</span>
                 <span style={{ fontSize: 13, color: FAINT, marginTop: 2 }}>@{entry.nick}</span>
               </div>
               <div style={{ display: "flex", marginLeft: "auto", alignItems: "center", fontSize: 15, fontWeight: 700, letterSpacing: 2, color: d.won0 ? TERRA : GOLD, border: `2px solid ${d.won0 ? TERRA : GOLD}`, borderRadius: 9, padding: "11px 18px", transform: "rotate(-5deg)" }}>

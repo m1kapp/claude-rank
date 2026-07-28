@@ -67,7 +67,7 @@ export default function Home() {
               <div className="share-fill" style={{ flex: 1, display: "flex" }}>
                 <ShareButton
                   className="w-full justify-center"
-                  url={typeof window !== "undefined" ? window.location.origin : "https://clauderun.m1k.app"}
+                  url={typeof window !== "undefined" ? window.location.origin : "https://clauderank.m1k.app"}
                   title="Claude Run"
                   text={t("home.inviteText")}
                   label={t("home.invite")}

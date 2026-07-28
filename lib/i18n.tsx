@@ -54,7 +54,7 @@ const DICT: Dict = {
   "user.card": { ko: "카드", en: "Card" },
   "user.wrapped": { ko: "Wrapped", en: "Wrapped" },
   "start.step.remove": { ko: "제거하고 시작", en: "Remove & start clean" },
-  "start.step.remove.desc": { ko: "처음이면 건너뛰세요. 이미 깔았다면 이것부터 — 마켓+플러그인 싹 지우고 깨끗하게 다시 시작(중복 설치 에러 방지).", en: "New here? Skip this. Already installed? Run this first — wipes the marketplace + plugin for a clean start (avoids duplicate-install errors)." },
+  "start.step.remove.desc": { ko: "처음이면 건너뛰세요. 이미 깔았다면 이것부터 — 마켓플레이스를 지우면 딸린 플러그인도 같이 걷힙니다. (/plugin uninstall 을 먼저 치면 \"installed in local scope\" 로 막히니 아래 순서대로)", en: "New here? Skip this. Already installed? Run this first — removing the marketplace also removes the plugin it installed. (Running /plugin uninstall first fails with \"installed in local scope\" — use the order below.)" },
   "start.step.add": { ko: "마켓플레이스 등록", en: "Add the marketplace" },
   "start.step.install": { ko: "플러그인 설치", en: "Install the plugin" },
   "start.step.reload": { ko: "플러그인 리로드 (한 번)", en: "Reload plugins (once)" },
