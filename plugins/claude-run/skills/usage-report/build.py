@@ -193,7 +193,7 @@ def quality_panel(mo):
       {gauge("캐시적중", ch, True)}
       {gauge("도구에러", te, False)}
       {gauge("정정('아니/다시')", co, False)}
-      <div class="qnote"><b>{verdict}</b> · 캐시적중 높을수록·도구에러/정정율 낮을수록 매끄러움. 정정율 = 사람 메시지 중 정정/불만 신호 비율(근사). 도구호출 {ef.get("tool_calls",0):,}회 기준.</div>
+      <div class="qnote"><b>{verdict}</b> · 캐시적중 높을수록·도구에러/정정율 낮을수록 매끄러움. 정정율 = 사람 메시지 중 정정/불만 신호 비율(근사). 도구호출 {ef.get("tool_calls",0):,}회 기준{f' (그중 서브에이전트 {ef["subagent_calls"]:,}회)' if ef.get("subagent_calls") else ''}.</div>
     </div>'''
 
     # === 시간대 view ===

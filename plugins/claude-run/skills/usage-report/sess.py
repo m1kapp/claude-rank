@@ -3,7 +3,11 @@
 사용: python sess.py [projects_dir]  (기본 ~/.claude/projects)
 - 사람 발화(tool_result 제외)만 '대화'로 카운트.
 - 세션은 시간 공백(GAP)으로 분할: --continue로 며칠간 이어쓴 한 파일도
-  실제 '한 번 앉아서 한 작업'들로 쪼갬. (파일=세션 착시 방지)"""
+  실제 '한 번 앉아서 한 작업'들로 쪼갬. (파일=세션 착시 방지)
+- 서브에이전트(isSidechain) 기록도 읽되 '채팅/세션'에는 안 넣는다.
+  그 user 레코드는 사람이 아니라 부모 에이전트가 던진 프롬프트다.
+  대신 토큰·도구호출·도구에러·커밋은 실제로 쓴 양이므로 합산한다
+  (비용은 ccusage가 서브에이전트까지 세므로 그래야 분모가 맞는다)."""
 import json, glob, os, sys, statistics, re
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
@@ -36,7 +40,7 @@ def human_text(o):
     return ""
 
 # 월별 효율/마찰 + 시간대 + git 누적기
-eff = defaultdict(lambda: {"cr":0,"cw":0,"inp":0,"tcall":0,"terr":0,"corr":0,"human":0})
+eff = defaultdict(lambda: {"cr":0,"cw":0,"inp":0,"tcall":0,"terr":0,"corr":0,"human":0,"sub":0})
 hourly = defaultdict(lambda: defaultdict(int))    # "YYYY-MM" -> {hour: 채팅수}
 git = defaultdict(lambda: {"commit":0,"push":0})  # "YYYY-MM" -> 카운트
 gitdaily = defaultdict(lambda: defaultdict(int))  # "YYYY-MM" -> {"YYYY-MM-DD": 커밋수}
@@ -44,12 +48,13 @@ gitdaily = defaultdict(lambda: defaultdict(int))  # "YYYY-MM" -> {"YYYY-MM-DD": 
 # 파일별로 (시각, 사람발화여부) 모은 뒤 시간 공백으로 작업 세션 분할
 mon = defaultdict(list)                       # "YYYY-MM" -> [세션별 채팅수, ...]
 daily = defaultdict(lambda: defaultdict(int)) # "YYYY-MM" -> {"YYYY-MM-DD": 채팅수}
-for f in glob.glob(os.path.join(base, "*", "*.jsonl")):
+for f in glob.glob(os.path.join(base, "*", "**", "*.jsonl"), recursive=True):
     evs = []
     try:
         for line in open(f):
             o = json.loads(line)
             t = o.get("type")
+            side = bool(o.get("isSidechain"))
             ts = o.get("timestamp")
             try: dt = datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone(LOCAL) if ts else None
             except Exception: dt = None
@@ -63,6 +68,7 @@ for f in glob.glob(os.path.join(base, "*", "*.jsonl")):
                 for b in o.get("message", {}).get("content", []) or []:
                     if isinstance(b, dict) and b.get("type") == "tool_use":
                         e["tcall"] += 1
+                        if side: e["sub"] += 1
                         if b.get("name") == "Bash":
                             cmd = b.get("input", {}).get("command", "") or ""
                             if COMMIT_RE.search(cmd) and "--amend" not in cmd:
@@ -77,6 +83,8 @@ for f in glob.glob(os.path.join(base, "*", "*.jsonl")):
                     for b in c:
                         if isinstance(b, dict) and b.get("type")=="tool_result" and b.get("is_error"):
                             eff[mk]["terr"] += 1
+                # 서브에이전트의 user 레코드 = 부모가 던진 프롬프트. 사람 발화도 세션도 아니다.
+                if side: continue
                 h = is_human(o)
                 evs.append((dt, h))
                 if h:
@@ -130,6 +138,7 @@ for m, t in mon.items():
         "eff": {
             "cache_hit": round(e.get("cr",0)/tin*100, 1) if tin else 0,
             "tool_calls": e.get("tcall",0),
+            "subagent_calls": e.get("sub",0),
             "tool_err": round(e.get("terr",0)/e["tcall"]*100, 1) if e.get("tcall") else 0,
             "human": e.get("human",0),
             "correction": round(e.get("corr",0)/e["human"]*100, 1) if e.get("human") else 0,
