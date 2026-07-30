@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useFetch, Section, Select, EmptyState, Skeleton, Button, ShareButton } from "@m1kapp/kit";
+import { useFetch, Section, Select, EmptyState, Skeleton, Button, ShareButton, CodeBlock } from "@m1kapp/kit";
 import { useRouter } from "next/navigation";
 import Shell from "./Shell";
 import { tierForKrw, tierName } from "../lib/tier";
@@ -57,10 +57,12 @@ export default function Home() {
             <h1 className="display" style={{ fontWeight: 600, fontSize: 33, lineHeight: 1.08, letterSpacing: "-0.02em", margin: 0 }}>
               {t("home.h1.l1")}<br />{t("home.h1.l2")}<span style={{ color: "var(--accent)" }}>!</span>
             </h1>
-            <p style={{ fontSize: 13, color: "var(--text)", margin: "16px 0 18px", lineHeight: 1.6 }}>
+            <p style={{ fontSize: 13, color: "var(--text)", margin: "16px 0 14px", lineHeight: 1.6 }}>
               {t("home.lead.a")} {t("home.lead.b1")}
             </p>
-            <div style={{ display: "flex", gap: 8, alignItems: "stretch", margin: "18px 0 28px" }}>
+            {/* 랜딩에서 바로 복사할 수 있어야 한다 — /start 까지 한 번 더 눌러 들어가는 만큼 샌다. */}
+            <CodeBlock label="terminal" code={"npx clauderank"} accent="var(--terra)" />
+            <div style={{ display: "flex", gap: 8, alignItems: "stretch", margin: "14px 0 28px" }}>
               <div style={{ flex: 1, display: "flex" }}>
                 <Button variant="dark" shape="pill" full onClick={() => router.push("/start")}>{t("home.cta")}</Button>
               </div>

@@ -107,3 +107,22 @@ body {
 .rankrow:last-child { border-bottom: 0; }
 .rankrow:hover { background: rgba(255,255,255,.025); }
 
+
+/* ── 블로그 본문 (.post) ───────────────────────────────────────────
+   글이 숫자 위주라 강조가 없으면 회색 덩어리로 읽힌다. 굵게 표시한 값과
+   제목에 강조색을 주고, 표에서는 합계 행만 눈에 띄게 한다. */
+.post b, .post strong { color: var(--terra); font-weight: 800; }
+.post code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.88em; color: var(--sage);
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px;
+}
+.post h2 { position: relative; padding-left: 13px; }
+.post h2::before {
+  content: ""; position: absolute; left: 0; top: .18em; bottom: .18em;
+  width: 3px; border-radius: 2px; background: var(--terra);
+}
+.post table tbody tr:last-child { background: rgba(217, 119, 87, .07); }
+.post table tbody tr:last-child td { font-weight: 700; border-bottom: none; }
+.post table tbody tr:last-child td:first-child { color: var(--terra); }

@@ -19,7 +19,7 @@ export function PostShell({ title, date, minutes, children }:
           </div>
         </Section>
         <Section>
-          <article style={{ fontSize: 14.5, lineHeight: 1.85, color: "var(--text)" }}>{children}</article>
+          <article className="post" style={{ fontSize: 14.5, lineHeight: 1.85, color: "var(--text)" }}>{children}</article>
           <div style={{ marginTop: 34 }}>
             <Button variant="dark" shape="pill" full onClick={() => router.push("/start")}>내 배율 확인하기 →</Button>
           </div>
