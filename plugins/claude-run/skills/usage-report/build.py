@@ -408,6 +408,13 @@ summary = {
     },
     "months": {},
 }
+
+# viberank 연동을 켠 경우에만 붙는다(끄면 필드 자체가 없음).
+try:
+    with open("/tmp/viberank.json") as _vf:
+        summary["viberank"] = json.load(_vf)
+except Exception:
+    pass
 for m in months:
     tot = sum(mm[m].values())
     s = sess.get(m, {})

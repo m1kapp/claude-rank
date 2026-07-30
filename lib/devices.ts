@@ -161,5 +161,11 @@ export function mergeReports(reports: any[]): any {
     },
     months,
     merged_devices: list.length,
+    // viberank 는 계정 단위라 기기별로 다르지 않다 — 가장 최근에 조회된 것 하나만 남긴다.
+    ...(() => {
+      const vb = list.map((r) => r.viberank).filter(Boolean)
+        .sort((a: any, b: any) => String(b.fetched_at || "").localeCompare(String(a.fetched_at || "")))[0];
+      return vb ? { viberank: vb } : {};
+    })(),
   };
 }

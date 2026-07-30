@@ -111,6 +111,10 @@ fi
 echo "세션 활동 분석 중..."
 python3 "$DIR/sess.py" > /tmp/sessions.json 2>/dev/null || echo '{}' > /tmp/sessions.json
 
+# 2.8) viberank 순위(연동을 켠 경우에만) — 실패해도 통과
+rm -f /tmp/viberank.json
+bash "$DIR/viberank.sh" fetch 2>/dev/null || true
+
 # 3) 보고서 생성
 python3 "$DIR/build.py" /tmp/ccusage.json "$OUT" "$PLAN" "$KRWRATE" "$RTK_JSON" /tmp/sessions.json
 

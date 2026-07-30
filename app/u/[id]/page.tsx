@@ -5,7 +5,7 @@ import Shell from "../../Shell";
 import { useI18n } from "../../../lib/i18n";
 import { aggregate, persona, type Persona } from "../../../lib/persona";
 import { pickMonth, nowMonthKST, fillDays, withProjection, type DayPoint } from "../../../lib/month";
-import { Bars, TierBanner, TokenWidget, mcolor, cap, subhead } from "./widgets";
+import { Bars, TierBanner, TokenWidget, Heatmap, mcolor, cap, subhead } from "./widgets";
 
 // 상단 툴바(뒤로/Wrapped/카드/공유) + 닉네임 + 월 선택
 function Header({ id, cur, months, entry, report }: { id: string; cur: string; months: string[]; entry: any; report: any }) {
@@ -39,6 +39,14 @@ function Header({ id, cur, months, entry, report }: { id: string; cur: string; m
             <span title={t("home.verified")} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12, fontWeight: 800, color: "var(--sage)", border: "1px solid var(--sage)", borderRadius: 999, padding: "1px 8px" }}>✓ {t("user.verified")}</span>
           )}
           <Badge>${entry?.plan || report.plan_usd_per_month}{t("common.perMo")}</Badge>
+          {/* 본인이 연동을 켠 경우에만. 저쪽은 요금제가 없어 배율 환산이 안 되므로 순위만 그대로 인용한다. */}
+          {report.viberank?.rank && (
+            <a href={`https://viberank.app/profile/${report.viberank.username}`} target="_blank" rel="noopener noreferrer"
+              title={t("user.vbTitle")}
+              style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 700, color: "var(--muted)", border: "1px solid var(--line)", borderRadius: 999, padding: "1px 9px", textDecoration: "none" }}>
+              🏆 viberank #{report.viberank.rank}
+            </a>
+          )}
         </div>
         <hr className="hair" />
       </div>
@@ -165,6 +173,7 @@ export default function UserPage() {
   const m = report.months[cur] || {};
   const pf = persona(aggregate({ [cur]: m }), locale, Number(m.plan_usd) || 0);  // 선택된 월만 분석 (누적 X)
   const s = m.series || {};
+  const todayKST = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
   const firstMonth = cur === months[0];
   const currentMonth = cur === nowKST;
   const dCost = withProjection(fillDays(s.daily_cost_krw, cur, firstMonth, currentMonth), cur, currentMonth);
@@ -181,6 +190,14 @@ export default function UserPage() {
             <TierBanner usd={m.cost_usd} krwPerUsd={report.currency_krw_per_usd} />
           </div>
         )}
+      </Section>
+
+      <Divider />
+
+      {/* 잔디밭은 월 선택과 무관하게 전 기간 — 연속일이 월 경계에서 끊기면 안 된다 */}
+      <Section>
+        <SectionHeader>{t("user.activity")}</SectionHeader>
+        <Heatmap report={report} todayISO={todayKST} />
       </Section>
 
       <Divider />

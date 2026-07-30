@@ -87,6 +87,10 @@ except Exception:
     print('⚠️ 응답 파싱 실패 — 엔드포인트 확인: $ENDPOINT')
 "
 
+# viberank 연동(켠 경우에만) — 우리 제출이 끝난 뒤에 붙인다. 실패해도 무시.
+DIR_SUB="$(cd "$(dirname "$0")" && pwd)"
+bash "$DIR_SUB/viberank.sh" submit 2>/dev/null || true
+
 # 개인 리포트 URL — 출력 + 브라우저로 열기 (내 리포트 보러가기)
 EID=$(printf '%s' "$RESP" | python3 -c "import json,sys
 try: print(json.load(sys.stdin).get('entry',{}).get('id',''))

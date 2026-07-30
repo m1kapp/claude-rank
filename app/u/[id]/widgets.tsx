@@ -123,3 +123,76 @@ export function TokenWidget({ tok }: { tok: any }) {
     </>
   );
 }
+
+// ── 활동 잔디밭 + 연속일 ────────────────────────────────────────────
+// 배율은 상위권만 자랑거리지만 연속일은 누구에게나 남는다.
+import { allDays, streaks, grid, levelScale } from "../../../lib/streak";
+
+const LEVEL_BG = ["rgba(255,255,255,.05)", "#4a3327", "#8a4a30", "#c15f3c", "#d97757"];
+
+export function Heatmap({ report, todayISO }: { report: any; todayISO: string }) {
+  const { t } = useI18n();
+  const days = allDays(report);
+  const s = streaks(days, todayISO);
+  const level = levelScale(days);
+  // 첫 활동일까지만 그린다 — 신규 유저에게 빈 잔디밭 반년치를 보여주지 않게.
+  const spanDays = s.first ? (Date.parse(todayISO) - Date.parse(s.first)) / 864e5 : 0;
+  const weeks = Math.max(12, Math.min(53, Math.ceil(spanDays / 7) + 1));
+  const cols = grid(days, todayISO, weeks);
+  const won = (n: number) => "₩" + Math.round(n).toLocaleString("ko-KR");
+
+  // 월 라벨: 각 주의 첫날이 달을 넘길 때만 찍는다
+  const EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const mlabel = (k: string) => {
+    const mi = Number(k.slice(5, 7)) - 1;
+    return t("hm.dayUnit") === "d" ? EN[mi] : k.slice(5, 7) + "월";
+  };
+  const monthLabel = (w: number) => {
+    const k = cols[w][0].k;
+    if (w === 0) return mlabel(k);
+    return k.slice(5, 7) !== cols[w - 1][0].k.slice(5, 7) ? mlabel(k) : "";
+  };
+
+  const stat = (n: string | number, l: string) => (
+    <div style={{ flex: 1, textAlign: "center" }}>
+      <div className="display tnum" style={{ fontSize: 22, fontWeight: 900 }}>{n}</div>
+      <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{l}</div>
+    </div>
+  );
+
+  return (
+    <>
+      <div style={{ display: "flex", gap: 6, margin: "4px 0 14px" }}>
+        {stat(`${s.current}${t("hm.dayUnit")}`, t("hm.current"))}
+        {stat(`${s.longest}${t("hm.dayUnit")}`, t("hm.longest"))}
+        {stat(s.active, t("hm.active"))}
+      </div>
+      <div style={{ overflowX: "auto", paddingBottom: 4 }}>
+        <div style={{ display: "flex", gap: 3, minWidth: "min-content" }}>
+          {cols.map((col, w) => (
+            <div key={w} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              <div style={{ height: 12, fontSize: 9, color: "var(--faint)", whiteSpace: "nowrap" }}>{monthLabel(w)}</div>
+              {col.map((d) => (
+                <div
+                  key={d.k}
+                  title={d.future ? "" : `${d.k} · ${d.v ? won(d.v) : t("hm.none")}`}
+                  style={{
+                    width: 11, height: 11, borderRadius: 2.5,
+                    background: d.future ? "transparent" : LEVEL_BG[level(d.v)],
+                    outline: d.k === todayISO ? "1.5px solid var(--sage)" : "none",
+                    outlineOffset: 1,
+                  }}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 5, justifyContent: "flex-end", marginTop: 8, fontSize: 10.5, color: "var(--muted)" }}>
+        <span>{t("hm.less")}</span>
+        {LEVEL_BG.map((bg, i) => <i key={i} style={{ width: 10, height: 10, borderRadius: 2.5, background: bg, display: "inline-block" }} />)}
+        <span>{t("hm.more")}</span>
+      </div>
+    </>
+  );
+}
