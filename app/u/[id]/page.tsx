@@ -45,6 +45,13 @@ function Header({ id, cur, months, entry, report }: { id: string; cur: string; m
               title={t("user.vbTitle")}
               style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 700, color: "var(--muted)", border: "1px solid var(--line)", borderRadius: 999, padding: "1px 9px", textDecoration: "none" }}>
               🏆 viberank #{report.viberank.rank}
+              {/* 누적 순위는 '얼마나 오래 냈나'에 가깝지만, 그 보드에서 순위가 오른다는 건
+                  실제로 앞사람을 제쳤다는 뜻이라 누적 지표의 약점을 뒤집는 신호다. */}
+              {!!report.viberank.rank_delta && (
+                <span style={{ color: report.viberank.rank_delta > 0 ? "var(--sage)" : "var(--muted)", fontWeight: 800 }}>
+                  {report.viberank.rank_delta > 0 ? "▲" : "▼"}{Math.abs(report.viberank.rank_delta)}
+                </span>
+              )}
             </a>
           )}
         </div>

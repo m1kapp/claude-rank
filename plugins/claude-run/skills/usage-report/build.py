@@ -442,18 +442,18 @@ for m in months:
             "buckets": s.get("buckets", {}),
         },
     }
-out_json = out[:-5] + ".json" if out.endswith(".html") else out + ".json"
-open(out_json, "w").write(json.dumps(summary, ensure_ascii=False, indent=2))
-
 # === 실행 이력 (~/.usage-report-history.jsonl) ===
 # 누적 수치는 원래 줄어들 수 없다. 줄었다면 (a) 트랜스크립트가 사라졌거나
 # (b) 집계 방식이 바뀐 것 — 둘을 구분하려면 코퍼스 크기를 같이 남겨야 한다.
+# viberank 순위도 여기 같이 남긴다. 저쪽은 시점별 스냅샷을 노출하지 않아
+# 지난 순위를 물어볼 방법이 없다 — 우리가 매 실행 찍어 두는 것이 유일한 경로다.
 try:
     import glob as _glob, datetime as _dt
     _base = _os.path.expanduser("~/.claude/projects")
     _files = _glob.glob(_os.path.join(_base, "**", "*.jsonl"), recursive=True)
     _corpus = {"files": len(_files), "bytes": sum(_os.path.getsize(f) for f in _files)}
     _cur = max(months) if months else ""
+    _vb = summary.get("viberank") or {}
     _rec = {
         "at": _dt.datetime.now().astimezone().isoformat(timespec="seconds"),
         "month": _cur,
@@ -461,15 +461,28 @@ try:
         "chats": summary["months"].get(_cur, {}).get("chats") or 0,
         "corpus": _corpus,
     }
+    if _vb.get("rank"):
+        _rec["viberank_rank"] = _vb["rank"]
+
     _hp = _os.path.expanduser("~/.usage-report-history.jsonl")
-    _prev = None
+    _prev = None          # 같은 달의 직전 실행 (누적 감소 감지용)
+    _prev_rank = None     # 순위가 찍힌 가장 최근 실행 (월 무관 — 누적 순위이므로)
     try:
         for _ln in open(_hp):
             _o = json.loads(_ln)
             if _o.get("month") == _cur:
                 _prev = _o
+            if _o.get("viberank_rank"):
+                _prev_rank = _o
     except Exception:
         pass
+
+    # 순위는 낮을수록 좋다 — 이전보다 작아졌으면 '올랐다'.
+    if _vb.get("rank") and _prev_rank and _prev_rank["viberank_rank"] != _vb["rank"]:
+        summary["viberank"]["rank_prev"] = _prev_rank["viberank_rank"]
+        summary["viberank"]["rank_delta"] = _prev_rank["viberank_rank"] - _vb["rank"]
+        summary["viberank"]["rank_prev_at"] = _prev_rank.get("at")
+
     with open(_hp, "a") as _fh:
         _fh.write(json.dumps(_rec, ensure_ascii=False) + "\n")
     if _prev and _prev.get("cost_krw", 0) > _rec["cost_krw"] * 1.02:
@@ -481,6 +494,10 @@ try:
         print(f"    이력: {_hp}")
 except Exception:
     pass
+
+# summary 에 순위 델타까지 반영한 뒤에 쓴다(이력 블록이 summary 를 건드린다).
+out_json = out[:-5] + ".json" if out.endswith(".html") else out + ".json"
+open(out_json, "w").write(json.dumps(summary, ensure_ascii=False, indent=2))
 
 _rtk_msg = f"  | 🔪RTK ₩{rtk_won(rtk_total_saved)} 아낌 ({rtk_total_saved/1_000_000:.1f}M컷)" if rtk_total_saved > 0 else ""
 print(f"OK  {nmon}개월  정가 ₩{won(grand)}  순이득 ₩{won(grand-PLAN*nmon)}  ({ratio:.0f}배){_rtk_msg}")
