@@ -17,11 +17,17 @@ export default function Shell({ title, children }: { title: string; children: Re
         <div style={{ display: "flex", alignItems: "center", gap: 9, width: "100%" }}>
           <img src="/logo.svg" alt="Claude Run" style={{ width: 26, height: 26, borderRadius: 6, objectFit: "contain", flex: "none", filter: "drop-shadow(0 1px 2px rgba(0,0,0,.25))" }} />
           <div style={{ display: "flex", alignItems: "baseline", gap: 7, minWidth: 0 }}>
-            <span className="display" style={{ fontWeight: 900, fontSize: 16, letterSpacing: "0.04em" }}>CLAUDE RUN</span>
-            <span className="display" style={{ fontWeight: 700, fontSize: 10, letterSpacing: "0.12em", color: "var(--muted)", textTransform: "uppercase" }}>{title}</span>
+            {/* 브랜드는 절대 접히지 않게, 자리가 모자라면 페이지 부제가 먼저 잘린다. */}
+            <span className="display" style={{ fontWeight: 900, fontSize: 16, letterSpacing: "0.04em", whiteSpace: "nowrap", flex: "none" }}>CLAUDE RUN</span>
+            <span className="display" style={{ fontWeight: 700, fontSize: 10, letterSpacing: "0.12em", color: "var(--muted)", textTransform: "uppercase", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>{title}</span>
           </div>
+          {/* 블로그는 푸터 회색 12px 로는 모바일 폴드 아래라 사실상 안 보였다 — 헤더로 올린다. */}
+          <a href="/blog" title="측정한 것들" aria-label="Blog"
+            style={{ marginLeft: "auto", flex: "none", display: "flex", alignItems: "center", font: "inherit", textDecoration: "none", background: "transparent", border: "1px solid var(--line)", borderRadius: 999, padding: "3px 10px", color: "var(--muted)" }}>
+            <span className="display" style={{ fontWeight: 800, fontSize: 11, letterSpacing: "0.06em" }}>BLOG</span>
+          </a>
           <button onClick={toggle} aria-label="Toggle language" title={locale === "ko" ? "Switch to English" : "한국어로 전환"}
-            style={{ marginLeft: "auto", flex: "none", display: "flex", alignItems: "center", gap: 4, font: "inherit", cursor: "pointer", background: "transparent", border: "1px solid var(--line)", borderRadius: 999, padding: "3px 9px", color: "var(--muted)" }}>
+            style={{ marginLeft: 6, flex: "none", display: "flex", alignItems: "center", gap: 4, font: "inherit", cursor: "pointer", background: "transparent", border: "1px solid var(--line)", borderRadius: 999, padding: "3px 9px", color: "var(--muted)" }}>
             <span className="display" style={{ fontWeight: 800, fontSize: 11, letterSpacing: "0.06em", color: locale === "ko" ? "var(--ink)" : "var(--muted)" }}>한</span>
             <span style={{ fontSize: 9, color: "var(--line)" }}>·</span>
             <span className="display" style={{ fontWeight: 800, fontSize: 11, letterSpacing: "0.06em", color: locale === "en" ? "var(--ink)" : "var(--muted)" }}>EN</span>
