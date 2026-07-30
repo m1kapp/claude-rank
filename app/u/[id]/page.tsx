@@ -5,7 +5,7 @@ import Shell from "../../Shell";
 import { useI18n } from "../../../lib/i18n";
 import { aggregate, persona, type Persona } from "../../../lib/persona";
 import { pickMonth, nowMonthKST, fillDays, withProjection, type DayPoint } from "../../../lib/month";
-import { Bars, TierBanner, TokenWidget, Heatmap, mcolor, cap, subhead } from "./widgets";
+import { Bars, TierBanner, TokenWidget, Heatmap, mcolor, cap, subhead, tfmt } from "./widgets";
 
 // 상단 툴바(뒤로/Wrapped/카드/공유) + 닉네임 + 월 선택
 function Header({ id, cur, months, entry, report }: { id: string; cur: string; months: string[]; entry: any; report: any }) {
@@ -216,6 +216,33 @@ export default function UserPage() {
         <Section>
           <SectionHeader>{t("user.tokens")}</SectionHeader>
           <TokenWidget tok={m.tokens} />
+        </Section>
+      </>)}
+
+      {/* Codex 는 랭킹 밖 보조 지표 — 배율은 요금제 단가가 하나로 정해질 때만 낸다.
+          pro($100/$200)·team(좌석·연납) 처럼 가격이 갈리는 요금제는 비용만 보여준다. */}
+      {report.codex?.months?.[cur] && (<>
+        <Divider />
+        <Section>
+          <SectionHeader>{t("user.codex")}</SectionHeader>
+          <div style={{ display: "flex", gap: 6, margin: "8px 0 10px" }}>
+            {([
+              [t("codex.cost"), `$${(report.codex.months[cur].cost_usd ?? 0).toLocaleString()}`],
+              [t("codex.tokens"), tfmt(report.codex.months[cur].tokens ?? 0)],
+              [t("codex.plan"), report.codex.plan_type || "—"],
+              ...(report.codex.months[cur].ratio != null
+                ? [[t("user.persona.ratioLabel"), `${report.codex.months[cur].ratio}×`]] : []),
+            ] as [string, string][]).map(([l, v]) => (
+              <div key={l} style={{ flex: 1, background: "var(--raise)", borderRadius: 10, padding: "10px 6px", textAlign: "center" }}>
+                <div className="display tnum" style={{ fontSize: 18, fontWeight: 900 }}>{v}</div>
+                <div style={{ fontSize: 10.5, color: "var(--muted)", marginTop: 2 }}>{l}</div>
+              </div>
+            ))}
+          </div>
+          {report.codex.months[cur].ratio == null && cap(t("codex.noRatio"))}
+          <div style={{ fontSize: 12, color: "var(--text-soft)", background: "var(--card)", borderRadius: 9, padding: "11px 13px" }}>
+            {t("codex.note")}
+          </div>
         </Section>
       </>)}
 

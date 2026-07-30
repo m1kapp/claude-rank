@@ -111,6 +111,11 @@ fi
 echo "세션 활동 분석 중..."
 python3 "$DIR/sess.py" > /tmp/sessions.json 2>/dev/null || echo '{}' > /tmp/sessions.json
 
+# 2.75) Codex(ChatGPT) 사용량 + 요금제 — 안 쓰면 파일이 안 생긴다
+rm -f /tmp/codex.json
+python3 "$DIR/codex.py" > /tmp/codex.json 2>/dev/null || true
+[ -s /tmp/codex.json ] || rm -f /tmp/codex.json
+
 # 2.8) viberank 순위(연동을 켠 경우에만) — 실패해도 통과
 rm -f /tmp/viberank.json
 bash "$DIR/viberank.sh" fetch 2>/dev/null || true

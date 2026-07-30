@@ -161,6 +161,22 @@ export function mergeReports(reports: any[]): any {
     },
     months,
     merged_devices: list.length,
+    // Codex 는 기기마다 사용량이 다르므로 월별로 합산한다.
+    ...(() => {
+      const cs = list.map((r) => r.codex).filter(Boolean);
+      if (!cs.length) return {};
+      const ms: Record<string, any> = {};
+      for (const c of cs) for (const [mk, v] of Object.entries<any>(c.months || {})) {
+        const a = (ms[mk] ||= { cost_usd: 0, tokens: 0, active_days: 0 });
+        a.cost_usd += num(v.cost_usd); a.tokens += num(v.tokens); a.active_days = Math.max(a.active_days, num(v.active_days));
+      }
+      const base = cs[0];
+      for (const [mk, a] of Object.entries<any>(ms)) {
+        a.cost_usd = Number(a.cost_usd.toFixed(2));
+        if (base.plan_usd) a.ratio = Number((a.cost_usd / base.plan_usd).toFixed(1));
+      }
+      return { codex: { plan_type: base.plan_type, plan_usd: base.plan_usd, months: ms } };
+    })(),
     // viberank 는 계정 단위라 기기별로 다르지 않다 — 가장 최근에 조회된 것 하나만 남긴다.
     ...(() => {
       const vb = list.map((r) => r.viberank).filter(Boolean)

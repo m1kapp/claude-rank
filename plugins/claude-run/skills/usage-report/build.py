@@ -409,6 +409,14 @@ summary = {
     "months": {},
 }
 
+# Codex 를 쓰는 경우에만 붙는다. 랭킹에는 넣지 않는다 — 도구를 숨길수록 분모가
+# 작아져 유리해지는 구조를 만들지 않기 위해 도구별 배율을 따로 둔다.
+try:
+    with open("/tmp/codex.json") as _cf:
+        summary["codex"] = json.load(_cf)
+except Exception:
+    pass
+
 # viberank 연동을 켠 경우에만 붙는다(끄면 필드 자체가 없음).
 try:
     with open("/tmp/viberank.json") as _vf:
