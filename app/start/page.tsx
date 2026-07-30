@@ -34,7 +34,7 @@ export default function StartPage() {
               {t("start.h1.l1")} {t("start.h1.l2")}
             </h1>
             <p style={{ fontSize: 13.5, color: "var(--text)", lineHeight: 1.72, margin: 0 }}>
-              {t("start.lead.a")} <b className="display" style={{ color: "var(--ink)" }}>/claude-run</b> {t("start.lead.b")}
+              {t("start.lead.a")} <b className="display" style={{ color: "var(--ink)" }}>npx clauderank</b> {t("start.lead.b")}
             </p>
             <hr className="hair" style={{ marginTop: 22 }} />
           </div>
@@ -42,6 +42,15 @@ export default function StartPage() {
 
         <Section>
           <div className="rise" style={{ animationDelay: ".1s" }}>
+            {/* 첫 유입의 가장 큰 마찰은 마켓플레이스 3단계였다. 제출에 플러그인이 필요하지
+                않으므로 npx 를 1급 경로로 올리고, 플러그인은 원하는 사람만 내려가서 본다. */}
+            <div style={{ padding: "18px 18px", background: "var(--card)", border: "1px solid var(--line)", borderRadius: 14, marginBottom: 26 }}>
+              <div className="kicker" style={{ marginBottom: 10 }}>{t("start.fast.kicker")}</div>
+              <CodeBlock label="terminal" code={"npx clauderank"} accent="var(--terra)" />
+              <p style={{ fontSize: 12.5, color: "var(--text)", margin: "12px 0 0", lineHeight: 1.65 }}>{t("start.fast.desc")}</p>
+            </div>
+
+            <div className="kicker" style={{ margin: "0 0 10px" }}>{t("start.plugin.kicker")}</div>
             <p style={{ fontSize: 12.5, color: "var(--muted)", margin: "0 0 18px", lineHeight: 1.6 }}>{t("start.s1.desc")}</p>
 
             <StepRow n={0} title={t("start.step.remove")} desc={t("start.step.remove.desc")}>

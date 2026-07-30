@@ -1,0 +1,41 @@
+{
+  "name": "clauderank",
+  "version": "1.7.0",
+  "description": "Claude Code / Codex 구독 가성비 랭킹에 내 사용량을 갱신 — 설치 없이 npx 한 줄. ccusage 기반.",
+  "bin": {
+    "clauderank": "bin/cli.js"
+  },
+  "files": [
+    "bin",
+    "scripts",
+    "README.md"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "codex",
+    "ccusage",
+    "usage",
+    "leaderboard",
+    "cost"
+  ],
+  "homepage": "https://clauderank.m1k.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/m1kapp/claude-rank.git",
+    "directory": "cli"
+  },
+  "license": "MIT",
+  "author": "m1kapp",
+  "engines": {
+    "node": ">=18"
+  },
+  "os": [
+    "darwin",
+    "linux"
+  ],
+  "scripts": {
+    "sync": "node sync-scripts.js",
+    "prepack": "node sync-scripts.js"
+  }
+}

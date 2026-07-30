@@ -3,7 +3,15 @@
 Claude 구독 가성비 랭킹 — "API 정가로 환산하면 몇 배 뽑았나(본전배율)"를 겨루는 리더보드.
 서비스([clauderank.m1k.app](https://clauderank.m1k.app))와 제출용 **Claude Code 플러그인**이 같이 있습니다.
 
-## 설치 (플러그인)
+## 시작 (한 줄)
+
+```bash
+npx clauderank
+```
+
+설치도 재시작도 없습니다. 요금제·닉네임은 자동 판별됩니다.
+
+## 플러그인 (선택 — 슬래시 명령 + 자동 갱신)
 
 ```
 /plugin marketplace add m1kapp/claude-rank
