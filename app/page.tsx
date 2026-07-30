@@ -167,6 +167,10 @@ export default function Home() {
         <div style={{ flex: 1 }} />
         <Section>
           <hr className="hair" style={{ margin: "4px 0 12px" }} />
+          {/* 색인이 돼도 사람이 들어올 길이 없으면 의미가 없다 — 홈에서 블로그로 나가는 링크. */}
+          <a href="/blog" style={{ display: "inline-block", fontSize: 12, color: "var(--muted)", textDecoration: "none", marginBottom: 8 }}>
+            📐 {t("home.blog")}
+          </a>
           <p style={{ fontSize: 10.5, color: "var(--muted)", lineHeight: 1.6, paddingBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {t("home.footer", { month: options.find((o) => o.value === sel)?.label || "" })}
           </p>

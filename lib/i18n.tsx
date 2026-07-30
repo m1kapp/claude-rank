@@ -39,6 +39,7 @@ const DICT: Dict = {
   "home.liveNote": { ko: "이번 달도 진행 중 🏃", en: "Still going this month 🏃" },
   "home.empty": { ko: "아직 기록이 없어요. 등록하고 1등 찜하세요!", en: "No entries yet — register and grab #1!" },
   "home.updated": { ko: "갱신 {t} KST", en: "Updated {t} KST" },
+  "home.blog": { ko: "측정한 것들 — 비용이 실제로 어디로 가는지", en: "What we measured — where the money actually goes" },
   "home.footer": { ko: "{month} 본전배율 순위 · 이름 누르면 리포트 · 금액 환산값", en: "{month} value ranking · tap a name for the report · notional" },
 
   // start
