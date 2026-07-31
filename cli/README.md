@@ -4,7 +4,7 @@ Claude Code / Codex 사용량을 [clauderank.m1k.app](https://clauderank.m1k.app
 **"API 정가로 환산하면 구독료의 몇 배를 뽑았나(본전배율)"** 를 겨루는 리더보드입니다.
 
 ```bash
-npx clauderank
+npx @m1kapp/clauderank
 ```
 
 설치도, 재시작도 없습니다.
@@ -12,10 +12,10 @@ npx clauderank
 ## 사용법
 
 ```bash
-npx clauderank              # 집계 후 랭킹 갱신 (닉네임 자동)
-npx clauderank <닉네임>     # 닉네임 지정 — 다음부턴 생략 가능
-npx clauderank --report     # 리포트만 만들고 제출하지 않음
-npx clauderank --no-open    # 브라우저를 열지 않음
+npx @m1kapp/clauderank              # 집계 후 랭킹 갱신 (닉네임 자동)
+npx @m1kapp/clauderank <닉네임>     # 닉네임 지정 — 다음부턴 생략 가능
+npx @m1kapp/clauderank --report     # 리포트만 만들고 제출하지 않음
+npx @m1kapp/clauderank --no-open    # 브라우저를 열지 않음
 ```
 
 - **요금제**는 `~/.claude.json` 의 구독 티어로 자동 판별됩니다($200/$100/$20 종목).
@@ -46,7 +46,7 @@ npx clauderank --no-open    # 브라우저를 열지 않음
 ## 빠지기
 
 ```bash
-npx clauderank --report   # 제출 없이 로컬 리포트만
+npx @m1kapp/clauderank --report   # 제출 없이 로컬 리포트만
 ```
 
 이미 올라간 기록을 지우려면 플러그인의 `/claude-run-out` 을 쓰거나

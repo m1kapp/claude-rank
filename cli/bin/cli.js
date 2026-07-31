@@ -16,10 +16,10 @@ const args = process.argv.slice(2);
 if (args.includes("-h") || args.includes("--help")) {
   console.log(`clauderank — Claude/Codex 구독 가성비 랭킹 갱신
 
-  npx clauderank              내 사용량 집계 후 랭킹 갱신 (닉네임 자동)
-  npx clauderank <닉네임>     닉네임을 지정해서 갱신 (다음부터 생략 가능)
-  npx clauderank --no-open    브라우저를 열지 않음
-  npx clauderank --report     리포트만 만들고 제출하지 않음
+  npx @m1kapp/clauderank              내 사용량 집계 후 랭킹 갱신 (닉네임 자동)
+  npx @m1kapp/clauderank <닉네임>     닉네임을 지정해서 갱신 (다음부터 생략 가능)
+  npx @m1kapp/clauderank --no-open    브라우저를 열지 않음
+  npx @m1kapp/clauderank --report     리포트만 만들고 제출하지 않음
 
 요금제·닉네임은 자동 판별되고, 신원은 Claude 계정 기준이라 기기를 바꿔도
 한 줄로 갱신된다. 필요 조건: bash, python3, 그리고 npx(ccusage 집계용).

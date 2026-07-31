@@ -114,7 +114,7 @@ export default function Body() {
         <b>표본은 한 명이다.</b> 이 글의 숫자는 내 계정 한 달치를 뜯어본 것이고, 통계가 아니다.
         모델 믹스·작업 성격에 따라 구성비는 크게 달라질 수 있다. 다만 &ldquo;캐시 읽기가 비용의
         대부분&rdquo;이라는 구조 자체는 에이전트형 사용이면 대체로 비슷하게 나올 것이라고 본다.
-        본인 숫자는 <code>npx clauderank</code> 한 줄로 바로 볼 수 있다.
+        본인 숫자는 <code>npx @m1kapp/clauderank</code> 한 줄로 바로 볼 수 있다.
       </Note>
     </PostShell>
   );

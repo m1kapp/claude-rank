@@ -34,7 +34,7 @@ export default function StartPage() {
               {t("start.h1.l1")} {t("start.h1.l2")}
             </h1>
             <p style={{ fontSize: 13.5, color: "var(--text)", lineHeight: 1.72, margin: 0 }}>
-              {t("start.lead.a")} <b className="display" style={{ color: "var(--ink)" }}>npx clauderank</b> {t("start.lead.b")}
+              {t("start.lead.a")} <b className="display" style={{ color: "var(--ink)" }}>npx @m1kapp/clauderank</b> {t("start.lead.b")}
             </p>
             <hr className="hair" style={{ marginTop: 22 }} />
           </div>
@@ -46,7 +46,7 @@ export default function StartPage() {
                 않으므로 npx 를 1급 경로로 올리고, 플러그인은 원하는 사람만 내려가서 본다. */}
             <div style={{ padding: "18px 18px", background: "var(--card)", border: "1px solid var(--line)", borderRadius: 14, marginBottom: 26 }}>
               <div className="kicker" style={{ marginBottom: 10 }}>{t("start.fast.kicker")}</div>
-              <CodeBlock label="terminal" code={"npx clauderank"} accent="var(--terra)" />
+              <CodeBlock label="terminal" code={"npx @m1kapp/clauderank"} accent="var(--terra)" />
               <p style={{ fontSize: 12.5, color: "var(--text)", margin: "12px 0 0", lineHeight: 1.65 }}>{t("start.fast.desc")}</p>
             </div>
 

@@ -6,7 +6,7 @@ Claude 구독 가성비 랭킹 — "API 정가로 환산하면 몇 배 뽑았나
 ## 시작 (한 줄)
 
 ```bash
-npx clauderank
+npx @m1kapp/clauderank
 ```
 
 설치도 재시작도 없습니다. 요금제·닉네임은 자동 판별됩니다.
