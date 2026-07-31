@@ -1,6 +1,6 @@
 {
   "name": "@m1kapp/clauderank",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "Claude Code / Codex 구독 가성비 랭킹에 내 사용량을 갱신 — 설치 없이 npx 한 줄. ccusage 기반.",
   "bin": {
     "clauderank": "bin/cli.js"
