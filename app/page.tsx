@@ -47,6 +47,33 @@ export default function Home() {
     .sort((a, b) => (b.e.verified ? 1 : 0) - (a.e.verified ? 1 : 0) || b.ratio - a.ratio);
 
 
+  // 헤드라인용 격차. 요금제가 다르면 배율을 나란히 놓을 수 없으므로(같은 $200이어야
+  // "같은 값 내고 이만큼 차이"가 성립한다) 한 요금제 안에서만 뽑는다.
+  //
+  // 선택된 달이 아니라 최근 달부터 훑는다 — 매달 1일에는 이번 달 표본이 0이라
+  // 선택 달로 계산하면 그때마다 헤드라인이 사라진다. 격차는 이번 달의 사실이 아니라
+  // 현상에 대한 주장이므로, 표본이 있는 가장 최근 달을 쓰는 게 맞다.
+  const gap = (() => {
+    for (const month of months) {
+      const byPlan = new Map<number, number[]>();
+      for (const e of entries) {
+        const ms = e.months?.[month];
+        if (!ms || !ms.plan || !(ms.ratio > 0)) continue;
+        const rs = byPlan.get(ms.plan) ?? [];
+        rs.push(ms.ratio);
+        byPlan.set(ms.plan, rs);
+      }
+      let best: { plan: number; rs: number[] } | null = null;
+      for (const [p, rs] of byPlan) if (rs.length >= 2 && (!best || rs.length > best.rs.length)) best = { plan: p, rs };
+      if (!best) continue;
+      const rs = best.rs.slice().sort((x, y) => x - y);
+      // 표와 같은 자릿수로 쓴다 — 헤드라인이 35배인데 표가 34.6배면 어느 쪽을 믿을지 헷갈린다.
+      const fmt = (n: number) => Math.round(n * 10) / 10;
+      return { plan: best.plan, month, lo: fmt(rs[0]), hi: fmt(rs[rs.length - 1]) };
+    }
+    return null;
+  })();
+
   return (
     <Shell title={t("title.league")}>
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100%", position: "relative", zIndex: 1 }}>
@@ -55,10 +82,17 @@ export default function Home() {
           <div className="rise" style={{ paddingTop: 24 }}>
             <div className="kicker" style={{ marginBottom: 14 }}>{t("home.kicker")}</div>
             <h1 className="display" style={{ fontWeight: 600, fontSize: 33, lineHeight: 1.08, letterSpacing: "-0.02em", margin: 0 }}>
-              {t("home.h1.l1")}<br />{t("home.h1.l2")}<span style={{ color: "var(--accent)" }}>!</span>
+              {gap ? (
+                <>
+                  {t("home.h1.gap.l1", { plan: gap.plan })}<br />
+                  <span style={{ color: "var(--accent)" }}>{t("home.h1.gap.l2", { lo: gap.lo, hi: gap.hi })}</span>
+                </>
+              ) : (
+                <>{t("home.h1.l1")}<br />{t("home.h1.l2")}<span style={{ color: "var(--accent)" }}>!</span></>
+              )}
             </h1>
             <p style={{ fontSize: 13, color: "var(--text)", margin: "16px 0 14px", lineHeight: 1.6 }}>
-              {t("home.lead.a")} {t("home.lead.b1")}
+              {gap ? <>{t("home.h1.gap.lead", { month: monthLabel(gap.month) })} </> : null}{t("home.lead.a")} {t("home.lead.b1")}
             </p>
             {/* 랜딩에서 바로 복사할 수 있어야 한다 — /start 까지 한 번 더 눌러 들어가는 만큼 샌다. */}
             <CodeBlock label="terminal" code={"npx @m1kapp/clauderank"} accent="var(--terra)" />

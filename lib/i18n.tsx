@@ -24,6 +24,13 @@ const DICT: Dict = {
   "home.kicker": { ko: "구독 가성비 · CLAUDE", en: "VALUE-FOR-MONEY · CLAUDE" },
   "home.h1.l1": { ko: "오늘도 같이", en: "Today we run" },
   "home.h1.l2": { ko: "클로드 달려요", en: "with Claude" },
+  // 격차 헤드라인 — 같은 요금제 안에서 최저·최고 배율을 실데이터로 뽑아 넣는다.
+  // 손으로 적으면 다음 제출 한 건에 거짓이 된다. 2명 미만이면 아래 fallback 을 쓴다.
+  "home.h1.gap.l1": { ko: "같은 ${plan}인데,", en: "Same ${plan} plan." },
+  "home.h1.gap.l2": { ko: "누구는 {lo}배 누구는 {hi}배", en: "{lo}× for one, {hi}× for another." },
+  "home.h1.gap.lead": {
+    ko: "{month} 같은 요금제에서 그랬다. 구독료가 아니라 쓰는 법의 문제다 — 무엇이 갈랐는지 재서 적어둔다.",
+    en: "Same plan, {month}. It was never the price but how you use it — we measure what makes the difference." },
   "home.leader": { ko: "현재 선두", en: "Leader" },
   "home.lead.a": { ko: "매달 구독료를 API 정가로 환산해 몇 배 뽑는지, 모두의 기록을 모아보는 곳.", en: "A place that gathers everyone's numbers — how many times over we cash out our monthly subscription at API list price." },
   "home.lead.b1": { ko: "Claude Code에 한 줄이면 합류해요.", en: "One line in Claude Code and you're in." },
@@ -39,7 +46,7 @@ const DICT: Dict = {
   "home.liveNote": { ko: "이번 달도 진행 중 🏃", en: "Still going this month 🏃" },
   "home.empty": { ko: "아직 기록이 없어요. 등록하고 1등 찜하세요!", en: "No entries yet — register and grab #1!" },
   "home.updated": { ko: "갱신 {t} KST", en: "Updated {t} KST" },
-  "home.blog": { ko: "측정한 것들 — 비용이 실제로 어디로 가는지", en: "What we measured — where the money actually goes" },
+  "home.blog": { ko: "잘 쓰는 법 — 재봐야만 알 수 있던 것들", en: "How to use it well — things you only learn by measuring" },
   "home.footer": { ko: "{month} 본전배율 순위 · 이름 누르면 리포트 · 금액 환산값", en: "{month} value ranking · tap a name for the report · notional" },
 
   // start
