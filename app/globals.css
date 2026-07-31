@@ -123,6 +123,6 @@ body {
   content: ""; position: absolute; left: 0; top: .18em; bottom: .18em;
   width: 3px; border-radius: 2px; background: var(--terra);
 }
-.post table tbody tr:last-child { background: rgba(217, 119, 87, .07); }
-.post table tbody tr:last-child td { font-weight: 700; border-bottom: none; }
-.post table tbody tr:last-child td:first-child { color: var(--terra); }
+.post table.has-total tbody tr:last-child { background: rgba(217, 119, 87, .07); }
+.post table.has-total tbody tr:last-child td { font-weight: 700; border-bottom: none; }
+.post table.has-total tbody tr:last-child td:first-child { color: var(--terra); }

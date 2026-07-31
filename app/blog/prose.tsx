@@ -42,10 +42,10 @@ export const Note = ({ children }: { children: React.ReactNode }) => (
   <div style={{ fontSize: 13, color: "var(--text-soft)", background: "var(--card)", border: "1px solid var(--line)", borderRadius: 10, padding: "13px 15px", margin: "18px 0" }}>{children}</div>
 );
 
-export function Table({ head, rows }: { head: string[]; rows: (string | number)[][] }) {
+export function Table({ head, rows, total }: { head: string[]; rows: (string | number)[][]; total?: boolean }) {
   return (
     <div style={{ overflowX: "auto", margin: "18px 0" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+      <table className={total ? "has-total" : undefined} style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
         <thead>
           <tr>{head.map((h, i) => (
             <th key={i} style={{ textAlign: i ? "right" : "left", padding: "8px 10px", borderBottom: "1px solid var(--line)", color: "var(--muted)", fontWeight: 700, whiteSpace: "nowrap" }}>{h}</th>

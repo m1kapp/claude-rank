@@ -16,6 +16,22 @@ export type Post = {
 
 export const POSTS: Post[] = [
   {
+    slug: "cumulative-rank",
+    title: "누적 랭킹은 실력이 아니라 근속을 잰다 — 같은 사람이 100위이자 13위였다",
+    description:
+      "같은 계정, 같은 데이터인데 누적 100위·30일 13위였다. 87계단 차이는 사용량이 아니라 시작 시점에서 왔다. 자기신고 신원이 만드는 중복 계정 문제와, 비율 지표가 그걸 어떻게 피하는지.",
+    date: "2026-07-31",
+    minutes: 6,
+  },
+  {
+    slug: "weekly-limit",
+    title: "주간 한도는 문서보다 위에 있다 — 28.9시간에 걸렸는데 52.1시간은 안 걸렸다",
+    description:
+      "Max 20x 주간 한도를 한 번 찍고 나서 주 단위로 기록을 갈라봤다. 더 많이 쓴 주가 안 걸렸고, 갈린 건 시간이 아니라 모델 구성이었다. 달러와 한도가 비례하지 않는 이유.",
+    date: "2026-07-31",
+    minutes: 6,
+  },
+  {
     slug: "where-the-money-goes",
     title: "Claude Code 한 달 치를 뜯어봤다 — 비용의 71%는 캐시 읽기였다",
     description:
