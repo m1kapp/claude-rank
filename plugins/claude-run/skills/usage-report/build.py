@@ -462,12 +462,17 @@ try:
     _corpus = {"files": len(_files), "bytes": sum(_os.path.getsize(f) for f in _files)}
     _cur = max(months) if months else ""
     _vb = summary.get("viberank") or {}
+    # 필드 이름은 docs/usage-drift-log.md 의 스펙을 따른다 — 다른 제출기가 같은
+    # 형식을 쓰면 드리프트가 도구 간 비교 가능해진다. 원화·chats 는 하위호환용.
+    _m = summary["months"].get(_cur, {})
     _rec = {
         "at": _dt.datetime.now().astimezone().isoformat(timespec="seconds"),
         "month": _cur,
-        "cost_krw": summary["months"].get(_cur, {}).get("cost_krw", 0),
-        "chats": summary["months"].get(_cur, {}).get("chats") or 0,
+        "cost_usd": _m.get("cost_usd", 0),
+        "messages": _m.get("chats") or 0,
         "corpus": _corpus,
+        "cost_krw": _m.get("cost_krw", 0),
+        "chats": _m.get("chats") or 0,
     }
     if _vb.get("rank"):
         _rec["viberank_rank"] = _vb["rank"]
@@ -493,12 +498,15 @@ try:
 
     with open(_hp, "a") as _fh:
         _fh.write(json.dumps(_rec, ensure_ascii=False) + "\n")
-    if _prev and _prev.get("cost_krw", 0) > _rec["cost_krw"] * 1.02:
-        _pc, _cc = _prev["corpus"]["files"], _corpus["files"]
-        _why = (f"트랜스크립트가 {_pc - _cc}개 사라짐" if _cc < _pc
+    _pc = _prev.get("cost_usd") if _prev and _prev.get("cost_usd") else (
+        (_prev.get("cost_krw", 0) / KRW) if _prev else 0)
+    if _prev and _pc > _rec["cost_usd"] * 1.02:
+        _pf, _cc = _prev["corpus"]["files"], _corpus["files"]
+        _why = (f"트랜스크립트가 {_pf - _cc}개 사라짐" if _cc < _pf
                 else "파일 수는 그대로 — 집계 방식(ccusage 등)이 바뀐 쪽")
         print(f"⚠️  {_cur} 누적이 지난 실행보다 줄었습니다 "
-              f"(₩{_prev['cost_krw']:,} → ₩{_rec['cost_krw']:,}, 채팅 {_prev.get('chats',0):,} → {_rec['chats']:,}) — {_why}")
+              f"(${_pc:,.0f} → ${_rec['cost_usd']:,.0f}, "
+              f"채팅 {_prev.get('messages', _prev.get('chats',0)):,} → {_rec['messages']:,}) — {_why}")
         print(f"    이력: {_hp}")
 except Exception:
     pass
