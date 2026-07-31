@@ -1,0 +1,51 @@
+# @m1kapp/clauderank 퍼블리시 — Trusted Publishing(OIDC).
+#
+# 저장된 npm 토큰이 없다. GitHub 이 워크플로 단위로 발급하는 단명 토큰을
+# npm 이 검증한다. 2FA 우회 토큰은 2027-01 부터 직접 퍼블리시가 막히므로
+# 이 경로가 유일하게 남는 자동화 방식이다.
+#
+# npmjs.com 쪽 설정이 함께 있어야 동작한다:
+#   패키지 Settings → Trusted Publisher →
+#     Organization or user: m1kapp
+#     Repository:           claude-rank
+#     Workflow filename:    publish-cli.yml
+#     Allowed actions:      npm publish
+name: publish cli
+
+on:
+  # 태그를 밀면 퍼블리시. 버전은 cli/package.json 의 값을 그대로 쓴다.
+  push:
+    tags: ["cli-v*"]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # OIDC 토큰 발급 — 없으면 trusted publishing 이 성립하지 않는다
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      # OIDC 퍼블리시는 최신 npm 이 필요하다(러너 기본 버전은 낮을 수 있음).
+      - run: npm install -g npm@latest
+
+      # 태그 버전과 package.json 버전이 어긋난 채로 나가는 사고를 막는다.
+      - name: 버전 확인
+        if: startsWith(github.ref, 'refs/tags/cli-v')
+        working-directory: cli
+        run: |
+          PKG=$(node -p "require('./package.json').version")
+          TAG="${GITHUB_REF_NAME#cli-v}"
+          echo "package.json=$PKG · tag=$TAG"
+          [ "$PKG" = "$TAG" ] || { echo "::error::태그와 package.json 버전이 다릅니다"; exit 1; }
+
+      # prepack 이 plugins/.../usage-report 의 스크립트를 cli/scripts 로 동기화한다.
+      - name: publish
+        working-directory: cli
+        run: npm publish
