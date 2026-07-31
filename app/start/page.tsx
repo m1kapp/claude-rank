@@ -4,22 +4,6 @@ import { useRouter } from "next/navigation";
 import Shell from "../Shell";
 import { useI18n } from "../../lib/i18n";
 
-function StepRow({ n, title, desc, last, children }: { n: number; title: string; desc?: string; last?: boolean; children?: React.ReactNode }) {
-  return (
-    <div style={{ display: "flex", gap: 15, marginBottom: 30 }}>
-      <div style={{ flex: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-        <div className="display tnum" style={{ width: 34, height: 34, borderRadius: "50%", background: "var(--accent)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16 }}>{n}</div>
-        {!last && <div style={{ flex: 1, width: 1.5, background: "var(--line)", minHeight: 18 }} />}
-      </div>
-      <div style={{ flex: 1, minWidth: 0, paddingBottom: 2 }}>
-        <div className="display" style={{ fontWeight: 700, fontSize: 18, marginBottom: desc ? 4 : 10 }}>{title}</div>
-        {desc && <p style={{ fontSize: 13, color: "var(--text)", margin: "0 0 10px", lineHeight: 1.62 }}>{desc}</p>}
-        {children}
-      </div>
-    </div>
-  );
-}
-
 export default function StartPage() {
   const router = useRouter();
   const { t } = useI18n();
@@ -50,28 +34,22 @@ export default function StartPage() {
               <p style={{ fontSize: 12.5, color: "var(--text)", margin: "12px 0 0", lineHeight: 1.65 }}>{t("start.fast.desc")}</p>
             </div>
 
-            <div className="kicker" style={{ margin: "0 0 10px" }}>{t("start.plugin.kicker")}</div>
-            <p style={{ fontSize: 12.5, color: "var(--muted)", margin: "0 0 18px", lineHeight: 1.6 }}>{t("start.s1.desc")}</p>
-
-            <StepRow n={0} title={t("start.step.remove")} desc={t("start.step.remove.desc")}>
-              <CodeBlock label="claude code" code={"/plugin marketplace remove m1kapp\n/plugin marketplace remove m1kskills"} accent="var(--terra)" />
-            </StepRow>
-
-            <StepRow n={1} title={t("start.step.add")}>
-              <CodeBlock label="claude code" code={"/plugin marketplace add m1kapp/claude-rank"} accent="var(--terra)" />
-            </StepRow>
-
-            <StepRow n={2} title={t("start.step.install")}>
-              <CodeBlock label="claude code" code={"/plugin install claude-run@claude-rank"} accent="var(--terra)" />
-            </StepRow>
-
-            <StepRow n={3} title={t("start.step.reload")} desc={t("start.step.reload.desc")}>
-              <CodeBlock label="claude code" code={"/reload-plugins"} accent="var(--terra)" />
-            </StepRow>
-
-            <StepRow n={4} last title={t("start.s3.title")} desc={t("start.s3.desc")}>
-              <CodeBlock label="run" code={"/claude-run:claude-run"} accent="var(--terra)" />
-            </StepRow>
+            {/* npx 로 제출이 되는 이상 플러그인은 선택지다. 5단계 설치 절차가 첫 화면을
+                차지할 이유가 없어 한 블록으로 접었다. 특히 "예전 마켓플레이스 제거"는
+                극소수 기존 유저용인데 0단계로 맨 앞에 있었다. */}
+            <div className="kicker" style={{ margin: "0 0 8px" }}>{t("start.plugin.kicker")}</div>
+            <p style={{ fontSize: 12.5, color: "var(--muted)", margin: "0 0 12px", lineHeight: 1.65 }}>{t("start.plugin.desc")}</p>
+            <CodeBlock label="claude code" code={"/plugin marketplace add m1kapp/claude-rank"} accent="var(--terra)" />
+            <div style={{ height: 8 }} />
+            <CodeBlock label="claude code" code={"/plugin install claude-run@claude-rank"} accent="var(--terra)" />
+            <p style={{ fontSize: 12, color: "var(--muted)", margin: "12px 0 0", lineHeight: 1.65 }}>{t("start.plugin.after")}</p>
+            <details style={{ marginTop: 12 }}>
+              <summary style={{ fontSize: 12, color: "var(--muted)", cursor: "pointer" }}>{t("start.legacy.title")}</summary>
+              <p style={{ fontSize: 12, color: "var(--muted)", margin: "10px 0", lineHeight: 1.65 }}>{t("start.legacy.desc")}</p>
+              <CodeBlock label="claude code" code={"/plugin marketplace remove m1kapp"} accent="var(--terra)" />
+              <div style={{ height: 6 }} />
+              <CodeBlock label="claude code" code={"/plugin marketplace remove m1kskills"} accent="var(--terra)" />
+            </details>
           </div>
         </Section>
 
@@ -79,7 +57,7 @@ export default function StartPage() {
           <div className="rise" style={{ animationDelay: ".18s", padding: "18px 18px", background: "var(--card)", border: "1px solid var(--line)", borderRadius: 14 }}>
             <div className="kicker" style={{ marginBottom: 12 }}>{t("start.note.title")}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-              {[t("start.note.6"), t("start.note.1"), t("start.note.2"), t("start.note.3"), t("start.note.4"), t("start.note.5")].map((line, i) => (
+              {[t("start.note.1"), t("start.note.2"), t("start.note.3"), t("start.note.4"), t("start.note.5"), t("start.note.6")].map((line, i) => (
                 <div key={i} style={{ display: "flex", gap: 9, fontSize: 13, color: "var(--text)", lineHeight: 1.55 }}>
                   <span style={{ flex: "none", color: "var(--accent)", fontWeight: 700 }}>·</span>
                   <span>{line}</span>
