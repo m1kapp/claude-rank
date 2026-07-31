@@ -52,8 +52,23 @@ function fallbackImage(fonts?: Font[]) {
   );
 }
 
+// 월초 폴백 판정: 이번 달이 아직 본전 전인데 지난달은 본전을 넘겼으면, 첫 주 동안은 지난달 결산을 보여준다.
+// 매달 1일이면 이번 달 배율이 0에 가까워서, 공유 유인이 가장 큰 월초에 카드가 제일 초라해지는 걸 막는다.
+// 조건을 좁게 잡은 이유: 이번 달이 이미 잘 나오고 있으면 굳이 과거를 들추지 않는다.
+const EARLY_MONTH_DAYS = 7;
+function earlyMonthFallback(months: Record<string, any>, sorted: string[], nowKST: string, dom: number): string | null {
+  if (dom > EARLY_MONTH_DAYS) return null;
+  const i = sorted.indexOf(nowKST);
+  if (i < 1) return null;                                   // 이번 달 데이터가 없으면 어차피 최신월로 간다
+  const prev = sorted[i - 1];
+  const curRatio = Number(months[nowKST]?.ratio) || 0;
+  const prevRatio = Number(months[prev]?.ratio) || 0;
+  return curRatio < 1 && prevRatio >= 1 ? prev : null;
+}
+
 // 카드에 들어갈 수치 일괄 계산.
-// 표시 월: month 인자가 있고 그 달 데이터가 있으면 그 달, 없으면 프로필 페이지와 동일(현재 KST월 우선, 없으면 최신월).
+// 표시 월: month 인자 > 월초 폴백 > 현재 KST월 > 최신월.
+// (프로필 페이지는 ?m= 선택기가 따로 있어 현재월 기본을 유지한다 — 폴백은 공유 이미지 전용)
 function cardData(entry: any, report: any, month?: string) {
   const kst = new Date(Date.now() + 9 * 3600e3);
   const nowKST = kst.toISOString().slice(0, 7);
@@ -62,9 +77,8 @@ function cardData(entry: any, report: any, month?: string) {
   const cur =
     month && monthsSorted.includes(month)
       ? month
-      : monthsSorted.includes(nowKST)
-        ? nowKST
-        : monthsSorted[monthsSorted.length - 1] || "";
+      : earlyMonthFallback(report.months || {}, monthsSorted, nowKST, dom) ??
+        (monthsSorted.includes(nowKST) ? nowKST : monthsSorted[monthsSorted.length - 1] || "");
   const m: any = report.months?.[cur] || {};
 
   const krw = Number(report.currency_krw_per_usd) || 1500;
