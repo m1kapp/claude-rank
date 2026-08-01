@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { POSTS } from "../lib/blog";
+import { ALL_POSTS } from "../lib/blog";
 
 const BASE = "https://clauderank.m1k.app";
 
@@ -9,7 +9,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: BASE, changeFrequency: "hourly", priority: 1 },
     { url: `${BASE}/start`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE}/blog`, changeFrequency: "weekly", priority: 0.7 },
-    ...POSTS.map((p) => ({
+    // 목록에서 내린 글도 색인은 유지한다(ALL_POSTS).
+    ...ALL_POSTS.map((p) => ({
       url: `${BASE}/blog/${p.slug}`,
       lastModified: p.date,
       changeFrequency: "monthly" as const,

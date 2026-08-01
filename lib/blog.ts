@@ -5,6 +5,10 @@
 // 이미 10편을 깔아둔 자리라 0에서 붙으면 진다. 대신 직접 측정해야만 알 수 있는
 // 것만 쓴다 — 복사가 안 되고, 그게 우리 유일한 우위다.
 // 표본은 아직 작으므로 "분석 결과"가 아니라 "내 기록을 뜯어봤다"로 쓴다.
+//
+// POSTS = 목록에 뜨는 글. ARCHIVED = 목록에서 내렸지만 URL 은 살려둔 글.
+// 블로그를 "잘 쓰는 법" 한 갈래로 좁히면서 측정 기록 3편을 목록에서 뺐다. 지우지는
+// 않는다 — 색인된 URL 이 404 가 되고, 남은 글이 근거로 링크하고 있다.
 
 export type Post = {
   slug: string;
@@ -15,6 +19,17 @@ export type Post = {
 };
 
 export const POSTS: Post[] = [
+  {
+    slug: "leverage-per-turn",
+    title: "같은 계정이 0배에서 103.6배가 됐다 — 바뀐 건 마디당 도구 1.46 → 6.74",
+    description:
+      "요금제도 계정도 그대로인데 6월 0배, 7월 103.6배였다. 사람이 친 마디 수로 도구 호출·서브에이전트·커밋을 나눠보니 습관이 그대로 숫자로 나왔다. 순위와 달리 이건 따라 할 수 있다.",
+    date: "2026-08-01",
+    minutes: 6,
+  },
+];
+
+export const ARCHIVED: Post[] = [
   {
     slug: "cumulative-rank",
     title: "누적 랭킹은 실력이 아니라 근속을 잰다 — 같은 사람이 100위이자 13위였다",
@@ -41,4 +56,7 @@ export const POSTS: Post[] = [
   },
 ];
 
-export const bySlug = (slug: string) => POSTS.find((p) => p.slug === slug);
+export const ALL_POSTS: Post[] = [...POSTS, ...ARCHIVED];
+
+// 개별 글 페이지의 metadata 가 쓴다 — 목록에서 내렸어도 찾을 수 있어야 한다.
+export const bySlug = (slug: string) => ALL_POSTS.find((p) => p.slug === slug);
