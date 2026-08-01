@@ -6,7 +6,7 @@ import json, sys, os
 from collections import defaultdict
 from datetime import date as _date
 
-VIEWS = [("day","일별 기준"),("sess","세션 기준"),("eff","효율"),("hour","시간대"),("commit","커밋")]
+VIEWS = [("day","일별 기준"),("sess","세션 기준"),("eff","효율"),("hour","시간대"),("conc","동시"),("commit","커밋")]
 _WD = ["월","화","수","목","금","토","일"]
 def wlabel(ds):  # "YYYY-MM-DD" -> 요일 약어(주말 색 구분)
     try:
@@ -227,6 +227,41 @@ def quality_panel(mo):
       <div class="qnote">피크 {peak_h}시 · 가장 활발한 시간대는 <b>{dom}</b>({blocks[dom]/htot*100:.0f}%). {icon} 새벽 비중 {night_ratio:.0f}%.</div>
     </div>'''
 
+    # === 동시 view ===
+    # 세션 구간이 겹친 시간. 분모는 24시간이 아니라 '세션이 하나라도 살아 있던 시간'이다.
+    cc = s.get("conc", {})
+    ckeys = ["1","2","3","4","5","6+"]
+    cvals = [cc.get(k, 0) for k in ckeys]
+    ctot = sum(cvals)
+    if ctot:
+        cmax = max(cvals) or 1
+        cbars = ""
+        for k, v in zip(ckeys, cvals):
+            col = "#8a8580" if k == "1" else "#5fa563"   # 단독만 회색으로 빼서 병렬 구간이 갈리게
+            cbars += (f'<div class="col" title="동시 {k}개 · {v:.1f}시간 ({v/ctot*100:.0f}%)">'
+                      f'<div class="cb" style="height:{v/cmax*100:.1f}%;background:{col};'
+                      f'border-radius:3px 3px 0 0;min-height:{1 if v else 0}px"></div>'
+                      f'<div class="cx">{k}</div></div>')
+        cpeak = s.get("conc_peak", 0); cmean = s.get("conc_mean", 0); cpar = s.get("conc_parallel", 0)
+        if cpar >= 70:   cverdict = "거의 항상 여러 개를 동시에 굴렸다"
+        elif cpar >= 40: cverdict = "절반 넘게 겹쳐서 굴렸다"
+        elif cpar >= 15: cverdict = "가끔 겹쳐서 굴렸다"
+        else:            cverdict = "대체로 하나씩 굴렸다"
+        view_conc = f'''<div class="qview" data-v="conc">
+      <div class="act">
+        <div class="ai"><span class="an">{cpeak}</span><span class="al">최대 동시</span></div>
+        <div class="ai"><span class="an">{cmean}</span><span class="al">평균 동시</span></div>
+        <div class="ai"><span class="an">{cpar}%</span><span class="al">2개 이상</span></div>
+      </div>
+      <div class="chart">{cbars}</div>
+      <div class="ccap">동시에 굴린 세션 수별 시간 · 회색=단독</div>
+      <div class="qnote"><b>{cverdict}</b>({cpar}%). 순간 최대 {cpeak}개, 시간 가중 평균 {cmean}개.
+        한 파일 안의 세션끼리는 정의상 안 겹치므로 이 겹침은 거의 전부 다른 프로젝트를 동시에 굴린 것이다.
+        총 {ctot:.0f}시간 기준(세션이 하나라도 살아 있던 시간).</div>
+    </div>'''
+    else:
+        view_conc = '<div class="qview" data-v="conc"><div class="qnote">동시 작업 기록이 없어요.</div></div>'
+
     # === 커밋 view ===
     g = s.get("git", {})
     gc, gp, gdaily = g.get("commit",0), g.get("push",0), g.get("daily",{})
@@ -267,7 +302,7 @@ def quality_panel(mo):
       <div class="qtop"><span class="qtn">{s["chats"]:,}</span><span class="qtl">총 채팅 (사람이 친 메시지)</span></div>
       {radios}
       <div class="chips">{chips}</div>
-      {view_sess}{view_day}{view_eff}{view_hour}{view_commit}
+      {view_sess}{view_day}{view_eff}{view_hour}{view_conc}{view_commit}
     </div>'''
 
 
