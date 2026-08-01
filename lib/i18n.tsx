@@ -28,9 +28,10 @@ const DICT: Dict = {
   // 손으로 적으면 다음 제출 한 건에 거짓이 된다. 2명 미만이면 아래 fallback 을 쓴다.
   "home.h1.gap.l1": { ko: "같은 ${plan}인데,", en: "Same ${plan} plan." },
   "home.h1.gap.l2": { ko: "누구는 {lo}배 누구는 {hi}배", en: "{lo}× for one, {hi}× for another." },
+  // 헤드라인이 이미 격차를 말한다. 리드는 '언제 기준인지'와 '어떻게 합류하는지'만 남긴다.
   "home.h1.gap.lead": {
-    ko: "{month} 같은 요금제에서 그랬다. 구독료가 아니라 쓰는 법의 문제다 — 무엇이 갈랐는지 재서 적어둔다.",
-    en: "Same plan, {month}. It was never the price but how you use it — we measure what makes the difference." },
+    ko: "{month} 같은 요금제 안에서 그랬다. 구독료가 아니라 쓰는 법의 문제다.",
+    en: "Same plan, {month}. It was never the price — it's how you use it." },
   "home.leader": { ko: "현재 선두", en: "Leader" },
   "home.lead.a": { ko: "매달 구독료를 API 정가로 환산해 몇 배 뽑는지, 모두의 기록을 모아보는 곳.", en: "A place that gathers everyone's numbers — how many times over we cash out our monthly subscription at API list price." },
   "home.lead.b1": { ko: "Claude Code에 한 줄이면 합류해요.", en: "One line in Claude Code and you're in." },

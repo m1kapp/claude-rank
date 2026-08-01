@@ -33,7 +33,11 @@ export default function Home() {
   const months = monthSet.size ? [...monthSet].sort().reverse() : [nowMonth];
   const options = months.map((m) => ({ value: m, label: monthLabel(m) }));
   const [selRaw, setSel] = useState("");
-  const sel = selRaw || months[0] || "";
+  // 기본 달은 '최신'이 아니라 '표본이 2명 이상인 가장 최근 달'이다. 매달 1~2일에는
+  // 이번 달에 한두 명뿐이라, 최신을 그대로 열면 헤드라인은 지난달 격차를 말하는데
+  // 표에는 한 줄만 있어 서로 따로 논다. 사용자가 직접 고르면 그 선택이 이긴다.
+  const defaultMonth = months.find((m) => entries.filter((e) => e.months?.[m]).length >= 2) || months[0] || "";
+  const sel = selRaw || defaultMonth;
 
   // 종목(요금제) 필터 — 표준 3종목(200/100/20) 항상 노출 + 데이터에 있는 그 외 플랜 포함
   const plans = [...new Set([200, 100, 20, ...entries.flatMap((e) => Object.values(e.months || {}).map((m: any) => Number(m.plan) || 0)).filter(Boolean)])].sort((a, b) => b - a);
@@ -92,7 +96,10 @@ export default function Home() {
               )}
             </h1>
             <p style={{ fontSize: 13, color: "var(--text)", margin: "16px 0 14px", lineHeight: 1.6 }}>
-              {gap ? <>{t("home.h1.gap.lead", { month: monthLabel(gap.month) })} </> : null}{t("home.lead.a")} {t("home.lead.b1")}
+              {/* 격차 헤드라인이 뜨면 home.lead.a 는 같은 말 반복이라 뺀다 — 폴백 헤드라인일 때만 쓴다 */}
+              {gap
+                ? <>{t("home.h1.gap.lead", { month: monthLabel(gap.month) })} {t("home.lead.b1")}</>
+                : <>{t("home.lead.a")} {t("home.lead.b1")}</>}
             </p>
             {/* 랜딩에서 바로 복사할 수 있어야 한다 — /start 까지 한 번 더 눌러 들어가는 만큼 샌다. */}
             <CodeBlock label="terminal" code={"npx @m1kapp/clauderank"} accent="var(--terra)" />
