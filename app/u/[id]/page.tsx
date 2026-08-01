@@ -119,7 +119,7 @@ function PriceSection({ m, dCost, krwPerUsd }: { m: any; dCost: DayPoint[]; krwP
 }
 
 // 챗 분석 (일/세션/효율/시간대/커밋 — 토글 없이 쭉)
-function QualitySection({ m, dChats, dCommits, hourly, buckets }: { m: any; dChats: DayPoint[]; dCommits: DayPoint[]; hourly: DayPoint[]; buckets: DayPoint[] }) {
+function QualitySection({ m, dChats, dCommits, hourly, buckets, conc }: { m: any; dChats: DayPoint[]; dCommits: DayPoint[]; hourly: DayPoint[]; buckets: DayPoint[]; conc: DayPoint[] }) {
   const { t } = useI18n();
   const ef = m.efficiency || {};
   return (
@@ -142,6 +142,19 @@ function QualitySection({ m, dChats, dCommits, hourly, buckets }: { m: any; dCha
 
       {subhead(t("user.seg.hour"))}
       <Bars data={hourly} />{cap(t("user.hour.cap"))}
+
+      {/* 옛 리포트에는 동시성 필드가 없다 — 값이 있을 때만 그린다 */}
+      {m.conc_peak ? (
+        <>
+          {subhead(t("user.seg.conc"))}
+          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+            <StatChip label={t("user.conc.peak")} value={m.conc_peak} />
+            <StatChip label={t("user.conc.mean")} value={m.conc_mean} />
+            <StatChip label={t("user.conc.parallel")} value={m.conc_parallel} />
+          </div>
+          <Bars data={conc} />{cap(t("user.conc.cap"))}
+        </>
+      ) : null}
 
       {subhead(t("user.seg.commit"))}
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}><StatChip label={t("user.commit.commit")} value={m.git?.commit || 0} /><StatChip label={t("user.commit.push")} value={m.git?.push || 0} /></div>
@@ -186,6 +199,10 @@ export default function UserPage() {
   const dCost = withProjection(fillDays(s.daily_cost_krw, cur, firstMonth, currentMonth), cur, currentMonth);
   const hourly = Array.from({ length: 24 }, (_, h) => ({ k: String(h), v: (s.hourly || {})[h] || 0, c: h <= 5 ? "#8b6db5" : "#6a9bcc" }));
   const buckets = ["1-5", "6-10", "11-20", "21-50", "50+"].map((k) => ({ k, v: (s.buckets || {})[k] || 0, c: "#d97757" }));
+  // 동시 세션 수별 시간. 1개(=단독)만 다른 색으로 둬서 병렬 구간이 한눈에 갈린다.
+  const conc = ["1", "2", "3", "4", "5", "6+"].map((k) => ({
+    k, v: Math.round((s.conc || {})[k] || 0), c: k === "1" ? "#8a8580" : "#5fa563",
+  }));
 
   return (
     <Shell title={t("title.report")}>
@@ -251,7 +268,7 @@ export default function UserPage() {
       <QualitySection m={m}
         dChats={fillDays(s.daily_chats, cur, firstMonth, currentMonth, "#6a9bcc")}
         dCommits={fillDays(s.daily_commits, cur, firstMonth, currentMonth, "#5fa563")}
-        hourly={hourly} buckets={buckets} />
+        hourly={hourly} buckets={buckets} conc={conc} />
     </Shell>
   );
 }

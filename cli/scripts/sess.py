@@ -48,8 +48,12 @@ gitdaily = defaultdict(lambda: defaultdict(int))  # "YYYY-MM" -> {"YYYY-MM-DD": 
 # 파일별로 (시각, 사람발화여부) 모은 뒤 시간 공백으로 작업 세션 분할
 mon = defaultdict(list)                       # "YYYY-MM" -> [세션별 채팅수, ...]
 daily = defaultdict(lambda: defaultdict(int)) # "YYYY-MM" -> {"YYYY-MM-DD": 채팅수}
+# 세션이 '살아 있던' 구간 [시작, 끝]. 여러 개를 동시에 굴렸는지 재려면 이게 필요하다.
+# 한 파일 안의 세션끼리는 GAP 으로 갈려 정의상 안 겹치므로, 겹침은 곧 다른 프로젝트다.
+spans = defaultdict(list)                     # "YYYY-MM" -> [(시작, 끝), ...]
 for f in glob.glob(os.path.join(base, "*", "**", "*.jsonl"), recursive=True):
     evs = []
+    alltimes = []      # 사람 발화만이 아니라 모든 레코드 시각(에이전트가 도는 동안도 '살아 있음')
     try:
         for line in open(f):
             o = json.loads(line)
@@ -59,6 +63,7 @@ for f in glob.glob(os.path.join(base, "*", "**", "*.jsonl"), recursive=True):
             try: dt = datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone(LOCAL) if ts else None
             except Exception: dt = None
             mk = dt.strftime("%Y-%m") if dt else None
+            if dt and not side: alltimes.append(dt)
             if t == "assistant" and mk:
                 u = o.get("message", {}).get("usage", {})
                 e = eff[mk]
@@ -97,16 +102,58 @@ for f in glob.glob(os.path.join(base, "*", "**", "*.jsonl"), recursive=True):
     except Exception:
         pass
     evs.sort()
+    alltimes.sort()
+    # 세션 분할 규칙은 그대로 둔다(사람 발화 기준). 여기서 추가하는 건 구간뿐이라
+    # sessions/median/buckets 같은 기존 수치는 값이 안 바뀐다.
+    chunks = []
     cur, last = [], None
     for dt, h in evs:
         if last and (dt - last).total_seconds() > GAP and cur:
-            ht = sum(1 for d, hh in cur if hh)
-            if ht > 0: mon[cur[0][0].strftime("%Y-%m")].append(ht)
-            cur = []
+            chunks.append(cur); cur = []
         cur.append((dt, h)); last = dt
-    if cur:
-        ht = sum(1 for d, hh in cur if hh)
-        if ht > 0: mon[cur[0][0].strftime("%Y-%m")].append(ht)
+    if cur: chunks.append(cur)
+    for i, ch in enumerate(chunks):
+        ht = sum(1 for d, hh in ch if hh)
+        if ht <= 0: continue
+        mon[ch[0][0].strftime("%Y-%m")].append(ht)
+        # 끝은 마지막 사람 발화가 아니라 그 뒤로 이어진 에이전트 활동까지다.
+        # 다음 세션이 시작되기 전까지, GAP 안쪽만 인정한다.
+        u0, u1 = ch[0][0], ch[-1][0]
+        nxt = chunks[i + 1][0][0] if i + 1 < len(chunks) else None
+        end = u1
+        for t2 in alltimes:
+            if t2 < u1: continue
+            if nxt is not None and t2 >= nxt: break
+            if (t2 - end).total_seconds() > GAP: break
+            end = t2
+        spans[u0.strftime("%Y-%m")].append((u0, end))
+
+def concurrency(month_spans):
+    """동시에 굴린 세션 수 → 그 상태로 흐른 시간(시). 구간 스윕으로 잰다.
+
+    '그 시간에 걸친 세션 수'를 세면 앞뒤로 스쳐 간 것까지 더해져 부풀려진다.
+    분모는 하루 24시간이 아니라 '세션이 하나라도 살아 있던 시간'이다 — 24로
+    나누면 자는 시간이 섞여 전부 1 아래로 눌린다.
+    """
+    marks = sorted([(a, 1) for a, _ in month_spans] + [(b, -1) for _, b in month_spans])
+    hours, active, prev, peak = defaultdict(float), 0, None, 0
+    for t, delta in marks:
+        if prev is not None and active > 0:
+            hours[active] += (t - prev).total_seconds() / 3600
+        active += delta
+        peak = max(peak, active)
+        prev = t
+    busy = sum(hours.values())
+    if not busy: return {}, 0, 0, 0
+    solo = hours.get(1, 0.0)
+    mean = sum(k * v for k, v in hours.items()) / busy
+    # 6개 이상은 꼬리가 길어 칸이 잘게 쪼개진다 — 하나로 묶는다
+    dist = {}
+    for k, v in hours.items():
+        key = str(k) if k <= 5 else "6+"
+        dist[key] = round(dist.get(key, 0) + v, 1)
+    return dist, peak, round(100 - solo / busy * 100), round(mean, 1)
+
 
 def bucketize(turns):  # 세션 크기 분포
     edges = [(1,5),(6,10),(11,20),(21,50),(51,10**9)]
@@ -123,7 +170,12 @@ for m, t in mon.items():
     active = len(dmap)
     e = eff.get(m, {})
     tin = e.get("cr",0)+e.get("cw",0)+e.get("inp",0)
+    conc, conc_peak, conc_par, conc_mean = concurrency(spans.get(m, []))
     out[m] = {
+        "conc": conc,                 # {"1": 시간, ..., "6+": 시간}
+        "conc_peak": conc_peak,       # 순간 최대 동시 세션 수
+        "conc_parallel": conc_par,    # 2개 이상 겹친 시간 비율(%)
+        "conc_mean": conc_mean,       # 시간 가중 평균 동시 세션 수
         "sessions": len(t),
         "chats": sum(t),
         "per_session": round(sum(t) / len(t), 1),

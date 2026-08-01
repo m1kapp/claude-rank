@@ -74,6 +74,8 @@ function mergeMonthSlices(slices: any[], plan: number, krw: number): any {
   const daily_commits: Record<string, number> = {};
   const hourly: Record<string, number> = {};
   const buckets: Record<string, number> = {};
+  const conc: Record<string, number> = {};
+  let concPeak = 0, concParallel = 0, concMean = 0;
   let primaryChats = -1, median = 0, maxSess = 0, efficiency: any = undefined;
 
   for (const s of slices) {
@@ -90,6 +92,13 @@ function mergeMonthSlices(slices: any[], plan: number, krw: number): any {
     addInto(daily_commits, ser.daily_commits);
     addInto(hourly, ser.hourly);
     addInto(buckets, ser.buckets);
+    // 동시성은 기기별로 잰 값이라 합치면 과소평가된다 — 기기 A와 B가 같은 시각에
+    // 하나씩 돌렸으면 실제로는 2개 동시인데 양쪽 다 '1개'로 기록돼 있다.
+    // 시간은 더하고 정점은 최댓값을 쓰되, 둘 다 하한선으로 읽어야 한다.
+    addInto(conc, ser.conc);
+    concPeak = Math.max(concPeak, num(s.conc_peak));
+    concParallel = Math.max(concParallel, num(s.conc_parallel));
+    concMean = Math.max(concMean, num(s.conc_mean));
     if (num(s.chats) > primaryChats) {
       primaryChats = num(s.chats);
       median = num(s.median_session);
@@ -112,8 +121,11 @@ function mergeMonthSlices(slices: any[], plan: number, krw: number): any {
     active_days: active,
     per_day: active ? Math.round(chats / active) : 0,
     efficiency,
+    conc_peak: concPeak,
+    conc_parallel: concParallel,
+    conc_mean: concMean,
     git: { commit: commits, push: null },
-    series: { daily_cost_krw, daily_chats, daily_commits, hourly, buckets },
+    series: { daily_cost_krw, daily_chats, daily_commits, hourly, buckets, conc },
   };
 }
 

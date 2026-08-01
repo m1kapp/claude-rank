@@ -140,6 +140,7 @@ const DICT: Dict = {
   "user.seg.sess": { ko: "세션", en: "Session" },
   "user.seg.eff": { ko: "효율", en: "Efficiency" },
   "user.seg.hour": { ko: "시간대", en: "By hour" },
+  "user.seg.conc": { ko: "동시 작업", en: "Concurrency" },
   "user.seg.commit": { ko: "커밋", en: "Commits" },
   "user.day.activeDays": { ko: "활동일", en: "Active days" },
   "user.day.perDay": { ko: "일평균 채팅", en: "Chats/day" },
@@ -152,6 +153,15 @@ const DICT: Dict = {
   "user.eff.toolErr": { ko: "도구에러 %", en: "Tool error %" },
   "user.eff.correction": { ko: "정정율 %", en: "Correction %" },
   "user.hour.cap": { ko: "시간대별 채팅(KST 0~23시) · 보라=새벽", en: "Chats by hour (KST 0–23) · purple = late night" },
+  // 동시 작업 — 세션 구간이 겹친 시간으로 잰다. 분모는 24시간이 아니라
+  // '세션이 하나라도 살아 있던 시간'이라 캡션에 밝힌다.
+  "user.conc.peak": { ko: "최대 동시", en: "Peak" },
+  "user.conc.mean": { ko: "평균 동시", en: "Average" },
+  "user.conc.parallel": { ko: "병렬 %", en: "Parallel %" },
+  "user.conc.cap": {
+    ko: "동시에 굴린 세션 수별 시간 · 세션이 살아 있던 시간 기준",
+    en: "Hours by number of concurrent sessions · of time any session was alive",
+  },
   "user.commit.commit": { ko: "커밋", en: "Commits" },
   "user.commit.push": { ko: "푸시", en: "Pushes" },
   "user.commit.cap": { ko: "일별 커밋 수 · 스쿼시 머지와 무관", en: "Commits per day · independent of squash merges" },

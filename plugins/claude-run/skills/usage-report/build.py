@@ -440,6 +440,10 @@ for m in months:
         "active_days": s.get("active_days"),
         "per_day": s.get("per_day"),
         "efficiency": s.get("eff"),
+        # 동시에 몇 개를 굴렸나 (세션 구간 겹침)
+        "conc_peak": s.get("conc_peak"),
+        "conc_parallel": s.get("conc_parallel"),
+        "conc_mean": s.get("conc_mean"),
         "git": {"commit": s.get("git", {}).get("commit"), "push": s.get("git", {}).get("push")},
         # 시계열(상세 차트 렌더용)
         "series": {
@@ -448,6 +452,7 @@ for m in months:
             "daily_commits": s.get("git", {}).get("daily", {}),
             "hourly": s.get("hourly", {}),
             "buckets": s.get("buckets", {}),
+            "conc": s.get("conc", {}),
         },
     }
 # === 실행 이력 (~/.usage-report-history.jsonl) ===
