@@ -3,7 +3,7 @@
 
   scripts/session-patterns.py [분석...] [--month YYYY-MM] [--base DIR]
 
-  분석: shape rhythm undo verbosity context practices  (기본: 전부)
+  분석: shape rhythm undo verbosity context parallel practices  (기본: 전부)
   예:   scripts/session-patterns.py rhythm undo --month 2026-08
 
 블로그 글 두 편(leverage-per-turn · supervision-density)의 숫자가 여기서 나온다.
@@ -375,9 +375,143 @@ def a_practices(S):
     print("     세션 길이는 통제했지만 작업 성격까지 맞추지는 못했다.")
 
 
+def a_parallel(S):
+    """동시에 몇 개를 굴렸나. 세션 구간 [start, end] 이 겹치면 병렬로 본다.
+
+    한 파일 안의 세션들은 GAP 으로 갈린 것이라 절대 안 겹친다. 즉 겹침은
+    거의 전부 '다른 프로젝트를 동시에' 다.
+    """
+    print("\n=== 병렬 작업 ===")
+    live = [s for s in S if (s["end"] - s["start"]).total_seconds() > 0]
+    if len(live) < MIN_GROUP:
+        print("  표본 부족")
+        return
+
+    # 구간 스윕으로 동시 활성 수를 시간 가중해서 잰다
+    marks = []
+    for s in live:
+        marks.append((s["start"], 1))
+        marks.append((s["end"], -1))
+    marks.sort()
+    active, prev, peak = 0, None, 0
+    time_at = defaultdict(float)     # 동시 세션 수 -> 그 상태로 흐른 초
+    for t, delta in marks:
+        if prev is not None and active > 0:
+            time_at[active] += (t - prev).total_seconds()
+        active += delta
+        peak = max(peak, active)
+        prev = t
+    total = sum(time_at.values())
+    solo = time_at.get(1, 0.0)
+    print(f"  활성 시간 {total/3600:,.0f}시간 · 최대 동시 {peak}개")
+    print(f"  단독 {solo/total*100:.0f}% · 2개 이상 겹친 시간 {(total-solo)/total*100:.0f}%")
+    for n in sorted(time_at):
+        if time_at[n] / total >= 0.01:
+            print(f"    동시 {n}개: {time_at[n]/3600:>6,.0f}시간 ({time_at[n]/total*100:>4.0f}%)")
+
+    # 세션마다 '겹쳤던 상대 수' 를 붙이고 결과를 비교한다
+    for s in live:
+        s["_overlap"] = sum(1 for o in live
+                            if o is not s and o["start"] < s["end"] and s["start"] < o["end"])
+    def key(s):
+        n = s.get("_overlap", 0)
+        return "단독" if n == 0 else "1개와 겹침" if n == 1 else "2개+ 와 겹침"
+    by_band(live, key, ["단독", "1개와 겹침", "2개+ 와 겹침"], "겹친 세션 수 → 커밋/턴",
+            "병렬로 굴릴수록 결과가 나은지, 주의가 갈려서 나쁜지.")
+
+    groups = defaultdict(list)
+    for s in live:
+        groups[key(s)].append(s)
+    print("\n  겹침별 다른 지표:")
+    print(f"    {'':>12} {'세션':>5} {'읽기/턴':>8} {'서브/턴':>8} {'되돌림/턴':>9} {'정정/턴':>8}")
+    for k in ["단독", "1개와 겹침", "2개+ 와 겹침"]:
+        g = groups.get(k, [])
+        if len(g) < MIN_GROUP:
+            continue
+        print(f"    {k:>12} {len(g):>5} {rate(g,'seek'):>8.2f} {rate(g,'sub'):>8.2f} "
+              f"{rate(g,'undo'):>9.4f} {rate(g,'corrections'):>8.3f}")
+
+    # 하루에 몇 개 프로젝트를 건드렸나
+    by_day = defaultdict(set)
+    for s in S:
+        by_day[s["start"].strftime("%Y-%m-%d")].add(s["project"])
+    counts = sorted(len(v) for v in by_day.values())
+    print(f"\n  하루에 건드린 프로젝트 수: 중앙 {statistics.median(counts):.0f}개 · "
+          f"최대 {counts[-1]}개 · 활동일 {len(counts)}일")
+
+    _hourly_grid(live)
+
+
+def hourly_concurrency(sessions):
+    """(날짜, 시) -> 그 한 시간 안의 **순간 최대** 동시 세션 수.
+
+    시간 칸에 '걸친' 세션을 그냥 세면 안 된다 — 앞뒤로 스쳐 지나간 것까지
+    더해져 실제 동시성보다 두 배쯤 부풀려진다. 칸마다 따로 스윕해서 잰다.
+    """
+    buckets = defaultdict(list)          # (날짜,시) -> [(시각, ±1), ...]
+    for s in sessions:
+        h = s["start"].replace(minute=0, second=0, microsecond=0)
+        while h <= s["end"]:
+            nxt = h + timedelta(hours=1)
+            key = (h.strftime("%Y-%m-%d"), h.hour)
+            buckets[key].append((max(s["start"], h), 1))
+            buckets[key].append((min(s["end"], nxt), -1))
+            h = nxt
+    grid = {}
+    for key, marks in buckets.items():
+        marks.sort()
+        active = peak = 0
+        for _, delta in marks:
+            active += delta
+            peak = max(peak, active)
+        grid[key] = peak
+    return grid
+
+
+def _hourly_grid(sessions):
+    """날짜×시간 히트맵. 한 칸 = 그 시간에 겹쳐 있던 세션 수."""
+    grid = hourly_concurrency(sessions)
+    if not grid:
+        return
+    days = sorted({d for d, _ in grid})
+    peak = max(grid.values())
+    # 0 / 1 / 2 / 3-4 / 5-6 / 7+ 여섯 단계
+    def cell(n):
+        if n == 0: return "·"
+        if n == 1: return "░"
+        if n == 2: return "▒"
+        if n <= 4: return "▓"
+        if n <= 6: return "█"
+        return "▉"
+    print(f"\n  시간별 동시 세션 (한 칸 = 1시간, 최대 {peak}개)")
+    # 월말에 시작한 세션이 다음 달로 넘어가므로 날짜는 MM-DD 로 찍는다
+    print("        " + "".join(str(h // 10) if h >= 10 else " " for h in range(24)))
+    print("        " + "".join(str(h % 10) for h in range(24)))
+    for d in days:
+        row = "".join(cell(grid.get((d, h), 0)) for h in range(24))
+        tot = sum(grid.get((d, h), 0) for h in range(24))
+        mx = max((grid.get((d, h), 0) for h in range(24)), default=0)
+        print(f"  {d[5:]} {row}  최대{mx:>3} 합{tot:>4}")
+    print("     · 없음  ░1  ▒2  ▓3-4  █5-6  ▉7+")
+
+    # 시간대별 집계
+    by_hour = defaultdict(list)
+    for (d, h), n in grid.items():
+        by_hour[h].append(n)
+    print("\n  시간대별 평균 동시 세션")
+    for h in range(24):
+        vals = by_hour.get(h, [])
+        if not vals:
+            continue
+        avg = sum(vals) / len(days)      # 활동일 전체로 나눈다(빈 날 포함)
+        bar = "█" * int(round(avg * 4))
+        print(f"    {h:>2}시 {avg:>4.1f} {bar}")
+
+
 ANALYSES = {
     "shape": a_shape, "rhythm": a_rhythm, "undo": a_undo,
-    "verbosity": a_verbosity, "context": a_context, "practices": a_practices,
+    "verbosity": a_verbosity, "context": a_context,
+    "parallel": a_parallel, "practices": a_practices,
 }
 
 
