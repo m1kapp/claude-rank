@@ -20,6 +20,14 @@ export type Post = {
 
 export const POSTS: Post[] = [
   {
+    slug: "supervision-density",
+    title: "되돌린 세션이 더 많이 남겼다 — 한 달 로그에서 나온 반직관 셋",
+    description:
+      "세션 845개를 갈라보니 통념과 반대인 게 셋 나왔다. git으로 되돌린 세션이 커밋을 더 냈고, 에이전트 답변이 길어지면 결과가 사라졌고, 3~10분마다 답할 때가 제일 좋았다. 셋 다 같은 곳을 가리킨다.",
+    date: "2026-08-02",
+    minutes: 7,
+  },
+  {
     slug: "leverage-per-turn",
     title: "같은 계정이 0배에서 103.6배가 됐다 — 바뀐 건 마디당 도구 1.46 → 6.74",
     description:
