@@ -20,6 +20,14 @@ export type Post = {
 
 export const POSTS: Post[] = [
   {
+    slug: "parallel-two-to-four",
+    title: "병렬은 2~4개가 맞았다 — 조언을 안 보고 내 로그로 먼저 재봤더니",
+    description:
+      "319시간 중 85%를 2개 이상 동시에 굴렸다. 겹친 세션 수로 결과를 갈라보니 2~4개에서 정점이고 5개를 넘으면 떨어졌다. 그다음에 찾아본 공식 권장이 3~5개, 커뮤니티 통설이 2~4개였다.",
+    date: "2026-08-03",
+    minutes: 6,
+  },
+  {
     slug: "supervision-density",
     title: "되돌린 세션이 더 많이 남겼다 — 한 달 로그에서 나온 반직관 셋",
     description:
