@@ -87,6 +87,21 @@ body {
   white-space: nowrap; flex: none;
 }
 
+/* 헤더 페이지 부제 — 브랜드·BLOG·언어토글에 밀려 "RUN TOGE…"로 잘리느니 숨긴다.
+   셸 폭은 뷰포트와 별개로 고정이라 미디어쿼리가 아니라 컨테이너 기준이어야 한다. */
+.page-sub { display: none; }
+@container (min-width: 300px) { .page-sub { display: inline; } }
+
+/* 지표 정의 한 줄 — 헤드라인이 '103.6배'라고 외치는데 뭐의 배인지 없으면
+   처음 온 사람은 못 읽는다. 리드보다 작게, 코드 느낌으로 붙인다. */
+.metric-def {
+  display: inline-block;
+  font-size: 11.5px; line-height: 1.55; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 6px 10px; margin: 0 0 14px;
+}
+.metric-def b { color: var(--text); font-weight: 700; }
+
 /* 메인 CTA 2버튼 좌우 꽉차게 (같은 크기·보더) */
 .share-fill, .share-fill > * { width: 100%; }
 .share-fill button { width: 100%; justify-content: center; border-radius: 999px !important; }

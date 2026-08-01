@@ -84,7 +84,9 @@ export default function Home() {
         {/* 마스트헤드 */}
         <Section>
           <div className="rise" style={{ paddingTop: 24 }}>
-            <div className="kicker" style={{ marginBottom: 14 }}>{t("home.kicker")}</div>
+            {/* 격차 헤드라인 아래에 지표 정의가 붙으면서 '구독 가성비 · CLAUDE'가 같은 말
+                세 번째가 됐다(eyebrow → 정의 → 표 제목). 폴백 헤드라인일 때만 남긴다. */}
+            {!gap && <div className="kicker" style={{ marginBottom: 14 }}>{t("home.kicker")}</div>}
             <h1 className="display" style={{ fontWeight: 600, fontSize: 33, lineHeight: 1.08, letterSpacing: "-0.02em", margin: 0 }}>
               {gap ? (
                 <>
@@ -101,6 +103,8 @@ export default function Home() {
                 ? <>{t("home.h1.gap.lead", { month: monthLabel(gap.month) })} {t("home.lead.b1")}</>
                 : <>{t("home.lead.a")} {t("home.lead.b1")}</>}
             </p>
+            {/* 지표 정의 — 배율을 앞세운 헤드라인일 때만 필요하다 */}
+            {gap && <div className="metric-def" dangerouslySetInnerHTML={{ __html: t("home.metricDef") }} />}
             {/* 랜딩에서 바로 복사할 수 있어야 한다 — /start 까지 한 번 더 눌러 들어가는 만큼 샌다. */}
             <CodeBlock label="terminal" code={"npx @m1kapp/clauderank"} accent="var(--terra)" />
             <div style={{ display: "flex", gap: 8, alignItems: "stretch", margin: "14px 0 28px" }}>

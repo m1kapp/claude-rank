@@ -16,8 +16,10 @@ const DICT: Dict = {
   "common.notFound": { ko: "기록을 찾을 수 없습니다.", en: "No record found." },
 
   // header titles
-  "title.league": { ko: "RUN TOGETHER", en: "RUN TOGETHER" },
-  "title.start": { ko: "GET STARTED", en: "GET STARTED" },
+  // 헤더 부제는 브랜드(CLAUDE RUN) 옆에 붙는 자리라 짧아야 한다. 'RUN TOGETHER'는
+  // 길어서 잘렸고 브랜드와 뜻도 겹쳤다 — 어느 페이지인지만 알려주는 쪽으로.
+  "title.league": { ko: "RANKING", en: "RANKING" },
+  "title.start": { ko: "JOIN", en: "JOIN" },
   "title.report": { ko: "REPORT", en: "REPORT" },
 
   // home
@@ -32,6 +34,10 @@ const DICT: Dict = {
   "home.h1.gap.lead": {
     ko: "{month} 같은 요금제 안에서 그랬다. 구독료가 아니라 쓰는 법의 문제다.",
     en: "Same plan, {month}. It was never the price — it's how you use it." },
+  // '103.6배'가 뭐의 배인지 어디에도 없으면 처음 온 사람은 헤드라인을 못 읽는다.
+  "home.metricDef": {
+    ko: "<b>본전배율</b> = 한 달 쓴 양을 API 정가로 환산 ÷ 구독료",
+    en: "<b>Value multiple</b> = a month of usage at API list price ÷ what you paid" },
   "home.leader": { ko: "현재 선두", en: "Leader" },
   "home.lead.a": { ko: "매달 구독료를 API 정가로 환산해 몇 배 뽑는지, 모두의 기록을 모아보는 곳.", en: "A place that gathers everyone's numbers — how many times over we cash out our monthly subscription at API list price." },
   "home.lead.b1": { ko: "Claude Code에 한 줄이면 합류해요.", en: "One line in Claude Code and you're in." },
@@ -41,7 +47,8 @@ const DICT: Dict = {
   "home.inviteText": { ko: "Claude 구독, 본전 얼마나 뽑고 있나? 같이 달려요 🏃 — Claude Run", en: "How many times over are you cashing out your Claude subscription? Run with us 🏃 — Claude Run" },
   "home.copy": { ko: "/claude-run 복사", en: "Copy /claude-run" },
   "home.copied": { ko: "복사됐어요!", en: "Copied!" },
-  "home.monthRank": { ko: "이달의 기록", en: "This month" },
+  // "이달의 기록"은 뭘로 줄 세운 표인지 안 알려준다 — 정렬 기준을 그대로 제목으로 쓴다.
+  "home.monthRank": { ko: "본전배율 순위", en: "Value ranking" },
   "home.plan.all": { ko: "전 종목", en: "All" },
   "home.live": { ko: "LIVE", en: "LIVE" },
   "home.liveNote": { ko: "이번 달도 진행 중 🏃", en: "Still going this month 🏃" },
