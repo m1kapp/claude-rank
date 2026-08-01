@@ -440,6 +440,62 @@ def a_parallel(S):
           f"최대 {counts[-1]}개 · 활동일 {len(counts)}일")
 
     _hourly_grid(live)
+    _daily_series(live)
+
+
+def daily_concurrency(sessions):
+    """날짜 -> {peak, mean, active_hours}.
+
+    peak  = 그날의 순간 최대 동시 세션 수
+    mean  = 시간 가중 평균. 분모는 '세션이 하나라도 살아 있던 시간'이다.
+            24시간으로 나누면 잠자는 시간이 섞여 전부 1 아래로 눌린다.
+    """
+    by_day = defaultdict(list)
+    for s in sessions:
+        d = s["start"].replace(hour=0, minute=0, second=0, microsecond=0)
+        while d <= s["end"]:
+            nxt = d + timedelta(days=1)
+            key = d.strftime("%Y-%m-%d")
+            by_day[key].append((max(s["start"], d), min(s["end"], nxt)))
+            d = nxt
+    out = {}
+    for day, spans in by_day.items():
+        marks = sorted([(a, 1) for a, _ in spans] + [(b, -1) for _, b in spans])
+        active, prev, peak = 0, None, 0
+        busy = 0.0          # 하나라도 살아 있던 시간(초)
+        weighted = 0.0      # 동시 세션 수 × 시간
+        for t, delta in marks:
+            if prev is not None and active > 0:
+                dur = (t - prev).total_seconds()
+                busy += dur
+                weighted += active * dur
+            active += delta
+            peak = max(peak, active)
+            prev = t
+        out[day] = {"peak": peak, "mean": weighted / busy if busy else 0.0,
+                    "active_hours": busy / 3600}
+    return out
+
+
+def _daily_series(sessions):
+    daily = daily_concurrency(sessions)
+    if not daily:
+        return
+    days = sorted(daily)
+    top = max(d["peak"] for d in daily.values())
+    print(f"\n  일자별 동시 세션 (▏= 평균, █ 끝 = 최대 {top})")
+    print(f"  {'날짜':>6} {'최대':>4} {'평균':>5} {'가동':>5}")
+    for day in days:
+        d = daily[day]
+        # 평균까지 채우고 최대까지 옅게 이어 그린다
+        m = int(round(d["mean"] * 3))
+        p = int(round(d["peak"] * 3))
+        bar = "█" * m + "░" * max(0, p - m)
+        print(f"  {day[5:]:>6} {d['peak']:>4} {d['mean']:>5.1f} {d['active_hours']:>4.0f}h {bar}")
+    peaks = [d["peak"] for d in daily.values()]
+    means = [d["mean"] for d in daily.values()]
+    print(f"\n  최대의 중앙 {statistics.median(peaks):.0f}개 · 평균의 중앙 {statistics.median(means):.1f}개 · "
+          f"가동 중앙 {statistics.median(d['active_hours'] for d in daily.values()):.1f}시간/일")
 
 
 def hourly_concurrency(sessions):
