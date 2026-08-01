@@ -46,6 +46,14 @@ One JSON object per line, appended once per run, never rewritten.
 
 Extra fields are fine; the six above are the contract.
 
+How much the `isSidechain` exclusion moves `messages` depends on the workload,
+so don't calibrate a threshold against someone else's ratio. On a corpus driven
+mostly by hand it is a modest correction — 11,872 of 84,314 user records, 14.1%,
+across 1,120 files here. On agent-heavy workflows subagent transcripts can carry
+**over half** of all message volume, so the same exclusion changes the number by
+a different order. The drop semantics below are unaffected either way: they
+compare a metric against its own earlier value, never across implementations.
+
 ## Drop semantics
 
 Compare against the most recent prior record **with the same `month`**. Warn
