@@ -47,6 +47,13 @@ const DICT: Dict = {
   "home.empty": { ko: "아직 기록이 없어요. 등록하고 1등 찜하세요!", en: "No entries yet — register and grab #1!" },
   "home.updated": { ko: "갱신 {t} KST", en: "Updated {t} KST" },
   "home.blog": { ko: "잘 쓰는 법 — 재봐야만 알 수 있던 것들", en: "How to use it well — things you only learn by measuring" },
+  // blog — 홈 링크 라벨(home.blog)의 짧은 형태. 둘이 어긋나면 눌러 들어온 사람이 딴 데 온 줄 안다.
+  "blog.h1": { ko: "잘 쓰는 법", en: "How to use it well" },
+  "blog.lead": {
+    ko: "직접 재보지 않으면 알 수 없는 것만 씁니다. 비용이 실제로 어디로 가는지, 한도가 어디서 걸리는지.",
+    en: "Only what you can't know without measuring — where the cost actually goes, where the limits actually bite.",
+  },
+
   "home.footer": { ko: "{month} 본전배율 순위 · 이름 누르면 리포트 · 금액 환산값", en: "{month} value ranking · tap a name for the report · notional" },
 
   // start

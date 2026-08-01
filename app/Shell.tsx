@@ -4,7 +4,7 @@ import { AppShell, AppShellHeader, AppShellContent, FetchProgress, Watermark } f
 import { useI18n } from "../lib/i18n";
 
 export default function Shell({ title, children }: { title: string; children: React.ReactNode }) {
-  const { locale, toggle } = useI18n();
+  const { locale, toggle, t } = useI18n();
   // m1k.app 카운트를 same-origin 프록시로 받아 Watermark에 전달 (CORS 우회 → 푸터 카운트 슬라이더 작동)
   const [counts, setCounts] = useState<{ today: number; total: number } | undefined>(undefined);
   useEffect(() => {
@@ -22,7 +22,7 @@ export default function Shell({ title, children }: { title: string; children: Re
             <span className="display" style={{ fontWeight: 700, fontSize: 10, letterSpacing: "0.12em", color: "var(--muted)", textTransform: "uppercase", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>{title}</span>
           </div>
           {/* 블로그는 푸터 회색 12px 로는 모바일 폴드 아래라 사실상 안 보였다 — 헤더로 올린다. */}
-          <a href="/blog" title="측정한 것들" aria-label="Blog"
+          <a href="/blog" title={t("blog.h1")} aria-label="Blog"
             style={{ marginLeft: "auto", flex: "none", display: "flex", alignItems: "center", font: "inherit", textDecoration: "none", background: "transparent", border: "1px solid var(--line)", borderRadius: 999, padding: "3px 10px", color: "var(--muted)" }}>
             <span className="display" style={{ fontWeight: 800, fontSize: 11, letterSpacing: "0.06em" }}>BLOG</span>
           </a>
