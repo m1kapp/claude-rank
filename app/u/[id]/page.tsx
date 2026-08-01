@@ -119,7 +119,7 @@ function PriceSection({ m, dCost, krwPerUsd }: { m: any; dCost: DayPoint[]; krwP
 }
 
 // 챗 분석 (일/세션/효율/시간대/커밋 — 토글 없이 쭉)
-function QualitySection({ m, dChats, dCommits, hourly, buckets, conc }: { m: any; dChats: DayPoint[]; dCommits: DayPoint[]; hourly: DayPoint[]; buckets: DayPoint[]; conc: DayPoint[] }) {
+function QualitySection({ m, dChats, dCommits, hourly, buckets, conc, dConc }: { m: any; dChats: DayPoint[]; dCommits: DayPoint[]; hourly: DayPoint[]; buckets: DayPoint[]; conc: DayPoint[]; dConc: DayPoint[] }) {
   const { t } = useI18n();
   const ef = m.efficiency || {};
   return (
@@ -152,6 +152,8 @@ function QualitySection({ m, dChats, dCommits, hourly, buckets, conc }: { m: any
             <StatChip label={t("user.conc.mean")} value={m.conc_mean} />
             <StatChip label={t("user.conc.parallel")} value={m.conc_parallel} />
           </div>
+          {/* 평균선 없음 — '일별 최대의 평균'은 위 칩의 '평균 동시'(시간 가중)와 다른 값이다 */}
+          <Bars data={dConc} wk />{cap(t("user.conc.dayCap"))}
           <Bars data={conc} />{cap(t("user.conc.cap"))}
         </>
       ) : null}
@@ -268,7 +270,8 @@ export default function UserPage() {
       <QualitySection m={m}
         dChats={fillDays(s.daily_chats, cur, firstMonth, currentMonth, "#6a9bcc")}
         dCommits={fillDays(s.daily_commits, cur, firstMonth, currentMonth, "#5fa563")}
-        hourly={hourly} buckets={buckets} conc={conc} />
+        hourly={hourly} buckets={buckets} conc={conc}
+        dConc={fillDays(s.conc_daily, cur, firstMonth, currentMonth, "#5fa563")} />
     </Shell>
   );
 }

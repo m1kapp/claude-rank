@@ -158,6 +158,7 @@ const DICT: Dict = {
   "user.conc.peak": { ko: "최대 동시", en: "Peak" },
   "user.conc.mean": { ko: "평균 동시", en: "Average" },
   "user.conc.parallel": { ko: "병렬 %", en: "Parallel %" },
+  "user.conc.dayCap": { ko: "일별 최대 동시 세션", en: "Peak concurrent sessions per day" },
   "user.conc.cap": {
     ko: "동시에 굴린 세션 수별 시간 · 세션이 살아 있던 시간 기준",
     en: "Hours by number of concurrent sessions · of time any session was alive",

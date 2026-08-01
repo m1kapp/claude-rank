@@ -64,6 +64,12 @@ function addInto(dst: Record<string, number>, src: any) {
   for (const [k, v] of Object.entries(src || {})) dst[k] = (dst[k] || 0) + (Number(v) || 0);
 }
 
+// 정점끼리는 더하면 안 된다 — 기기 A의 그날 최대 3개와 B의 2개를 더해도 5개가
+// 동시에 돌았다는 뜻이 아니다. 최댓값을 쓰되 하한선으로 읽는다.
+function maxInto(dst: Record<string, number>, src: any) {
+  for (const [k, v] of Object.entries(src || {})) dst[k] = Math.max(dst[k] || 0, Number(v) || 0);
+}
+
 // 한 달치 기기 슬라이스들을 build.py 월 스키마 하나로 합산.
 // 비합산(질적) 필드(median/max/efficiency)는 채팅 많은 '주 기기' 값을 대표로 채택 (근사)
 function mergeMonthSlices(slices: any[], plan: number, krw: number): any {
@@ -75,6 +81,7 @@ function mergeMonthSlices(slices: any[], plan: number, krw: number): any {
   const hourly: Record<string, number> = {};
   const buckets: Record<string, number> = {};
   const conc: Record<string, number> = {};
+  const conc_daily: Record<string, number> = {};
   let concPeak = 0, concParallel = 0, concMean = 0;
   let primaryChats = -1, median = 0, maxSess = 0, efficiency: any = undefined;
 
@@ -96,6 +103,7 @@ function mergeMonthSlices(slices: any[], plan: number, krw: number): any {
     // 하나씩 돌렸으면 실제로는 2개 동시인데 양쪽 다 '1개'로 기록돼 있다.
     // 시간은 더하고 정점은 최댓값을 쓰되, 둘 다 하한선으로 읽어야 한다.
     addInto(conc, ser.conc);
+    maxInto(conc_daily, ser.conc_daily);
     concPeak = Math.max(concPeak, num(s.conc_peak));
     concParallel = Math.max(concParallel, num(s.conc_parallel));
     concMean = Math.max(concMean, num(s.conc_mean));
@@ -125,7 +133,7 @@ function mergeMonthSlices(slices: any[], plan: number, krw: number): any {
     conc_parallel: concParallel,
     conc_mean: concMean,
     git: { commit: commits, push: null },
-    series: { daily_cost_krw, daily_chats, daily_commits, hourly, buckets, conc },
+    series: { daily_cost_krw, daily_chats, daily_commits, hourly, buckets, conc, conc_daily },
   };
 }
 

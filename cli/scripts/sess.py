@@ -128,6 +128,30 @@ for f in glob.glob(os.path.join(base, "*", "**", "*.jsonl"), recursive=True):
             end = t2
         spans[u0.strftime("%Y-%m")].append((u0, end))
 
+def concurrency_daily(month_spans):
+    """날짜 -> 그날의 순간 최대 동시 세션 수.
+
+    자정을 넘긴 세션은 양쪽 날짜에 걸쳐 잘라서 넣는다. 날짜 칸마다 따로
+    스윕하지 않고 통째로 세면 앞뒤로 스쳐 간 세션까지 더해져 부풀려진다.
+    """
+    day_spans = defaultdict(list)
+    for a, b in month_spans:
+        d = a.replace(hour=0, minute=0, second=0, microsecond=0)
+        while d <= b:
+            nxt = d + timedelta(days=1)
+            day_spans[d.strftime("%Y-%m-%d")].append((max(a, d), min(b, nxt)))
+            d = nxt
+    out = {}
+    for day, spans_ in day_spans.items():
+        marks = sorted([(a, 1) for a, _ in spans_] + [(b, -1) for _, b in spans_])
+        active = peak = 0
+        for _, delta in marks:
+            active += delta
+            peak = max(peak, active)
+        out[day] = peak
+    return out
+
+
 def concurrency(month_spans):
     """동시에 굴린 세션 수 → 그 상태로 흐른 시간(시). 구간 스윕으로 잰다.
 
@@ -173,6 +197,7 @@ for m, t in mon.items():
     conc, conc_peak, conc_par, conc_mean = concurrency(spans.get(m, []))
     out[m] = {
         "conc": conc,                 # {"1": 시간, ..., "6+": 시간}
+        "conc_daily": concurrency_daily(spans.get(m, [])),  # {"YYYY-MM-DD": 그날 최대}
         "conc_peak": conc_peak,       # 순간 최대 동시 세션 수
         "conc_parallel": conc_par,    # 2개 이상 겹친 시간 비율(%)
         "conc_mean": conc_mean,       # 시간 가중 평균 동시 세션 수

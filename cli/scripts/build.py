@@ -242,6 +242,22 @@ def quality_panel(mo):
                       f'<div class="cb" style="height:{v/cmax*100:.1f}%;background:{col};'
                       f'border-radius:3px 3px 0 0;min-height:{1 if v else 0}px"></div>'
                       f'<div class="cx">{k}</div></div>')
+        # 일별 최대 동시 — 한 달 안에서 늘었는지 줄었는지는 히스토그램으로 안 보인다
+        cdaily = s.get("conc_daily", {})
+        cdchart = ""
+        if cdaily:
+            cdmax = max(cdaily.values()) or 1
+            cdbars = ""
+            for date in sorted(cdaily):
+                v = cdaily[date]
+                cdbars += (f'<div class="col" title="{date} · 최대 {v}개 동시">'
+                           f'<div class="cb" style="height:{v/cdmax*100:.1f}%;background:#5fa563;'
+                           f'border-radius:3px 3px 0 0;min-height:{1 if v else 0}px"></div>'
+                           f'<div class="cx">{wlabel(date)}</div></div>')
+            # 평균선은 안 그린다 — 여기 평균은 '일별 최대의 평균'이라 위 칩의
+            # '평균 동시'(시간 가중)와 다른 값이 나와 같은 화면에서 헷갈린다.
+            cdchart = (f'<div class="chart">{cdbars}</div>'
+                       f'<div class="ccap">일별 최대 동시 세션</div>')
         cpeak = s.get("conc_peak", 0); cmean = s.get("conc_mean", 0); cpar = s.get("conc_parallel", 0)
         if cpar >= 70:   cverdict = "거의 항상 여러 개를 동시에 굴렸다"
         elif cpar >= 40: cverdict = "절반 넘게 겹쳐서 굴렸다"
@@ -253,6 +269,7 @@ def quality_panel(mo):
         <div class="ai"><span class="an">{cmean}</span><span class="al">평균 동시</span></div>
         <div class="ai"><span class="an">{cpar}%</span><span class="al">2개 이상</span></div>
       </div>
+      {cdchart}
       <div class="chart">{cbars}</div>
       <div class="ccap">동시에 굴린 세션 수별 시간 · 회색=단독</div>
       <div class="qnote"><b>{cverdict}</b>({cpar}%). 순간 최대 {cpeak}개, 시간 가중 평균 {cmean}개.
@@ -488,6 +505,7 @@ for m in months:
             "hourly": s.get("hourly", {}),
             "buckets": s.get("buckets", {}),
             "conc": s.get("conc", {}),
+            "conc_daily": s.get("conc_daily", {}),
         },
     }
 # === 실행 이력 (~/.usage-report-history.jsonl) ===
