@@ -3,9 +3,10 @@
 # 닉네임을 명시하면 ~/.usage-report-nick에 저장하고, 다음부턴 생략해도 같은 이름으로 올라감.
 # (계정/기기 고정 — 리포트의 익명 ID로 중복 갱신)
 set -e
+DIR_SUB="$(cd "$(dirname "$0")" && pwd)"
 NICK_FILE="$HOME/.usage-report-nick"
 NICK="$1"
-ENDPOINT="${2:-${USAGE_REPORT_ENDPOINT:-https://clauderank.m1k.app}}"
+ENDPOINT="${2:-${USAGE_REPORT_ENDPOINT:-https://runmaxing.m1k.app}}"
 JSON_OUT="${USAGE_REPORT_OUT:-$HOME/claude-usage-report.html}"; JSON_OUT="${JSON_OUT%.html}.json"
 
 # 닉네임 결정: 인자(수동 변경) → 저장된 닉 → 이메일 앞부분(자동) → git 이름 → whoami
@@ -38,8 +39,14 @@ case "$RID" in
   *) echo "⚠️ Claude 계정 세션이 필요해요. Claude Code에 로그인된 상태에서 /claude-run 으로 다시 실행하세요."; exit 1 ;;
 esac
 
+# 공개 runner id 와 비공개 device token 을 로컬에 최초 한 번만 만든다.
+# identity.py 는 기존 파일이 있으면 검증 후 읽기만 하며 자동 덮어쓰지 않는다.
+IDENTITY_JSON="$(python3 "$DIR_SUB/identity.py" ensure)"
+RUNNER_ID="$(printf '%s' "$IDENTITY_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["runner_id"])')"
+RUNNER_TOKEN="$(printf '%s' "$IDENTITY_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["device_token"])')"
+
 echo "제출: $NICK → $ENDPOINT  (리포트: $JSON_OUT)"
-RESP=$(NICK="$NICK" JSON_OUT="$JSON_OUT" python3 -c 'import json,os;print(json.dumps({"nick":os.environ["NICK"],"report":json.load(open(os.environ["JSON_OUT"]))}))' \
+RESP=$(NICK="$NICK" JSON_OUT="$JSON_OUT" RUNNER_ID="$RUNNER_ID" RUNNER_TOKEN="$RUNNER_TOKEN" python3 -c 'import json,os;print(json.dumps({"nick":os.environ["NICK"],"report":json.load(open(os.environ["JSON_OUT"])),"runner":{"id":os.environ["RUNNER_ID"],"token":os.environ["RUNNER_TOKEN"]}}))' \
   | curl -s -X POST "$ENDPOINT/api/submit" -H "Content-Type: application/json" -d @-)
 printf '%s' "$RESP" | JSON_OUT="$JSON_OUT" python3 -c "
 import json, sys, os, calendar, datetime
@@ -88,17 +95,17 @@ except Exception:
 "
 
 # viberank 연동(켠 경우에만) — 우리 제출이 끝난 뒤에 붙인다. 실패해도 무시.
-DIR_SUB="$(cd "$(dirname "$0")" && pwd)"
 bash "$DIR_SUB/viberank.sh" submit 2>/dev/null || true
 
 # 개인 리포트 URL — 출력 + 브라우저로 열기 (내 리포트 보러가기)
 EID=$(printf '%s' "$RESP" | python3 -c "import json,sys
-try: print(json.load(sys.stdin).get('entry',{}).get('id',''))
+try:
+ d=json.load(sys.stdin); print(d.get('profile_id') or d.get('entry',{}).get('id',''))
 except Exception: print('')" 2>/dev/null)
 if [ -n "$EID" ]; then
   MYURL="$ENDPOINT/u/$EID"
-  echo "🔗 내 리포트: $MYURL"
-  echo "🏃 같이 달리기: $ENDPOINT"
+  echo "🔗 내 runmaxing 프로필: $MYURL"
+  echo "🏁 리그 보기: $ENDPOINT"
   # 자동 갱신(/claude-run-daily)처럼 사람이 안 보는 실행에선 브라우저를 열지 않는다.
   if [ -n "$USAGE_REPORT_NO_OPEN" ]; then :
   elif command -v open     >/dev/null 2>&1; then open "$MYURL"     >/dev/null 2>&1 || true

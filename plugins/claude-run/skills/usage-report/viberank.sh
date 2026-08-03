@@ -3,7 +3,7 @@
 #
 # 기본은 꺼짐. 켜면 두 가지가 붙는다:
 #   1) /claude-run 때 viberank 에도 같이 제출 (ccusage daily --json 그대로)
-#   2) 내 viberank 순위를 읽어 clauderank 리포트에 함께 표시
+#   2) 내 viberank 순위를 읽어 runmaxing 리포트에 함께 표시
 #
 # 제3자 서비스에 사용량을 보내는 성격이라 "명시적으로 켤 때만" 동작한다.
 # 순위 조회도 우리 서버가 아니라 이 기기에서 한다 — 저쪽 인프라에 부담을 주지
@@ -48,7 +48,7 @@ case "$ACTION" in
     printf '%s' "$USER" > "$CONF"
     echo "✅ viberank 연동 켜짐 — $USER"
     echo "   · /claude-run 때 viberank 에도 같이 제출됩니다"
-    echo "   · 내 viberank 순위가 clauderank 리포트에 표시됩니다"
+    echo "   · 내 viberank 순위가 runmaxing 리포트에 표시됩니다"
     echo "   · 끄기: /claude-run-viberank off"
     ;;
   off)

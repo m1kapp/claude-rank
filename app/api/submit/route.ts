@@ -1,10 +1,11 @@
 import { handler, ok, badRequest } from "@m1kapp/kit/server";
-import { upsert, saveReport, saveDeviceReport, slotReports, mergeReports, all, rankIn, type Entry } from "../../../lib/store";
+import { upsert, saveReport, getReport, saveDeviceReport, slotReports, mergeReports, DeviceIdentityConflict, all, rankIn, type Entry } from "../../../lib/store";
+import { claimRunner, runnerForEntry, RunnerCredentialError, RunnerIdentityConflict } from "../../../lib/runners";
 
 const num = (v: any) => Number(v) || 0;
 
 // 리포트(build.py 스키마) → 랭킹 Entry 로 환산. (병합된 리포트에 대해 호출)
-function entryFromReport(id: string, nick: string, report: any): Entry {
+function entryFromReport(id: string, nick: string, report: any, runnerId?: string): Entry {
   const t = report.totals || {};
   let chats = 0, commits = 0, active = 0;
   const months: Record<string, any> = {};
@@ -22,7 +23,7 @@ function entryFromReport(id: string, nick: string, report: any): Entry {
     };
   }
   return {
-    id, nick,
+    id, nick, runner_id: runnerId,
     plan: num(report.plan_usd_per_month) || 200,
     ratio: num(t.ratio),
     chats, commits, active_days: active,
@@ -98,14 +99,59 @@ export const POST = handler(async (req) => {
   const monthsErr = monthsValidationError(report);
   if (monthsErr) return badRequest(monthsErr);
 
+  // 같은 runner/provider 자리에 다른 Codex 계정을 조용히 덮어쓰거나 합산하지 않는다.
+  const previousReport = await getReport(id);
+  const previousCodexId = String(previousReport?.codex?.account_id || "");
+  const incomingCodexId = String(report.codex?.account_id || "");
+  if (previousCodexId && incomingCodexId && previousCodexId !== incomingCodexId) {
+    return badRequest("이 Claude 기록에는 다른 Codex 계정이 이미 연결되어 있어요. 자동으로 덮어쓰지 않았습니다.");
+  }
+
+  // runmaxing 신원은 로컬에서 최초 한 번 만든 runner 신분증으로 증명한다.
+  // 기존 claude_ 엔트리는 저장 키로 그대로 두고, runner 연결만 별도 저장한다.
+  let runnerId = "";
+  const localRunner = body?.runner;
+  if (localRunner?.id || localRunner?.token) {
+    try {
+      const runner = await claimRunner({
+        runnerId: String(localRunner.id || ""),
+        token: String(localRunner.token || ""),
+        entryId: id,
+        nick,
+        identities: {
+          claude: id,
+          ...(report.codex?.account_id ? { codex: String(report.codex.account_id) } : {}),
+        },
+      });
+      runnerId = runner.id;
+    } catch (err) {
+      if (err instanceof RunnerCredentialError || err instanceof RunnerIdentityConflict) {
+        return badRequest(err.message);
+      }
+      throw err;
+    }
+  } else {
+    // 구버전 클라이언트도 기존 연결을 잃지 않게 한다.
+    runnerId = (await runnerForEntry(id))?.id || "";
+  }
+
   // ── 기기별 슬롯 저장 → 계정의 모든 기기 병합 → 합산 집계 ──
   // device_id 는 클라이언트(build.py)가 실어보냄. 없으면 "legacy" 단일 슬롯(구버전=기존 동작).
   const rawDev = String(report.device_id || "").trim();
   const deviceId = /^[A-Za-z0-9_-]{1,64}$/.test(rawDev) ? rawDev : "legacy";
-  const deviceMap = await saveDeviceReport(id, deviceId, report);
+  let deviceMap;
+  try {
+    deviceMap = await saveDeviceReport(id, deviceId, report);
+  } catch (err) {
+    if (err instanceof DeviceIdentityConflict) return badRequest(err.message);
+    throw err;
+  }
   const merged = mergeReports(slotReports(deviceMap)) || report;
+  if (merged.codex?.account_conflict) {
+    return badRequest("여러 Codex 계정 기록이 섞여 있어 병합을 중단했어요. 기존 기록은 유지됩니다.");
+  }
 
-  const e = entryFromReport(id, nick, merged);
+  const e = entryFromReport(id, nick, merged, runnerId || undefined);
   await upsert(e);
   await saveReport(id, merged);   // 상세페이지도 합산 리포트를 보게 됨
 
@@ -115,5 +161,5 @@ export const POST = handler(async (req) => {
   const mks = Object.keys(e.months).sort();
   const month = e.months[nowMonth] ? nowMonth : (mks[mks.length - 1] || nowMonth);
   const { rank, total } = rankIn(await all(), id, month, e.plan);
-  return ok({ ok: true, entry: e, month, rank, total });
+  return ok({ ok: true, entry: e, profile_id: runnerId || id, month, rank, total });
 });

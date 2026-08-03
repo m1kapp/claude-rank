@@ -1,8 +1,9 @@
 {
-  "name": "@m1kapp/clauderank",
-  "version": "1.7.1",
-  "description": "Claude Code / Codex 구독 가성비 랭킹에 내 사용량을 갱신 — 설치 없이 npx 한 줄. ccusage 기반.",
+  "name": "@m1kapp/runmaxing",
+  "version": "2.0.0",
+  "description": "runmaxing — Claude Code와 Codex를 한 runner에 연결하고 별도 리그로 기록. 설치 없이 npx 한 줄.",
   "bin": {
+    "runmaxing": "bin/cli.js",
     "clauderank": "bin/cli.js"
   },
   "files": [
@@ -19,10 +20,10 @@
     "leaderboard",
     "cost"
   ],
-  "homepage": "https://clauderank.m1k.app",
+  "homepage": "https://runmaxing.m1k.app",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/m1kapp/claude-rank.git",
+    "url": "git+https://github.com/m1kapp/runmaxing.git",
     "directory": "cli"
   },
   "license": "MIT",

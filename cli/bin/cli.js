@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// clauderank — 플러그인 설치 없이 한 줄로 랭킹 갱신.
+// runmaxing collector — 플러그인 설치 없이 한 줄로 에이전트 리그 갱신.
 //
 // 플러그인(/claude-run)은 슬래시 명령과 하루 1회 자동 갱신을 얹어주는 편의 래퍼이고,
 // 제출 자체에는 필요하지 않다. 마켓플레이스 등록 → 설치 → 리로드 3단계가 첫 유입의
@@ -14,18 +14,19 @@ const SCRIPTS = path.join(__dirname, "..", "scripts");
 const args = process.argv.slice(2);
 
 if (args.includes("-h") || args.includes("--help")) {
-  console.log(`clauderank — Claude/Codex 구독 가성비 랭킹 갱신
+  console.log(`runmaxing — one runner, two agent lanes
 
-  npx @m1kapp/clauderank              내 사용량 집계 후 랭킹 갱신 (닉네임 자동)
-  npx @m1kapp/clauderank <닉네임>     닉네임을 지정해서 갱신 (다음부터 생략 가능)
-  npx @m1kapp/clauderank --no-open    브라우저를 열지 않음
-  npx @m1kapp/clauderank --report     리포트만 만들고 제출하지 않음
+  npx @m1kapp/runmaxing              내 사용량 집계 후 랭킹 갱신 (닉네임 자동)
+  npx @m1kapp/runmaxing <닉네임>     닉네임을 지정해서 갱신 (다음부터 생략 가능)
+  npx @m1kapp/runmaxing --no-open    브라우저를 열지 않음
+  npx @m1kapp/runmaxing --report     리포트만 만들고 제출하지 않음
 
-요금제·닉네임은 자동 판별되고, 신원은 Claude 계정 기준이라 기기를 바꿔도
-한 줄로 갱신된다. 필요 조건: bash, python3, 그리고 npx(ccusage 집계용).
+요금제·닉네임은 자동 판별됩니다. 첫 제출에서 로컬 runner 신분증을 한 번 만들고
+Claude와 Codex를 따로 인식해 연결합니다. 기존 신분증은 덮어쓰지 않습니다.
+필요 조건: bash, python3, 그리고 npx(ccusage 집계용).
 
 슬래시 명령과 하루 1회 자동 갱신을 원하면 플러그인도 있다:
-  /plugin marketplace add m1kapp/claude-rank
+  /plugin marketplace add m1kapp/runmaxing
   /plugin install claude-run@claude-rank
 `);
   process.exit(0);
@@ -35,12 +36,12 @@ if (args.includes("-h") || args.includes("--help")) {
 for (const [bin, hint] of [["bash", ""], ["python3", " (macOS/Linux 는 기본 포함, Windows 는 WSL 필요)"]]) {
   const r = spawnSync(bin, ["--version"], { stdio: "ignore" });
   if (r.error) {
-    console.error(`clauderank: '${bin}' 이 필요합니다${hint}.`);
+    console.error(`runmaxing: '${bin}' 이 필요합니다${hint}.`);
     process.exit(1);
   }
 }
 if (!fs.existsSync(path.join(SCRIPTS, "run.sh"))) {
-  console.error("clauderank: 스크립트를 찾을 수 없습니다. 패키지가 손상된 것 같습니다.");
+  console.error("runmaxing: 스크립트를 찾을 수 없습니다. 패키지가 손상된 것 같습니다.");
   process.exit(1);
 }
 

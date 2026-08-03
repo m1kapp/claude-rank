@@ -2,7 +2,8 @@
 # 랭킹에서 내 기록 삭제. 사용: bash remove.sh [endpoint]
 # 신원 = 내 Claude 계정 UUID 해시(claude_…) — 본인 세션에서만 파생되므로 self-auth.
 set -e
-ENDPOINT="${1:-${USAGE_REPORT_ENDPOINT:-https://clauderank.m1k.app}}"
+ENDPOINT="${1:-${USAGE_REPORT_ENDPOINT:-https://runmaxing.m1k.app}}"
+DIR="$(cd "$(dirname "$0")" && pwd)"
 
 ID="$(python3 - <<'PY'
 import json, hashlib, os
@@ -22,8 +23,14 @@ if [ -z "$ID" ]; then
   exit 1
 fi
 
-echo "삭제 요청: $ID → $ENDPOINT"
-RESP=$(curl -s -X POST "$ENDPOINT/api/remove" -H "Content-Type: application/json" -d "{\"id\":\"$ID\"}")
+IDENTITY="$(python3 "$DIR/identity.py" read 2>/dev/null || true)"
+if [ -n "$IDENTITY" ]; then
+  BODY="$(printf '%s' "$IDENTITY" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(json.dumps({"runner_id":d["runner_id"],"runner_token":d["device_token"]}))')"
+else
+  BODY="{\"id\":\"$ID\"}"
+fi
+echo "삭제 요청 → $ENDPOINT"
+RESP=$(printf '%s' "$BODY" | curl -s -X POST "$ENDPOINT/api/remove" -H "Content-Type: application/json" -d @-)
 printf '%s' "$RESP" | python3 -c "
 import json, sys
 try:

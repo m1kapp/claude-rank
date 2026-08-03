@@ -1,14 +1,14 @@
 "use client";
 // 블로그 본문 공용 조각. 글마다 스타일을 다시 쓰지 않도록 최소한만 둔다.
 import Shell from "../Shell";
-import { Section, Button } from "@m1kapp/kit";
+import { Section, Button, CodeBlock } from "@m1kapp/kit";
 import { useRouter } from "next/navigation";
 
 export function PostShell({ title, date, minutes, children }:
   { title: string; date: string; minutes: number; children: React.ReactNode }) {
   const router = useRouter();
   return (
-    <Shell title="BLOG">
+    <Shell title="">
       <div style={{ position: "relative", zIndex: 1 }}>
         <Section>
           <div className="rise" style={{ paddingTop: 12 }}>
@@ -21,7 +21,7 @@ export function PostShell({ title, date, minutes, children }:
         <Section>
           <article className="post" style={{ fontSize: 14.5, lineHeight: 1.85, color: "var(--text)" }}>{children}</article>
           <div style={{ marginTop: 34 }}>
-            <Button variant="dark" shape="pill" full onClick={() => router.push("/start")}>내 배율 확인하기 →</Button>
+            <CodeBlock label="terminal" code="npx @m1kapp/runmaxing" accent="var(--signal)" />
           </div>
           <div style={{ height: 30 }} />
         </Section>

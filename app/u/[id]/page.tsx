@@ -1,44 +1,47 @@
 "use client";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useFetch, Section, SectionHeader, Select, StatChip, Badge, Skeleton, EmptyState, Divider, Button, ShareButton } from "@m1kapp/kit";
+import { useFetch, Section, SectionHeader, Select, StatChip, Skeleton, EmptyState, Divider, Button, ShareButton } from "@m1kapp/kit";
 import Shell from "../../Shell";
+import PaceTag from "../../PaceTag";
 import { useI18n } from "../../../lib/i18n";
+import { paceForProvider } from "../../../lib/pace";
 import { aggregate, persona, type Persona } from "../../../lib/persona";
 import { pickMonth, nowMonthKST, fillDays, withProjection, type DayPoint } from "../../../lib/month";
 import { Bars, TierBanner, TokenWidget, Heatmap, mcolor, cap, subhead, tfmt } from "./widgets";
 
 // 상단 툴바(뒤로/Wrapped/카드/공유) + 닉네임 + 월 선택
-function Header({ id, cur, months, entry, report }: { id: string; cur: string; months: string[]; entry: any; report: any }) {
+function Header({ id, cur, months, entry, report, runner }: { id: string; cur: string; months: string[]; entry: any; report: any; runner?: any }) {
   const { t, monthLabel } = useI18n();
   const router = useRouter();
   const m = report.months[cur] || {};
-  const pill: React.CSSProperties = { display: "inline-flex", alignItems: "center", gap: 5, textDecoration: "none", color: "var(--ink)", border: "1px solid var(--line)", borderRadius: 999, padding: "0 14px", height: 34, fontSize: 13, fontWeight: 600 };
+  const pill: React.CSSProperties = { display: "inline-flex", alignItems: "center", gap: 5, textDecoration: "none", color: "var(--ink)", border: "1px solid var(--line)", borderRadius: 999, padding: "0 12px", height: 32, fontSize: 11, fontWeight: 600 };
   return (
     <>
-      <div className="rise" style={{ paddingTop: 12 }}>
+      <div className="rise profile-hero">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
           <Button variant="light" shape="pill" onClick={() => router.push("/")} aria-label={t("common.back")}>←</Button>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <a className="share-pill" href={`/u/${id}/wrapped?m=${cur}`} style={pill}>🎁 {t("user.wrapped")}</a>
+          <div className="profile-actions">
+            <a className="share-pill" href={`/u/${id}/wrapped?m=${cur}`} style={pill}>{t("user.wrapped")}</a>
             {/* 카드는 PNG라 브라우저가 디스크 캐시에 물고 있는다(ETag 없음 → 재검증도 안 함).
                 제출 시각을 쿼리로 붙여 갱신하면 새 URL이 되어 옛 카드가 안 나온다. */}
-            <a className="share-pill" href={`/u/${id}/opengraph-image?v=${encodeURIComponent(entry?.updated || cur)}`} target="_blank" rel="noopener noreferrer" style={pill}>🎴 {t("user.card")}</a>
+            <a className="share-pill" href={`/u/${id}/opengraph-image?v=${encodeURIComponent(entry?.updated || cur)}`} target="_blank" rel="noopener noreferrer" style={pill}>{t("user.card")}</a>
             <ShareButton
               className="share-pill"
-              url={`${typeof window !== "undefined" ? window.location.origin : "https://clauderank.m1k.app"}/u/${id}?m=${cur}`}
-              title="Claude Run"
+              url={`${typeof window !== "undefined" ? window.location.origin : "https://runmaxing.m1k.app"}/u/${id}?m=${cur}`}
+              title="runmaxing"
               text={t("user.shareText", { month: monthLabel(cur), ratio: m.ratio ?? "" })}
               label={t("user.share")}
               copiedLabel={t("user.shared")}
             />
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "16px 0 12px", flexWrap: "wrap" }}>
-          <h1 className="display" style={{ fontWeight: 900, fontSize: 28, letterSpacing: "-0.02em", margin: 0 }}>{entry?.nick || t("common.anon")}</h1>
+        <div style={{ margin: "22px 0 15px" }}>
+          <div className="profile-id">{runner?.id || entry?.runner_id || id}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5, flexWrap: "wrap" }}>
+          <h1 className="display" style={{ fontWeight: 650, fontSize: 35, letterSpacing: "-.055em", margin: 0 }}>{entry?.nick || t("common.anon")}</h1>
           {entry?.verified && (
             <span title={t("home.verified")} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12, fontWeight: 800, color: "var(--sage)", border: "1px solid var(--sage)", borderRadius: 999, padding: "1px 8px" }}>✓ {t("user.verified")}</span>
           )}
-          <Badge>${entry?.plan || report.plan_usd_per_month}{t("common.perMo")}</Badge>
           {/* 본인이 연동을 켠 경우에만. 저쪽은 요금제가 없어 배율 환산이 안 되므로 순위만 그대로 인용한다. */}
           {report.viberank?.rank && (
             <a href={`https://viberank.app/profile/${report.viberank.username}`} target="_blank" rel="noopener noreferrer"
@@ -54,6 +57,7 @@ function Header({ id, cur, months, entry, report }: { id: string; cur: string; m
               )}
             </a>
           )}
+          </div>
         </div>
         <hr className="hair" />
       </div>
@@ -62,7 +66,7 @@ function Header({ id, cur, months, entry, report }: { id: string; cur: string; m
       {months.length > 0 && (
         <div style={{ marginTop: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
           <span className="kicker" style={{ color: "var(--muted)" }}>{t("user.monthPick")}</span>
-          <Select className="month-select" value={cur} onChange={(v) => v && router.replace(`/u/${id}?m=${v}`, { scroll: false })} accent="var(--terra)" allowClear={false}
+          <Select className="month-select" value={cur} onChange={(v) => v && router.replace(`/u/${id}?m=${v}`, { scroll: false })} accent="var(--signal)" allowClear={false}
             options={months.slice().reverse().map((mm) => ({ value: mm, label: monthLabel(mm) }))} />
         </div>
       )}
@@ -76,10 +80,11 @@ function PersonaCard({ cur, m, pf }: { cur: string; m: any; pf: Persona }) {
   return (
     <div className="rise" style={{ marginTop: 14, padding: "16px 16px", background: "var(--card)", border: "1px solid var(--line)", borderRadius: 14 }}>
       <div className="kicker" style={{ marginBottom: 10 }}>{monthLabel(cur)} · {t("user.persona.kicker")}</div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-        <span className="display tnum" style={{ fontSize: 42, fontWeight: 700, color: "var(--sage)", lineHeight: 1, letterSpacing: "-0.02em" }}>{m.ratio}<span style={{ fontSize: 20, color: "var(--muted)" }}>×</span></span>
-        <span style={{ fontSize: 12, color: "var(--muted)" }}>{t("user.persona.ratioLabel")}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={{ fontSize: 27 }}>{pf.emoji}</span>
+        <div><div className="display" style={{ fontSize: 20, fontWeight: 650, letterSpacing: "-.03em" }}>{pf.title}</div><div className="mono" style={{ fontSize: 9, color: "var(--signal)", marginTop: 3 }}>{pf.intensity}</div></div>
       </div>
+      <p style={{ color: "var(--muted)", fontSize: 11.5, lineHeight: 1.6, margin: "12px 0 0" }}>{pf.blurb}</p>
       {pf.tags.length > 0 && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: "5px 6px", marginTop: 14 }}>
           {pf.tags.map((tag, i) => (
@@ -89,6 +94,31 @@ function PersonaCard({ cur, m, pf }: { cur: string; m: any; pf: Persona }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function ProviderSummary({ cur, claudeMonths, codexMonths }: { cur: string; claudeMonths: Record<string, any>; codexMonths?: Record<string, any> }) {
+  const { t, won } = useI18n();
+  const m = claudeMonths[cur] || {};
+  const codex = codexMonths?.[cur];
+  const codexMetric = codex ? (codex.ratio != null ? `${codex.ratio}×` : tfmt(codex.tokens || 0)) : "—";
+  const claudePace = paceForProvider("claude", claudeMonths, cur);
+  const codexPace = codexMonths ? paceForProvider("codex", codexMonths, cur) : null;
+  return (
+    <div className="provider-grid rise" style={{ animationDelay: ".05s" }}>
+      <div className="provider-card claude">
+        <div className="label"><span className="provider-dot claude" />Claude Code</div>
+        <div className="value tnum">{m.ratio || 0}×</div>
+        <div className="meta">{won(m.cost_krw || 0)} · ${m.plan_usd || 0}{t("common.perMo")}</div>
+        {claudePace && <PaceTag pace={claudePace} className="provider-pace" />}
+      </div>
+      <div className="provider-card codex">
+        <div className="label"><span className="provider-dot codex" />Codex</div>
+        <div className="value tnum">{codexMetric}</div>
+        <div className="meta">{codex ? `$${Number(codex.cost_usd || 0).toLocaleString()} · ${codex.active_days || 0}${t("hm.dayUnit")}` : t("codex.notConnected")}</div>
+        {codexPace && <PaceTag pace={codexPace} className="provider-pace" />}
+      </div>
     </div>
   );
 }
@@ -103,7 +133,7 @@ function PriceSection({ m, dCost, krwPerUsd }: { m: any; dCost: DayPoint[]; krwP
         <div><div className="display tnum" style={{ fontSize: 28, fontWeight: 900 }}>{won(m.cost_krw)}</div><div style={{ fontSize: 12, color: "var(--muted)" }}>{t("user.listEq")}</div></div>
         <div style={{ textAlign: "right" }}><div className="display tnum" style={{ fontSize: 26, fontWeight: 900, color: "var(--sage)" }}>{m.ratio}×</div><div style={{ fontSize: 11, color: "var(--muted)" }}>{t("user.vsPlan", { plan: m.plan_usd })}</div></div>
       </div>
-      <Bars data={dCost} color="#d97757" avg wk fmt={(n) => won(n)} />
+      <Bars data={dCost} color="var(--claude)" avg wk fmt={(n) => won(n)} />
       {cap(t("user.dailyList"))}
       <div style={{ marginTop: 4 }}>
         {Object.entries(m.models || {}).map(([k, v]: any) => (
@@ -126,7 +156,7 @@ function QualitySection({ m, dChats, dCommits, hourly, buckets, conc, dConc }: {
     <Section>
       <SectionHeader>{t("user.qual")}</SectionHeader>
       <div style={{ display: "flex", alignItems: "baseline", gap: 8, padding: "12px 14px", margin: "8px 0 12px", background: "var(--raise)", borderRadius: 12 }}>
-        <span className="display tnum" style={{ fontSize: 24, fontWeight: 900, color: "#6a9bcc" }}>{(m.chats || 0).toLocaleString()}</span>
+        <span className="display tnum" style={{ fontSize: 24, fontWeight: 900, color: "var(--codex)" }}>{(m.chats || 0).toLocaleString()}</span>
         <span style={{ fontSize: 12, color: "var(--muted)" }}>{t("user.totalChats")}</span>
       </div>
       {subhead(t("user.seg.day"))}
@@ -169,7 +199,7 @@ export default function UserPage() {
   const { t, locale } = useI18n();
   const { id } = useParams<{ id: string }>();
   const sp = useSearchParams();
-  const { data, loading } = useFetch<{ entry: any; report: any }>(`/api/report/${id}`, { staleTime: 60_000 });
+  const { data, loading } = useFetch<{ entry: any; report: any; runner?: any }>(`/api/report/${id}`, { staleTime: 60_000 });
   const months = data ? Object.keys(data.report.months).sort() : [];
   const cur = pickMonth(months, sp.get("m") || "");
   const nowKST = nowMonthKST();
@@ -191,7 +221,7 @@ export default function UserPage() {
   );
   if (!data?.report) return <Shell title={t("common.report")}><Section><EmptyState message={t("common.notFound")} /></Section></Shell>;
 
-  const { entry, report } = data;
+  const { entry, report, runner } = data;
   const m = report.months[cur] || {};
   const pf = persona(aggregate({ [cur]: m }), locale, Number(m.plan_usd) || 0);  // 선택된 월만 분석 (누적 X)
   const s = m.series || {};
@@ -199,17 +229,18 @@ export default function UserPage() {
   const firstMonth = cur === months[0];
   const currentMonth = cur === nowKST;
   const dCost = withProjection(fillDays(s.daily_cost_krw, cur, firstMonth, currentMonth), cur, currentMonth);
-  const hourly = Array.from({ length: 24 }, (_, h) => ({ k: String(h), v: (s.hourly || {})[h] || 0, c: h <= 5 ? "#8b6db5" : "#6a9bcc" }));
-  const buckets = ["1-5", "6-10", "11-20", "21-50", "50+"].map((k) => ({ k, v: (s.buckets || {})[k] || 0, c: "#d97757" }));
+  const hourly = Array.from({ length: 24 }, (_, h) => ({ k: String(h), v: (s.hourly || {})[h] || 0, c: h <= 5 ? "#a385ff" : "#78a8ff" }));
+  const buckets = ["1-5", "6-10", "11-20", "21-50", "50+"].map((k) => ({ k, v: (s.buckets || {})[k] || 0, c: "#ff8c62" }));
   // 동시 세션 수별 시간. 1개(=단독)만 다른 색으로 둬서 병렬 구간이 한눈에 갈린다.
   const conc = ["1", "2", "3", "4", "5", "6+"].map((k) => ({
-    k, v: Math.round((s.conc || {})[k] || 0), c: k === "1" ? "#8a8580" : "#5fa563",
+    k, v: Math.round((s.conc || {})[k] || 0), c: k === "1" ? "#687064" : "#73e6a3",
   }));
 
   return (
     <Shell title={t("title.report")}>
       <Section>
-        <Header id={id} cur={cur} months={months} entry={entry} report={report} />
+        <Header id={id} cur={cur} months={months} entry={entry} report={report} runner={runner} />
+        <ProviderSummary cur={cur} claudeMonths={report.months} codexMonths={report.codex?.months} />
         <PersonaCard cur={cur} m={m} pf={pf} />
         {typeof m.cost_usd === "number" && (
           <div style={{ marginTop: 14 }}>
@@ -238,8 +269,8 @@ export default function UserPage() {
         </Section>
       </>)}
 
-      {/* Codex 는 랭킹 밖 보조 지표 — 배율은 요금제 단가가 하나로 정해질 때만 낸다.
-          pro($100/$200)·team(좌석·연납) 처럼 가격이 갈리는 요금제는 비용만 보여준다. */}
+      {/* Codex 는 별도 리그 지표 — 배율은 요금제 단가가 하나로 정해질 때만 낸다.
+          pro·team 처럼 가격이 갈리는 요금제는 비용과 토큰만 보여준다. */}
       {report.codex?.months?.[cur] && (<>
         <Divider />
         <Section>
@@ -268,10 +299,10 @@ export default function UserPage() {
       <Divider />
 
       <QualitySection m={m}
-        dChats={fillDays(s.daily_chats, cur, firstMonth, currentMonth, "#6a9bcc")}
-        dCommits={fillDays(s.daily_commits, cur, firstMonth, currentMonth, "#5fa563")}
+        dChats={fillDays(s.daily_chats, cur, firstMonth, currentMonth, "#78a8ff")}
+        dCommits={fillDays(s.daily_commits, cur, firstMonth, currentMonth, "#73e6a3")}
         hourly={hourly} buckets={buckets} conc={conc}
-        dConc={fillDays(s.conc_daily, cur, firstMonth, currentMonth, "#5fa563")} />
+        dConc={fillDays(s.conc_daily, cur, firstMonth, currentMonth, "#73e6a3")} />
     </Shell>
   );
 }

@@ -10,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/u/", "/api/"],
       },
     ],
-    sitemap: "https://clauderank.m1k.app/sitemap.xml",
+    sitemap: "https://runmaxing.m1k.app/sitemap.xml",
   };
 }

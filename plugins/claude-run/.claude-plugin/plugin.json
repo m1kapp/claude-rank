@@ -1,14 +1,14 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "claude-run",
-  "displayName": "Claude Run",
-  "version": "1.7.0",
-  "description": "내 Claude 사용량을 clauderank.m1k.app 가성비 랭킹에 갱신. /claude-run(최신 데이터로 무조건 갱신 — 별도 리포트 단계 없음), /claude-run-daily(하루 1회 자동 갱신 on/off), /claude-run-out(내 기록 삭제), /claude-run-viberank(viberank 연동 on/off). 신원은 Claude 계정 기준이라 중복·허수 방지. ccusage 기반.",
+  "displayName": "runmaxing",
+  "version": "2.0.0",
+  "description": "Claude Code와 Codex를 로컬 runner ID 하나에 연결하고 각 리그를 갱신. 기존 기록과 identity 파일은 덮어쓰지 않음. /claude-run · /claude-run-daily · /claude-run-out.",
   "author": {
     "name": "m1kapp",
     "url": "https://m1k.app"
   },
-  "homepage": "https://github.com/m1kapp/claude-rank",
+  "homepage": "https://github.com/m1kapp/runmaxing",
   "license": "MIT",
   "keywords": [
     "usage",

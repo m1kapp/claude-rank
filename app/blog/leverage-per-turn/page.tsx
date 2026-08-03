@@ -5,7 +5,7 @@ import Body from "./body";
 const post = bySlug("leverage-per-turn")!;
 
 export const metadata: Metadata = {
-  title: `${post.title} · Claude Run`,
+  title: `${post.title} · runmaxing`,
   description: post.description,
   alternates: { canonical: `/blog/${post.slug}` },
   openGraph: {

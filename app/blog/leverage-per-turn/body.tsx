@@ -173,7 +173,7 @@ export default function Body() {
         <b>표본은 한 명이다.</b> 이 글의 숫자는 내 계정 한 달치이고 통계가 아니다. 작업
         성격에 따라 적정 레버리지는 다르다 — 글쓰기 위주면 도구/마디가 낮은 게 정상이다.
         다만 &ldquo;마디당 레버리지를 재면 사용 습관이 보인다&rdquo;는 건 누구
-        로그에서든 된다. 본인 숫자는 <code>npx @m1kapp/clauderank</code> 한 줄로 바로 볼
+        로그에서든 된다. 본인 숫자는 <code>npx @m1kapp/runmaxing</code> 한 줄로 바로 볼
         수 있다.
       </Note>
     </PostShell>

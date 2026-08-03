@@ -22,6 +22,18 @@ async function readDeviceMap(id: string): Promise<Record<string, any>> {
 export type DeviceSlot = { updated?: string; report: any };
 const DEVICE_TTL_DAYS = 90;   // 이 기간 넘게 안 올라온 기기 슬롯은 병합에서 제외(고아 방지)
 
+export class DeviceIdentityConflict extends Error {
+  constructor() {
+    super("여러 Codex 계정 기록이 섞일 수 있어 기기 슬롯 갱신을 중단했어요. 기존 기록은 유지됩니다.");
+  }
+}
+
+function assertProviderIdentity(map: Record<string, DeviceSlot>, report: any) {
+  const ids = new Set(slotReports(map).map((r) => r?.codex?.account_id).filter(Boolean));
+  if (report?.codex?.account_id) ids.add(report.codex.account_id);
+  if (ids.size > 1) throw new DeviceIdentityConflict();
+}
+
 // 슬롯 정규화 + 만료 프루닝. updated 없는(=날짜 불명) 슬롯은 보존한다.
 function pruneSlots(map: Record<string, any>, nowMs: number): Record<string, DeviceSlot> {
   const cutoff = nowMs - DEVICE_TTL_DAYS * 86_400_000;
@@ -46,12 +58,14 @@ export async function saveDeviceReport(
   const nowMs = Date.parse(now) || Date.now();
   if (useUpstash) {
     const map = pruneSlots(await readDeviceMap(id), nowMs);
+    assertProviderIdentity(map, report);
     map[deviceId] = { updated: now, report };
     await upstash(["HSET", DKEY, id, JSON.stringify(map)]);
     return map;
   } else {
     const db = await readJson<Record<string, Record<string, any>>>(DFILE, {});
     const map = pruneSlots(db[id] || {}, nowMs);
+    assertProviderIdentity(map, report);
     map[deviceId] = { updated: now, report };
     db[id] = map;
     await writeJson(DFILE, db);
@@ -191,11 +205,18 @@ export function mergeReports(reports: any[]): any {
         a.cost_usd += num(v.cost_usd); a.tokens += num(v.tokens); a.active_days = Math.max(a.active_days, num(v.active_days));
       }
       const base = cs[0];
+      const accountIds = [...new Set(cs.map((c) => c.account_id).filter(Boolean))];
       for (const [mk, a] of Object.entries<any>(ms)) {
         a.cost_usd = Number(a.cost_usd.toFixed(2));
         if (base.plan_usd) a.ratio = Number((a.cost_usd / base.plan_usd).toFixed(1));
       }
-      return { codex: { plan_type: base.plan_type, plan_usd: base.plan_usd, months: ms } };
+      return { codex: {
+        ...(accountIds.length === 1 ? { account_id: accountIds[0] } : {}),
+        ...(accountIds.length > 1 ? { account_conflict: true } : {}),
+        plan_type: base.plan_type,
+        plan_usd: base.plan_usd,
+        months: ms,
+      } };
     })(),
     // viberank 는 계정 단위라 기기별로 다르지 않다 — 가장 최근에 조회된 것 하나만 남긴다.
     ...(() => {

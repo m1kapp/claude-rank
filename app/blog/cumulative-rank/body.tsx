@@ -97,7 +97,7 @@ export default function Body() {
         비교 대상 보드를 깎으려는 글이 아니다. 그쪽은 1,069명이 모인 곳이고 우리는 이제
         시작이다. 다만 <b>순위표는 자기가 재는 축을 정확히 말해야 한다</b>고 본다. 누적은
         근속을 재고, 비율은 이번 달을 잰다. 둘 다 유효하지만 같은 것이 아니다.
-        본인 숫자는 <code>npx @m1kapp/clauderank</code> 한 줄로 볼 수 있다.
+        본인 숫자는 <code>npx @m1kapp/runmaxing</code> 한 줄로 볼 수 있다.
       </Note>
     </PostShell>
   );

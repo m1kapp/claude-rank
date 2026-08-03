@@ -4,11 +4,12 @@ import { promises as fs } from "fs";
 import { useUpstash, upstash, dataFile, readJson, writeJson } from "./db";
 import { DKEY, DFILE } from "./devices";
 
-export { saveDeviceReport, slotReports, mergeReports, type DeviceSlot } from "./devices";
+export { saveDeviceReport, slotReports, mergeReports, DeviceIdentityConflict, type DeviceSlot } from "./devices";
 
 export type MonthStat = { ratio: number; chats: number; commits: number; cost_krw: number; plan: number };
 export type Entry = {
   id: string;            // 익명 고유 ID (리포트 JSON의 id) — 계정 단위(기기 무관 동일)
+  runner_id?: string;    // 공개 프로필 ID. 기존 id 는 저장 키로 그대로 보존한다.
   nick: string;          // 표시 닉네임
   plan: number;          // 월 구독 USD ($200/$100 등)
   ratio: number;         // 본전 배율(전체)
@@ -26,29 +27,16 @@ export type Entry = {
 const KEY = "claude-rank:entries";
 const FILE = dataFile("db.json");
 
-// 닉 정규화 키 (대소문자·앞뒤공백·유니코드 정규화 무시)
-const nickKey = (s: string) => (s || "").normalize("NFKC").trim().toLowerCase();
-
 // 깨진 JSON은 null로 (파싱 실패를 삼켜 호출부 분기를 단순하게 유지)
 const safeParse = (s: string): any => { try { return JSON.parse(s); } catch { return null; } };
 
-// HGETALL 평면 배열에서, 같은 닉을 쓰는 다른 id 목록을 찾는다.
-function dupNickIds(flat: string[], selfId: string, want: string): string[] {
-  const dups: string[] = [];
-  for (let i = 0; i < flat.length; i += 2) {
-    const id = flat[i];
-    if (id === selfId) continue;
-    try { if (nickKey(JSON.parse(flat[i + 1]).nick) === want) dups.push(id); } catch {}
-  }
-  return dups;
-}
-
-async function upsertFile(e: Entry, want: string) {
+async function upsertFile(e: Entry) {
   const db = await readJson<Record<string, Entry>>(FILE, {});
-  for (const [id, ex] of Object.entries(db)) {
-    if (id !== e.id && nickKey(ex.nick) === want) delete db[id];
-  }
-  db[e.id] = { ...e, created: db[e.id]?.created || e.created || e.updated };
+  db[e.id] = {
+    ...e,
+    runner_id: e.runner_id || db[e.id]?.runner_id,
+    created: db[e.id]?.created || e.created || e.updated,
+  };
   await writeJson(FILE, db, 2);
 }
 
@@ -60,21 +48,27 @@ function createdOf(flat: string[], id: string): string | undefined {
   return undefined;
 }
 
-// id로 저장(닉 변경 = 같은 줄 갱신)하되, 같은 닉을 쓰는 다른 id는 제거해
-// 중복 계정(같은 닉 두 줄)을 막는다. → 닉당 1줄, id당 1줄.
+function entryOf(flat: string[], id: string): Entry | null {
+  for (let i = 0; i + 1 < flat.length; i += 2) {
+    if (flat[i] === id) return safeParse(flat[i + 1]);
+  }
+  return null;
+}
+
+// id로 저장한다. 닉네임은 표시값일 뿐 신원이 아니므로 같은 닉의 다른 runner를
+// 삭제하지 않는다. runner/provider identity 만 중복 방지 기준으로 쓴다.
 export async function upsert(e: Entry) {
-  const want = nickKey(e.nick);
-  if (!useUpstash) return upsertFile(e, want);
+  if (!useUpstash) return upsertFile(e);
 
   const flat: string[] = (await upstash(["HGETALL", KEY])) || [];
-  const dupIds = dupNickIds(flat, e.id, want);
   // 최초 등록 시각은 재제출해도 보존 (이탈까지 며칠 남았는지 집계용)
-  const kept: Entry = { ...e, created: createdOf(flat, e.id) || e.created || e.updated };
+  const previous = entryOf(flat, e.id);
+  const kept: Entry = {
+    ...e,
+    runner_id: e.runner_id || previous?.runner_id,
+    created: createdOf(flat, e.id) || e.created || e.updated,
+  };
   await upstash(["HSET", KEY, e.id, JSON.stringify(kept)]);
-  if (dupIds.length) {
-    await upstash(["HDEL", KEY, ...dupIds]);
-    await upstash(["HDEL", RKEY, ...dupIds]);  // 고아 리포트도 정리
-  }
 }
 
 // JSON 파일 하나를 한 번만 읽어 여러 id를 지우고 한 번만 쓴다.

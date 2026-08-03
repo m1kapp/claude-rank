@@ -52,7 +52,7 @@ function netKrw(m: any, report: any): number {
 }
 
 function wrappedShareUrl(id: string, cur: string): string {
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://clauderank.m1k.app";
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://runmaxing.m1k.app";
   return `${origin}/u/${id}/wrapped?m=${cur}`;
 }
 
@@ -184,8 +184,8 @@ export default function WrappedPage() {
       <Section>
         <div className="rise" style={{ paddingTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Button variant="light" shape="pill" onClick={() => router.push(`/u/${id}?m=${cur}`)}>{t("common.back")}</Button>
-          <ShareButton className="share-pill" url={shareUrl} title="Claude Wrapped"
-            text={L(`${monthLabel(cur)} 내 Claude Wrapped`, `My Claude Wrapped for ${monthLabel(cur)}`)}
+          <ShareButton className="share-pill" url={shareUrl} title="Run Wrapped"
+            text={L(`${monthLabel(cur)} 내 Run Wrapped`, `My Run Wrapped for ${monthLabel(cur)}`)}
             label={t("user.share")} copiedLabel={t("user.shared")} />
         </div>
       </Section>
@@ -193,7 +193,7 @@ export default function WrappedPage() {
       <Section>
         {/* 커버 */}
         <div className="rise" style={{ textAlign: "center", padding: "26px 0 30px" }}>
-          <div className="kicker" style={{ color: "var(--terra)", marginBottom: 10 }}>{monthLabel(cur)} · CLAUDE WRAPPED</div>
+          <div className="kicker" style={{ color: "var(--signal)", marginBottom: 10 }}>{monthLabel(cur)} · RUN WRAPPED</div>
           <h1 className="display" style={{ fontWeight: 900, fontSize: 40, letterSpacing: "-0.03em", margin: "0 0 8px", lineHeight: 1.05 }}>{entry?.nick || t("common.anon")}</h1>
           <p style={{ fontSize: 13.5, color: "var(--muted)", margin: 0 }}>{L("이번 달, 당신은 이렇게 달렸어요", "Here's how you ran this month")}</p>
         </div>
@@ -207,11 +207,11 @@ export default function WrappedPage() {
         {/* 마무리 */}
         <div className="rise" style={{ textAlign: "center", padding: "10px 0 28px" }}>
           <div className="share-fill" style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
-            <ShareButton className="w-full justify-center" url={shareUrl} title="Claude Wrapped"
-              text={L(`${monthLabel(cur)} 내 Claude Wrapped — ${m.ratio}× 뽑았어요`, `My ${monthLabel(cur)} Claude Wrapped — ${m.ratio}×`)}
+            <ShareButton className="w-full justify-center" url={shareUrl} title="Run Wrapped"
+              text={L(`${monthLabel(cur)} 내 Run Wrapped — Claude ${m.ratio}×`, `My ${monthLabel(cur)} Run Wrapped — Claude ${m.ratio}×`)}
               label={L("내 Wrapped 공유", "Share my Wrapped")} copiedLabel={t("user.shared")} />
           </div>
-          <a href={`/u/${id}?m=${cur}`} style={{ fontSize: 12.5, color: "var(--muted)" }}>clauderank.m1k.app</a>
+          <a href={`/u/${id}?m=${cur}`} style={{ fontSize: 12.5, color: "var(--muted)" }}>runmaxing</a>
         </div>
       </Section>
     </Shell>

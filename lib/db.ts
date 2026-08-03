@@ -20,7 +20,9 @@ export async function upstash(cmd: any[]) {
 }
 
 // --- 로컬 파일 폴백 ---
-export const dataFile = (name: string) => path.join(process.cwd(), ".data", name);
+// 테스트·프리뷰는 별도 디렉터리를 지정할 수 있어 실제 .data 를 건드리지 않는다.
+const DATA_ROOT = process.env.RUNMAXING_DATA_DIR || path.join(process.cwd(), ".data");
+export const dataFile = (name: string) => path.join(DATA_ROOT, name);
 
 export async function readJson<T>(file: string, fallback: T): Promise<T> {
   try { return JSON.parse(await fs.readFile(file, "utf8")); } catch { return fallback; }

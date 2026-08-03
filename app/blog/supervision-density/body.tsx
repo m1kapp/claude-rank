@@ -127,7 +127,7 @@ export default function Body() {
         작업일수록 함께 늘어나는&rdquo; 것일 수 있다 — 세션 길이는 통제했지만 작업의 성격까지
         맞추지는 못했다. 커밋을 결과의 대리지표로 쓴 것도 한계다(문서·조사 작업은 커밋이
         안 남는다). 말투·이모지 같은 지표도 재봤지만 전부 세션 길이 효과로 판정해서 뺐다.
-        본인 숫자는 <code>npx @m1kapp/clauderank</code> 한 줄로 볼 수 있다.
+        본인 숫자는 <code>npx @m1kapp/runmaxing</code> 한 줄로 볼 수 있다.
       </Note>
     </PostShell>
   );

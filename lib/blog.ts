@@ -18,10 +18,12 @@ export type Post = {
   minutes: number;
 };
 
-export const POSTS: Post[] = [
+export const POSTS: Post[] = [];
+
+export const ARCHIVED: Post[] = [
   {
     slug: "parallel-two-to-four",
-    title: "병렬은 2~4개가 맞았다 — 조언을 안 보고 내 로그로 먼저 재봤더니",
+    title: "동시에 몇 개나 돌려야 하는지 몰랐다 — 내 로그 열어보니 2~4개였다",
     description:
       "319시간 중 85%를 2개 이상 동시에 굴렸다. 겹친 세션 수로 결과를 갈라보니 2~4개에서 정점이고 5개를 넘으면 떨어졌다. 그다음에 찾아본 공식 권장이 3~5개, 커뮤니티 통설이 2~4개였다.",
     date: "2026-08-03",
@@ -43,9 +45,6 @@ export const POSTS: Post[] = [
     date: "2026-08-01",
     minutes: 6,
   },
-];
-
-export const ARCHIVED: Post[] = [
   {
     slug: "cumulative-rank",
     title: "누적 랭킹은 실력이 아니라 근속을 잰다 — 같은 사람이 100위이자 13위였다",

@@ -1,5 +1,5 @@
 ---
-description: 랭킹(clauderank.m1k.app) 갱신을 하루 1회 자동으로 돌리도록 설정한다. 매번 /claude-run 을 치기 귀찮을 때. Usage - /claude-run-daily [on|off|status]. "매일 자동", "자동 갱신", "알아서 올라가게", "자동 등록 꺼줘" 요청 시 사용.
+description: runmaxing 갱신을 하루 1회 자동으로 돌리도록 설정한다. 매번 /claude-run 을 치기 귀찮을 때. Usage - /claude-run-daily [on|off|status]. "매일 자동", "자동 갱신", "알아서 올라가게", "자동 등록 꺼줘" 요청 시 사용.
 disable-model-invocation: false
 allowed-tools: Bash(*)
 arguments:

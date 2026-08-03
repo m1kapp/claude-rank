@@ -1,11 +1,11 @@
 {
-  "name": "Claude Run",
-  "short_name": "Claude Run",
-  "description": "구독 가성비 랭킹 · 같이 달려요",
+  "name": "runmaxing",
+  "short_name": "runmaxing",
+  "description": "Claude Code + Codex · one runner, two lanes",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#14110f",
-  "theme_color": "#c15f3c",
+  "background_color": "#080a08",
+  "theme_color": "#c8ff5a",
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },

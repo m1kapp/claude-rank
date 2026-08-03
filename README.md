@@ -1,52 +1,59 @@
-# claude-rank
+# runmaxing
 
-Claude 구독 가성비 랭킹 — "API 정가로 환산하면 몇 배 뽑았나(본전배율)"를 겨루는 리더보드.
-서비스([clauderank.m1k.app](https://clauderank.m1k.app))와 제출용 **Claude Code 플러그인**이 같이 있습니다.
+Claude Code와 Codex를 한 러너 아래 연결하고, 각 에이전트를 얼마나 끝까지 돌렸는지 보여주는 월간 리그와 개인 리포트입니다.
 
-## 시작 (한 줄)
+서비스 주소와 내부 데이터 키는 마이그레이션 호환을 위해 유지합니다. 공개 수집기 이름은 runmaxing입니다.
 
 ```bash
-npx @m1kapp/clauderank
+npx @m1kapp/runmaxing
 ```
 
-설치도 재시작도 없습니다. 요금제·닉네임은 자동 판별됩니다.
+첫 제출에서 `~/.runmaxing/identity.json`에 공개 `runner_id`와 비공개 `device_token`을 한 번만 만듭니다. 기존 파일은 절대 자동 덮어쓰지 않습니다.
 
-## 플러그인 (선택 — 슬래시 명령 + 자동 갱신)
+## 신원 모델
 
+```text
+runner_xxx
+├─ Claude identity  (provider-scoped hash)
+└─ Codex identity   (provider-scoped hash)
 ```
-/plugin marketplace add m1kapp/claude-rank
+
+- 기존 `claude_<hash>` 엔트리는 저장 키와 원본 기록을 그대로 유지합니다.
+- runner 연결 레코드만 추가해 공개 프로필을 하나로 묶습니다.
+- Claude와 Codex는 별도 리그로 계산하며 합성 점수를 만들지 않습니다.
+- 원본 계정 ID, 인증 토큰, 프롬프트, 코드, 파일 경로는 제출하지 않습니다.
+
+## 사용법
+
+```bash
+npx @m1kapp/runmaxing              # 집계 + 러너 연결 + 리그 갱신
+npx @m1kapp/runmaxing <닉네임>     # 닉네임 지정
+npx @m1kapp/runmaxing --report     # 로컬 리포트만 생성
+npx @m1kapp/runmaxing --no-open    # 브라우저를 열지 않음
+```
+
+Claude Code 플러그인은 호환을 위해 기존 설치 이름을 유지합니다.
+
+```text
+/plugin marketplace add m1kapp/runmaxing
 /plugin install claude-run@claude-rank
 /reload-plugins
 /claude-run
 ```
 
-> 예전에 `m1kapp` 이나 `m1kskills` 마켓플레이스로 설치했다면 먼저 제거하세요:
-> `/plugin marketplace remove m1kapp` · `/plugin marketplace remove m1kskills`
->
-> **마켓플레이스부터 지우세요.** 옛 설치는 `local` 스코프로 박혀 있어서 `/plugin uninstall` 을 먼저 치면
-> `installed in local scope, not user` 로 막힙니다. 마켓플레이스를 제거하면 딸린 설치도 같이 걷힙니다.
-> 자세한 안내: [clauderank.m1k.app/start](https://clauderank.m1k.app/start)
-
-## 동작
-- `/claude-run` → 로컬 사용량(ccusage) 집계 후 랭킹에 자동 제출
-- Claude 계정 UUID 해시로 신원 확인 → 기기·깃헙 바꿔도 한 줄로 갱신, 중복·허수 차단
-- 플랜($200/$100) 배지 표시, `/claude-run-out` 으로 내 기록만 삭제
-
 ## 로컬 실행
+
 ```bash
 npm install
-npm run dev   # http://localhost:3000
+npm run dev
 ```
-저장소는 기본 로컬 파일(`.data/db.json`). Vercel 배포 시 Upstash Redis 사용.
 
-## 배포 (Vercel)
-1. 이 repo를 Vercel에 import
-2. Upstash Redis 생성 후 환경변수 설정:
-   - `UPSTASH_REDIS_REST_URL`
-   - `UPSTASH_REDIS_REST_TOKEN`
-3. 배포 → (선택) 도메인 `rank.m1k.app` 연결
+환경변수가 없으면 `.data/*.json`을 사용하고, 배포 환경에서는 Upstash Redis를 사용합니다.
 
-env가 없으면 로컬 파일로 폴백한다(서버리스에선 영구 저장 안 되니 배포 시 Upstash 필수).
+## 호환성 원칙
 
-## 라이선스
+- 기존 데이터 키(`claude-rank:*`)와 공개 레거시 URL은 삭제하거나 일괄 변경하지 않습니다.
+- 새 runner 연결은 additive migration입니다.
+- 기존 identity 파일이 손상되었거나 provider가 다른 runner에 연결되어 있으면 중단합니다.
+
 MIT © m1kapp

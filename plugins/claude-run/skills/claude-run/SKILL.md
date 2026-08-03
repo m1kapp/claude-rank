@@ -1,5 +1,5 @@
 ---
-description: 내 Claude 사용량을 가성비 랭킹(clauderank.m1k.app)에 갱신한다. 최신 데이터로 매번 그냥 덮어쓰는 단일 명령 — 별도 리포트 생성 단계 없음. 종목(요금제)·닉네임은 자동 판별. Usage - /claude-run [닉네임]. "랭킹 등록", "랭크 올려", "내 기록 갱신", "얼마나 썼나" 요청 시 사용.
+description: Claude Code와 Codex 사용량을 runmaxing 리그에 갱신한다. 로컬 runner ID 하나에 provider별 identity를 연결하며 기존 기록과 identity 파일은 덮어쓰지 않는다. Usage - /claude-run [닉네임]. "랭킹 등록", "랭크 올려", "내 기록 갱신", "얼마나 썼나" 요청 시 사용.
 disable-model-invocation: false
 allowed-tools: Bash(*)
 arguments:
@@ -8,7 +8,7 @@ arguments:
 
 ## 목적
 
-내 사용량을 **최신으로 생성 + 랭킹에 갱신**까지 한 번에. (별도 리포트 단계 없이 항상 이 한 명령.)
+내 사용량을 **최신으로 생성 + runmaxing 리그에 갱신**까지 한 번에. (별도 리포트 단계 없이 항상 이 한 명령.)
 **추가 확인 없이 바로 갱신한다**(이 명령을 부른 것 자체가 동의 · 무조건 올리는 방향).
 
 ## 실행
@@ -22,7 +22,7 @@ bash "$RP/submit.sh" "$ARGUMENTS"  # 랭킹 갱신 + 내 웹 리포트 자동 �
 
 - **닉네임**: 생략하면 **Claude 계정 이메일 앞부분으로 자동**. 바꾸려면 닉네임을 인자로 주면 `~/.usage-report-nick`에 저장돼 다음부턴 생략해도 같은 이름.
 - **종목(요금제)**: 실제 구독 티어(`~/.claude.json`)로 **자동 판별**(200·100·20달러 종목). 수동 지정 불필요.
-- 신원은 **내 Claude 계정**(계정 UUID 해시) 기준 — 깃헙/기기 바꿔도 **합산·갱신**(중복·허수 방지). Claude 로그인이 없으면 제출이 거부된다.
+- 첫 제출에서 `~/.runmaxing/identity.json`을 한 번만 만들고, Claude UUID와 Codex account ID를 provider별 해시로 연결한다. 기존 파일은 자동 덮어쓰지 않는다.
 
 ## 안내
 

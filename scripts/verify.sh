@@ -1,12 +1,12 @@
 #!/bin/bash
-# clauderank 검증 어드민 CLI
-#   ADMIN_SECRET=... [CLAUDERANK_ENDPOINT=https://clauderank.m1k.app] scripts/verify.sh <명령>
+# runmaxing 검증 어드민 CLI
+#   ADMIN_SECRET=... [CLAUDERANK_ENDPOINT=https://runmaxing.m1k.app] scripts/verify.sh <명령>
 # 명령:
 #   list                이상탐지 포함 상위 제출 목록 (검증 후보 + 위조 의심 플래그)
 #   on  <claude_id>     검증 뱃지 부여
 #   off <claude_id>     검증 뱃지 해제
 set -e
-export CLAUDERANK_ENDPOINT="${CLAUDERANK_ENDPOINT:-https://clauderank.m1k.app}"
+export CLAUDERANK_ENDPOINT="${CLAUDERANK_ENDPOINT:-https://runmaxing.m1k.app}"
 if [ -z "$ADMIN_SECRET" ]; then echo "ADMIN_SECRET 환경변수가 필요해요."; exit 1; fi
 export CR_CMD="${1:-list}"
 export CR_ID="${2:-}"

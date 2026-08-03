@@ -7,7 +7,7 @@ Claude 와 같은 원리로 "구독료 대비 배율"을 내려는 것이지만,
 좌석수·연납 여부로 달라진다. 그래서 **가격이 확정되는 요금제에서만 배율을 내고**,
 나머지는 비용만 싣는다 — 모르는 분모를 추측해 배율을 지어내지 않는다.
 """
-import json, os, base64, subprocess, sys
+import json, os, base64, subprocess, sys, hashlib
 
 # 월 단가(USD). None = 가격이 하나로 정해지지 않음 → 배율 계산 안 함.
 PLAN_USD = {
@@ -44,6 +44,18 @@ def plan_type():
     return ""
 
 
+def account_id():
+    """Codex account UUID 를 provider-scoped 해시로 만든다. 원문은 리포트에 싣지 않는다."""
+    try:
+        d = json.load(open(os.path.expanduser("~/.codex/auth.json")))
+        raw = (d.get("tokens") or {}).get("account_id") or ""
+        if raw:
+            return "codex_" + hashlib.sha256(raw.encode()).hexdigest()[:32]
+    except Exception:
+        pass
+    return ""
+
+
 def monthly():
     """ccusage codex daily --json → {YYYY-MM: {cost_usd, tokens}}.
     Codex 쪽 스키마는 Claude 쪽과 다르다(date/costUSD/models)."""
@@ -73,7 +85,10 @@ def main():
         return                      # Codex 를 안 쓰면 필드 자체를 만들지 않는다
     pt = plan_type()
     usd = PLAN_USD.get(pt, None)
+    aid = account_id()
     out = {"plan_type": pt or None, "plan_usd": usd, "months": {}}
+    if aid:
+        out["account_id"] = aid
     for mk, a in sorted(months.items()):
         row = {"cost_usd": a["cost_usd"], "tokens": a["tokens"], "active_days": a["days"]}
         # 배율은 가격이 확정되고 0 이 아닐 때만.

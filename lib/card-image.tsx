@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { all, getReport } from "./store";
 import { tierForUsd } from "./tier";
+import { resolveEntryId } from "./runners";
 
 // 본전 계산서 카드 렌더러. /u/[id]/opengraph-image 와 /api/card/[id] 가 공유한다.
 // 링크 미리보기는 월을 못 고르지만(Next 규약상 opengraph-image 는 쿼리를 못 받는다),
@@ -10,13 +11,13 @@ import { tierForUsd } from "./tier";
 
 export const CARD_SIZE = { width: 1200, height: 630 };
 
-// Claude 웜 팔레트
-const BG = "#17120e";
-const TERRA = "#d97757", CLAY = "#e0a58a";
-const SAGE = "#77c98a";
-const GOLD = "#e0b25a";
-const CREAM = "#efe7db", CREAM2 = "#cdbfae", MUTED = "#8a7a6b", FAINT = "#5a4c3e";
-const HAIR = "#342718", LINE = "#3a2d1f";
+// runmaxing signal palette
+const BG = "#080a08";
+const TERRA = "#c8ff5a", CLAY = "#ddff96";
+const SAGE = "#73e6a3";
+const GOLD = "#ffbf5f";
+const CREAM = "#f1f7ec", CREAM2 = "#bdc7b8", MUTED = "#7e8a79", FAINT = "#536050";
+const HAIR = "#293129", LINE = "#354035";
 
 // ImageResponse 기본값이 max-age=31536000 immutable — 데이터 갱신 반영되게 짧은 CDN 캐시로 교체.
 // max-age=0 만으로는 부족하다: 검증자(ETag)가 없으면 브라우저가 재검증을 건너뛰고
@@ -44,8 +45,8 @@ function fallbackImage(fonts?: Font[]) {
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: BG, color: CREAM }}>
-        <div style={{ fontSize: 72, fontWeight: 700, display: "flex" }}>🏃 Claude Run</div>
-        <div style={{ fontSize: 28, color: MUTED, marginTop: 12 }}>clauderank.m1k.app</div>
+        <div style={{ fontSize: 72, fontWeight: 700, display: "flex", color: TERRA }}>runmaxing</div>
+        <div style={{ fontSize: 28, color: MUTED, marginTop: 12 }}>keep your agents running.</div>
       </div>
     ),
     { ...CARD_SIZE, ...(fonts ? { fonts } : {}), headers: OG_HEADERS },
@@ -112,8 +113,9 @@ export async function renderCard(id: string, month?: string) {
   try {
     const fonts = loadFonts();
 
-    const entry = (await all()).find((e) => e.id === id);
-    const report = await getReport(id);
+    const entryId = await resolveEntryId(id);
+    const entry = (await all()).find((e) => e.id === entryId);
+    const report = await getReport(entryId);
     if (!entry || !report) return fallbackImage(fonts);
 
     const d = cardData(entry, report, month);
@@ -124,8 +126,8 @@ export async function renderCard(id: string, month?: string) {
           {/* ── LEFT: 히어로 ── */}
           <div style={{ width: 476, display: "flex", flexDirection: "column", padding: "50px 44px 44px" }}>
             <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-              <span style={{ fontSize: 22, display: "flex" }}>🏃</span>
-              <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: 3, color: CREAM2, marginLeft: 10 }}>CLAUDE RUN</span>
+              <span style={{ fontSize: 22, display: "flex", color: TERRA }}>///</span>
+              <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: -1, color: CREAM, marginLeft: 10 }}>runmaxing</span>
               <span style={{ marginLeft: "auto", fontSize: 15, color: FAINT, letterSpacing: 2 }}>{d.cur.replace("-", ".")}</span>
             </div>
 
@@ -196,7 +198,7 @@ export async function renderCard(id: string, month?: string) {
             <div style={{ display: "flex", alignItems: "flex-end", width: "100%", marginTop: "auto" }}>
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <span style={{ fontSize: 22, fontWeight: 700, color: CREAM }}>님은 몇 배 뽑음?</span>
-                <span style={{ fontSize: 17, color: TERRA, marginTop: 7 }}>clauderank.m1k.app</span>
+                <span style={{ fontSize: 17, color: TERRA, marginTop: 7 }}>runmaxing</span>
                 <span style={{ fontSize: 13, color: FAINT, marginTop: 2 }}>@{entry.nick}</span>
               </div>
               <div style={{ display: "flex", marginLeft: "auto", alignItems: "center", fontSize: 15, fontWeight: 700, letterSpacing: 2, color: d.won0 ? TERRA : GOLD, border: `2px solid ${d.won0 ? TERRA : GOLD}`, borderRadius: 9, padding: "11px 18px", transform: "rotate(-5deg)" }}>
