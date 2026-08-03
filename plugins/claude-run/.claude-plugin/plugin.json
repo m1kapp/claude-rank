@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "claude-run",
   "displayName": "runmaxing",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Claude Code와 Codex를 로컬 runner ID 하나에 연결하고 각 리그를 갱신. 기존 기록과 identity 파일은 덮어쓰지 않음. /claude-run · /claude-run-daily · /claude-run-out.",
   "author": {
     "name": "m1kapp",

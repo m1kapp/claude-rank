@@ -14,7 +14,7 @@
       "name": "claude-run",
       "displayName": "runmaxing",
       "description": "Claude Code와 Codex 사용량을 로컬 runner ID 하나에 연결하고 provider별 리그를 갱신. 기존 기록은 보존.",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "source": "./plugins/claude-run",
       "category": "productivity",
       "keywords": [

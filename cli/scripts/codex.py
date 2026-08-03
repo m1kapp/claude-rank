@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Codex(ChatGPT) 사용량 + 요금제 → JSON stdout.
 
-Claude 와 같은 원리로 "구독료 대비 배율"을 내려는 것이지만, Codex 는 요금제와
-가격이 1:1 이 아니다. Claude 는 20x→$200 처럼 티어가 곧 가격인데, ChatGPT 는
-`pro` 하나가 Pro Codex($100) 와 Pro Max($200) 둘 다이고 team/business 는
-좌석수·연납 여부로 달라진다. 그래서 **가격이 확정되는 요금제에서만 배율을 내고**,
-나머지는 비용만 싣는다 — 모르는 분모를 추측해 배율을 지어내지 않는다.
+Plus($20)는 인증 정보로 확정한다. `pro` 인증 정보만으로는 Pro 5x($100)와
+Pro 20x($200)를 구분할 수 없어 최초 한 번 사용자에게 묻고 로컬에 기억한다.
+선택 이력은 append-only 파일에 남겨 기존 값을 조용히 덮어쓰지 않는다.
+team/business처럼 단가가 고정되지 않는 요금제는 배율을 만들지 않는다.
 """
 import json, os, base64, subprocess, sys, hashlib
 
@@ -14,11 +13,71 @@ PLAN_USD = {
     "free": 0,        # 분모 0 — 배율 불가
     "go": 8,
     "plus": 20,
-    "pro": None,      # Pro Codex $100 / Pro Max $200 — 구분 불가
+    "pro": None,      # Pro 5x $100 / Pro 20x $200 — 아래에서 로컬 선택
     "team": None,     # 좌석당 $20(연납)~$30(월납)
     "business": None,
     "enterprise": None,
 }
+PRO_PLANS = {100, 200}
+PRO_PLAN_FILE = os.path.expanduser("~/.runmaxing/codex-plan")
+
+
+def _valid_pro_plan(value):
+    try:
+        plan = int(str(value).strip())
+        return plan if plan in PRO_PLANS else None
+    except Exception:
+        return None
+
+
+def saved_pro_plan(path=PRO_PLAN_FILE):
+    """append-only 선택 이력의 마지막 유효값. 옛 값은 파일 안에 그대로 남는다."""
+    try:
+        values = [_valid_pro_plan(line) for line in open(path, encoding="utf-8")]
+        return next((v for v in reversed(values) if v), None)
+    except Exception:
+        return None
+
+
+def remember_pro_plan(plan, path=PRO_PLAN_FILE):
+    """새 선택만 append. 같은 값은 다시 쓰지 않고 기존 파일은 truncate하지 않는다."""
+    plan = _valid_pro_plan(plan)
+    if not plan or saved_pro_plan(path) == plan:
+        return plan
+    try:
+        parent = os.path.dirname(path)
+        os.makedirs(parent, mode=0o700, exist_ok=True)
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(f"{plan}\n")
+        os.chmod(path, 0o600)
+    except Exception:
+        pass
+    return plan
+
+
+def prompt_pro_plan():
+    """대화형 실행에서만 묻는다. cron/CI처럼 tty가 없으면 조용히 미확정으로 둔다."""
+    try:
+        with open("/dev/tty", "r+", encoding="utf-8", buffering=1) as tty:
+            tty.write("\nCodex Pro 종목을 최초 한 번 선택해 주세요.\n")
+            tty.write("  1) $100 · Pro 5x\n  2) $200 · Pro 20x\n선택 [1/2]: ")
+            answer = tty.readline().strip().lower()
+            return 100 if answer in {"1", "100", "5x"} else 200 if answer in {"2", "200", "20x"} else None
+    except Exception:
+        return None
+
+
+def resolved_plan_usd(plan_name):
+    if plan_name != "pro":
+        return PLAN_USD.get(plan_name, None)
+    explicit = _valid_pro_plan(os.environ.get("RUNMAXING_CODEX_PLAN", ""))
+    if explicit:
+        return remember_pro_plan(explicit)
+    saved = saved_pro_plan()
+    if saved:
+        return saved
+    selected = prompt_pro_plan()
+    return remember_pro_plan(selected) if selected else None
 
 
 def plan_type():
@@ -84,7 +143,7 @@ def main():
     if not months:
         return                      # Codex 를 안 쓰면 필드 자체를 만들지 않는다
     pt = plan_type()
-    usd = PLAN_USD.get(pt, None)
+    usd = resolved_plan_usd(pt)
     aid = account_id()
     out = {"plan_type": pt or None, "plan_usd": usd, "months": {}}
     if aid:

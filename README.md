@@ -28,9 +28,14 @@ runner_xxx
 ```bash
 npx @m1kapp/runmaxing              # 집계 + 러너 연결 + 리그 갱신
 npx @m1kapp/runmaxing <닉네임>     # 닉네임 지정
+npx @m1kapp/runmaxing --codex-plan 200  # Codex Pro 20x 종목 지정
 npx @m1kapp/runmaxing --report     # 로컬 리포트만 생성
 npx @m1kapp/runmaxing --no-open    # 브라우저를 열지 않음
 ```
+
+Codex Plus는 `$20`으로 자동 계산합니다. Codex Pro는 인증 정보가 5x/20x를
+구분하지 않으므로 최초 실행에서 `$100` 또는 `$200`을 한 번 선택하며,
+`~/.runmaxing/codex-plan`의 append-only 이력을 다음 실행부터 재사용합니다.
 
 Claude Code 플러그인은 호환을 위해 기존 설치 이름을 유지합니다.
 

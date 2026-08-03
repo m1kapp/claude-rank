@@ -22,6 +22,7 @@ bash "$RP/submit.sh" "$ARGUMENTS"  # 랭킹 갱신 + 내 웹 리포트 자동 �
 
 - **닉네임**: 생략하면 **Claude 계정 이메일 앞부분으로 자동**. 바꾸려면 닉네임을 인자로 주면 `~/.usage-report-nick`에 저장돼 다음부턴 생략해도 같은 이름.
 - **종목(요금제)**: 실제 구독 티어(`~/.claude.json`)로 **자동 판별**(200·100·20달러 종목). 수동 지정 불필요.
+- **Codex 종목**: Plus는 20달러로 자동 판별. Pro는 인증 정보가 5x/20x를 구분하지 못하므로 최초 한 번 100·200달러 중 선택하고 `~/.runmaxing/codex-plan`에서 재사용한다.
 - 첫 제출에서 `~/.runmaxing/identity.json`을 한 번만 만들고, Claude UUID와 Codex account ID를 provider별 해시로 연결한다. 기존 파일은 자동 덮어쓰지 않는다.
 
 ## 안내

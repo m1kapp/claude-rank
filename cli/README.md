@@ -14,6 +14,7 @@ npx @m1kapp/runmaxing
 ```bash
 npx @m1kapp/runmaxing              # 집계 후 랭킹 갱신 (닉네임 자동)
 npx @m1kapp/runmaxing <닉네임>     # 닉네임 지정 — 다음부턴 생략 가능
+npx @m1kapp/runmaxing --codex-plan 200  # Codex Pro 종목 지정($100/$200)
 npx @m1kapp/runmaxing --report     # 리포트만 만들고 제출하지 않음
 npx @m1kapp/runmaxing --no-open    # 브라우저를 열지 않음
 ```
@@ -21,9 +22,10 @@ npx @m1kapp/runmaxing --no-open    # 브라우저를 열지 않음
 - **요금제**는 `~/.claude.json` 의 구독 티어로 자동 판별됩니다($200/$100/$20 종목).
 - **신원**은 `~/.runmaxing/identity.json`에 최초 한 번 생성되며 기존 파일을 덮어쓰지 않습니다.
 - Claude UUID와 Codex account ID는 서로 다른 provider 해시로 저장되고 한 runner 아래 연결됩니다.
-- **Codex(ChatGPT)** 사용량도 함께 집계됩니다. 다만 ChatGPT 는 요금제와 가격이 1:1 이
-  아니라(`pro` 가 $100/$200 둘 다, `team` 은 좌석·연납별) 가격이 확정되는 요금제에서만
-  배율을 냅니다. Claude와 Codex는 서로 다른 리그에 들어갑니다.
+- **Codex(ChatGPT)** Plus는 `$20`으로 자동 계산합니다. `pro` 인증 정보는 5x/20x를
+  구분하지 못해 최초 실행에서 `$100` 또는 `$200`을 한 번 선택합니다. 선택 이력은
+  `~/.runmaxing/codex-plan`에 append-only로 보존되며 이후 실행에서 자동 재사용합니다.
+  team/business처럼 단가가 고정되지 않는 요금제만 배율 대신 사용량으로 표시합니다.
 
 ## 필요 조건
 

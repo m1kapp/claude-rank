@@ -18,6 +18,7 @@ if (args.includes("-h") || args.includes("--help")) {
 
   npx @m1kapp/runmaxing              내 사용량 집계 후 랭킹 갱신 (닉네임 자동)
   npx @m1kapp/runmaxing <닉네임>     닉네임을 지정해서 갱신 (다음부터 생략 가능)
+  npx @m1kapp/runmaxing --codex-plan 200  Codex Pro 종목 지정 ($100 또는 $200)
   npx @m1kapp/runmaxing --no-open    브라우저를 열지 않음
   npx @m1kapp/runmaxing --report     리포트만 만들고 제출하지 않음
 
@@ -45,9 +46,26 @@ if (!fs.existsSync(path.join(SCRIPTS, "run.sh"))) {
   process.exit(1);
 }
 
-const nick = args.find((a) => !a.startsWith("-")) || "";
+let codexPlan = "";
+const positional = [];
+for (let i = 0; i < args.length; i++) {
+  const arg = args[i];
+  if (arg === "--codex-plan") {
+    codexPlan = args[++i] || "";
+  } else if (arg.startsWith("--codex-plan=")) {
+    codexPlan = arg.slice("--codex-plan=".length);
+  } else if (!arg.startsWith("-")) {
+    positional.push(arg);
+  }
+}
+if (codexPlan && !["100", "200"].includes(codexPlan)) {
+  console.error("runmaxing: --codex-plan은 100 또는 200만 가능합니다.");
+  process.exit(1);
+}
+const nick = positional[0] || "";
 const env = { ...process.env };
 if (args.includes("--no-open")) env.USAGE_REPORT_NO_OPEN = "1";
+if (codexPlan) env.RUNMAXING_CODEX_PLAN = codexPlan;
 
 const run = (script, scriptArgs = []) =>
   spawnSync("bash", [path.join(SCRIPTS, script), ...scriptArgs], { stdio: "inherit", env });

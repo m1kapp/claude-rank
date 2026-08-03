@@ -80,6 +80,30 @@ function monthsValidationError(report: any): string | null {
   return null;
 }
 
+// Codex도 별도 리그의 배율 산식을 서버에서 다시 확인한다.
+// Pro의 5x/20x는 인증 토큰만으로 구분할 수 없지만 허용 종목은 $100/$200으로 제한한다.
+function codexValidationError(report: any): string | null {
+  const codex = report?.codex;
+  if (!codex) return null;
+  const type = String(codex.plan_type || "").toLowerCase();
+  const plan = num(codex.plan_usd);
+  const allowed = type === "plus" ? [20] : type === "pro" ? [100, 200] : [];
+  if (plan && !allowed.includes(plan)) {
+    return `Codex 요금제(${type || "unknown"})와 $${plan} 종목이 맞지 않아요.`;
+  }
+  // team/business 등 고정 단가가 없는 요금제는 임의의 분모를 허용하지 않는다.
+  if (plan && !allowed.length) return "이 Codex 요금제는 고정 구독료 배율을 지원하지 않아요.";
+  for (const [mk, month] of Object.entries<any>(codex.months || {})) {
+    const cost = num(month.cost_usd);
+    if (!plan || !cost) continue;  // 구버전·미확정 요금제는 사용량만 보존
+    const ratio = num(month.ratio);
+    const expected = cost / plan;
+    const rel = Math.abs(ratio - expected) / Math.max(expected, 1);
+    if (rel > 0.08) return `Codex 리포트 정합성 오류(${mk}): 배율이 비용과 맞지 않아요.`;
+  }
+  return null;
+}
+
 export const POST = handler(async (req) => {
   const body: any = await req.json().catch(() => null);
   const nick = String(body?.nick || "").trim().slice(0, 24);
@@ -98,6 +122,8 @@ export const POST = handler(async (req) => {
 
   const monthsErr = monthsValidationError(report);
   if (monthsErr) return badRequest(monthsErr);
+  const codexErr = codexValidationError(report);
+  if (codexErr) return badRequest(codexErr);
 
   // 같은 runner/provider 자리에 다른 Codex 계정을 조용히 덮어쓰거나 합산하지 않는다.
   const previousReport = await getReport(id);

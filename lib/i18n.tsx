@@ -108,7 +108,7 @@ const DICT: Dict = {
   "codex.tokens": { ko: "토큰", en: "Tokens" },
   "codex.notConnected": { ko: "아직 연결되지 않음", en: "not connected yet" },
   "codex.noRatio": { ko: "이 요금제는 좌석·연납에 따라 단가가 달라 배율을 내지 않습니다", en: "Price varies by seat/billing on this plan — no multiple shown" },
-  "codex.note": { ko: "Codex 기록은 Claude와 섞지 않고 별도 리그에서 겨룹니다. 요금제 가격이 확정되지 않으면 배율 대신 정가 환산 사용량으로 정렬합니다.", en: "Codex runs in its own league instead of being blended with Claude. When plan pricing is uncertain, the lane ranks by list-price-equivalent usage rather than a made-up multiple." },
+  "codex.note": { ko: "Codex는 별도 리그에서 겨룹니다. Plus는 $20, Pro는 최초 선택한 $100/$200을 기준으로 본전 배율을 계산합니다.", en: "Codex runs in its own league. Value uses $20 for Plus and your one-time $100/$200 selection for Pro." },
   "user.activity": { ko: "🌱 활동", en: "🌱 Activity" },
   "hm.current": { ko: "연속", en: "Streak" },
   "hm.longest": { ko: "최장 연속", en: "Longest" },

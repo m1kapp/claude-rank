@@ -269,8 +269,8 @@ export default function UserPage() {
         </Section>
       </>)}
 
-      {/* Codex 는 별도 리그 지표 — 배율은 요금제 단가가 하나로 정해질 때만 낸다.
-          pro·team 처럼 가격이 갈리는 요금제는 비용과 토큰만 보여준다. */}
+      {/* Codex 는 별도 리그 지표. Plus는 자동, Pro는 최초 로컬 선택값으로 배율을 낸다.
+          team처럼 단가가 고정되지 않는 요금제만 비용과 토큰으로 표시한다. */}
       {report.codex?.months?.[cur] && (<>
         <Divider />
         <Section>
