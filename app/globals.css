@@ -186,6 +186,50 @@ body {
 .profile-actions { display: flex; align-items: center; gap: 7px; }
 .share-pill button { border-radius: 999px !important; }
 
+/* 개인 페이지 질문 습관 프리뷰 — 실제 리포트 데이터 연결 전 ?questions=preview 에서만 노출 */
+.form-profile { margin-top: 18px; }
+.form-profile-top { padding: 4px 1px 20px; }
+.form-profile-top h2 {
+  margin: 10px 0 9px; color: var(--ink); font: 650 30px/.98 var(--display);
+  letter-spacing: -.055em;
+}
+.form-profile-top p { max-width: 390px; margin: 0; color: var(--text); font-size: 11.5px; line-height: 1.58; }
+.form-profile-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 13px; }
+.form-profile-tags span {
+  padding: 4px 8px; color: var(--signal); background: rgba(200,255,90,.09);
+  border-radius: 999px; font: 600 9px/1 var(--mono);
+}
+.form-habits-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 16px 15px 12px; border: 1px solid var(--line); border-bottom: 0; border-radius: 15px 15px 0 0; background: var(--card); }
+.form-habits-head h3 { margin: 6px 0 0; color: var(--ink); font: 650 18px/1.05 var(--display); letter-spacing: -.035em; }
+.form-habits-count { display: flex; align-items: baseline; gap: 2px; color: var(--muted); font: 500 9px/1 var(--mono); }
+.form-habits-count strong { color: var(--signal); font: 650 24px/1 var(--display); }
+.form-habits {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+  padding: 1px; background: var(--line); border-right: 1px solid var(--line); border-left: 1px solid var(--line);
+}
+.form-habit {
+  display: flex; align-items: center; gap: 6px; min-width: 0; min-height: 42px; padding: 8px;
+  border: 0; background: var(--surface); color: var(--faint); cursor: pointer; text-align: left;
+  font: 500 9.5px/1.25 var(--display);
+}
+.form-habit i {
+  display: grid; place-items: center; flex: none; width: 17px; height: 17px;
+  color: var(--signal-ink); border: 1px solid var(--line); border-radius: 5px;
+  font: 800 10px/1 var(--display);
+}
+.form-habit.active { color: var(--ink); }
+.form-habit.active i { background: var(--signal); border-color: var(--signal); }
+.form-habit.selected { background: var(--raise); box-shadow: inset 0 0 0 1px rgba(200,255,90,.22); }
+.form-habit-detail { min-height: 98px; padding: 13px 15px 15px; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 15px 15px; background: var(--card); }
+.form-habit-detail > span { color: var(--muted); font: 600 8px/1 var(--mono); letter-spacing: .08em; }
+.form-habit-detail > strong { display: block; margin-top: 7px; color: var(--ink); font: 650 13px/1.2 var(--display); }
+.form-habit-detail > p { margin: 6px 0 0; color: var(--muted); font-size: 10.5px; line-height: 1.5; }
+.form-next { display: grid; grid-template-columns: 22px 1fr; gap: 11px; margin-top: 10px; padding: 14px 15px; border-radius: 13px; background: rgba(200,255,90,.11); }
+.form-next > i { width: 21px; height: 21px; border: 1px solid rgba(200,255,90,.5); border-radius: 6px; }
+.form-next span { display: block; color: var(--signal); font: 600 8px/1 var(--mono); letter-spacing: .08em; }
+.form-next strong { display: block; margin-top: 6px; color: var(--ink); font: 650 13px/1.25 var(--display); }
+.form-next p { margin: 7px 0 0; color: var(--text); font-size: 10px; line-height: 1.45; }
+
 /* blog */
 .post-card { display: block; position: relative; margin-bottom: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 15px; overflow: hidden; transition: border-color .16s ease, transform .16s ease; }
 .post-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--signal); opacity: .55; }
@@ -206,6 +250,7 @@ body {
   .header-live, .page-sub { display: none; }
   .provider-grid { grid-template-columns: 1fr; }
   .profile-actions a:first-child { display: none !important; }
+  .form-habits { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (prefers-reduced-motion: reduce) {

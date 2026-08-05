@@ -8,6 +8,7 @@ import { paceForProvider } from "../../../lib/pace";
 import { aggregate, persona, type Persona } from "../../../lib/persona";
 import { pickMonth, nowMonthKST, fillDays, withProjection, type DayPoint } from "../../../lib/month";
 import { Bars, TierBanner, TokenWidget, Heatmap, mcolor, cap, subhead, tfmt } from "./widgets";
+import QuestionProfilePreview from "./QuestionProfilePreview";
 
 // 상단 툴바(뒤로/Wrapped/카드/공유) + 닉네임 + 월 선택
 function Header({ id, cur, months, entry, report, runner }: { id: string; cur: string; months: string[]; entry: any; report: any; runner?: any }) {
@@ -199,6 +200,7 @@ export default function UserPage() {
   const { t, locale } = useI18n();
   const { id } = useParams<{ id: string }>();
   const sp = useSearchParams();
+  const questionPreview = sp.get("questions") === "preview";
   const { data, loading } = useFetch<{ entry: any; report: any; runner?: any }>(`/api/report/${id}`, { staleTime: 60_000 });
   const months = data ? Object.keys(data.report.months).sort() : [];
   const cur = pickMonth(months, sp.get("m") || "");
@@ -240,8 +242,9 @@ export default function UserPage() {
     <Shell title={t("title.report")}>
       <Section>
         <Header id={id} cur={cur} months={months} entry={entry} report={report} runner={runner} />
+        {questionPreview && <QuestionProfilePreview nick={entry?.nick || t("common.anon")} />}
         <ProviderSummary cur={cur} claudeMonths={report.months} codexMonths={report.codex?.months} />
-        <PersonaCard cur={cur} m={m} pf={pf} />
+        {!questionPreview && <PersonaCard cur={cur} m={m} pf={pf} />}
         {typeof m.cost_usd === "number" && (
           <div style={{ marginTop: 14 }}>
             <TierBanner usd={m.cost_usd} krwPerUsd={report.currency_krw_per_usd} />
