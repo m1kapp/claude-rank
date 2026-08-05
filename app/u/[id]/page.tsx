@@ -23,9 +23,9 @@ function Header({ id, cur, months, entry, report, runner }: { id: string; cur: s
           <Button variant="light" shape="pill" onClick={() => router.push("/")} aria-label={t("common.back")}>←</Button>
           <div className="profile-actions">
             <a className="share-pill" href={`/u/${id}/wrapped?m=${cur}`} style={pill}>{t("user.wrapped")}</a>
-            {/* 카드는 PNG라 브라우저가 디스크 캐시에 물고 있는다(ETag 없음 → 재검증도 안 함).
-                제출 시각을 쿼리로 붙여 갱신하면 새 URL이 되어 옛 카드가 안 나온다. */}
-            <a className="share-pill" href={`/u/${id}/opengraph-image?v=${encodeURIComponent(entry?.updated || cur)}`} target="_blank" rel="noopener noreferrer" style={pill}>{t("user.card")}</a>
+            {/* 선택한 월을 카드 API에 넘긴다. PNG는 제출 시각도 쿼리에 붙여
+                브라우저 디스크 캐시에 남은 옛 카드가 다시 열리지 않게 한다. */}
+            <a className="share-pill" href={`/api/card/${id}?month=${encodeURIComponent(cur)}&v=${encodeURIComponent(entry?.updated || cur)}`} target="_blank" rel="noopener noreferrer" style={pill}>{t("user.card")}</a>
             <ShareButton
               className="share-pill"
               url={`${typeof window !== "undefined" ? window.location.origin : "https://runmaxing.m1k.app"}/u/${id}?m=${cur}`}
