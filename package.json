@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev -p 4321",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "experiment:review": "node scripts/cross-model-review.mjs"
   },
   "dependencies": {
     "@m1kapp/kit": "^0.0.40",
