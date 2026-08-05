@@ -18,6 +18,7 @@ const SAGE = "#73e6a3";
 const GOLD = "#ffbf5f";
 const CREAM = "#f1f7ec", CREAM2 = "#bdc7b8", MUTED = "#7e8a79", FAINT = "#536050";
 const HAIR = "#293129", LINE = "#354035";
+const LOGO_DATA_URI = `data:image/svg+xml;base64,${readFileSync(join(process.cwd(), "public", "logo.svg")).toString("base64")}`;
 
 // ImageResponse 기본값이 max-age=31536000 immutable — 데이터 갱신 반영되게 짧은 CDN 캐시로 교체.
 // max-age=0 만으로는 부족하다: 검증자(ETag)가 없으면 브라우저가 재검증을 건너뛰고
@@ -126,7 +127,7 @@ export async function renderCard(id: string, month?: string) {
           {/* ── LEFT: 히어로 ── */}
           <div style={{ width: 476, display: "flex", flexDirection: "column", padding: "50px 44px 44px" }}>
             <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-              <span style={{ fontSize: 22, display: "flex", color: TERRA }}>///</span>
+              <img src={LOGO_DATA_URI} width="26" height="26" alt="" style={{ borderRadius: 4 }} />
               <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: -1, color: CREAM, marginLeft: 10 }}>runmaxing</span>
               <span style={{ marginLeft: "auto", fontSize: 15, color: FAINT, letterSpacing: 2 }}>{d.cur.replace("-", ".")}</span>
             </div>
