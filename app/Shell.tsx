@@ -23,7 +23,7 @@ export default function Shell({ title, children }: { title: string; children: Re
         <AppShellHeader>
           <div className="brand-header">
             <button className="brand-home" onClick={() => router.push("/")} aria-label="runmaxing home">
-              <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
+              <span className="brand-mark" aria-hidden="true" />
               <span className="brand-word">runmaxing</span>
             </button>
             {title && <span className="page-sub">/{title.toLowerCase()}</span>}
