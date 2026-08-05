@@ -78,11 +78,10 @@ body {
   color: var(--ink); background: transparent; cursor: pointer;
 }
 .brand-word { font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: -.045em; }
-.brand-mark { width: 25px; height: 25px; position: relative; display: inline-flex; align-items: flex-end; gap: 2px; padding: 5px; border-radius: 7px; background: var(--signal); }
-.brand-mark i { display: block; width: 3px; background: var(--signal-ink); border-radius: 3px; transform: skewX(-12deg); }
-.brand-mark i:nth-child(1) { height: 7px; }
-.brand-mark i:nth-child(2) { height: 14px; }
-.brand-mark i:nth-child(3) { height: 10px; }
+.brand-mark {
+  width: 25px; height: 25px; flex: none; border-radius: 6px;
+  background: url("/logo.svg") center / cover no-repeat;
+}
 .page-sub { font-family: var(--mono); font-size: 9px; color: var(--faint); letter-spacing: .05em; }
 .header-live { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font: 500 9px/1 var(--mono); color: var(--muted); text-transform: uppercase; }
 .header-live i { width: 5px; height: 5px; border-radius: 50%; background: var(--signal); box-shadow: 0 0 9px rgba(200,255,90,.7); }
