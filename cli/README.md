@@ -29,7 +29,9 @@ npx @m1kapp/runmaxing --no-open    # 브라우저를 열지 않음
 
 ## 필요 조건
 
-`bash`, `python3`, `npx`. macOS·Linux 에서 동작하며 Windows 는 WSL 이 필요합니다.
+`bash`, `python3`, `npx`. macOS·Linux에서 바로 동작합니다. Windows PowerShell에서도
+WSL 배포판 안에 `python3`와 `npx`가 준비되어 있으면 같은 명령을 실행할 수 있으며,
+runmaxing이 기존 POSIX 수집기를 WSL로 자동 연결합니다. `--force` 설치는 필요하지 않습니다.
 
 전송되는 것은 집계된 사용량(일별 비용·토큰·모델·세션 통계)뿐입니다. 프롬프트·코드·파일
 경로는 포함되지 않습니다.
