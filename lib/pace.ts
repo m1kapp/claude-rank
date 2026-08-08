@@ -54,12 +54,19 @@ export function paceForProvider(
   if (!values) return null;
 
   const [currentValue, previousValue] = values;
-  const currentDaily = currentValue / Math.max(1, current.day);
-  const previousDaily = previousValue / daysInMonth(previousMonth);
+  // 비교는 '활동일 하루' 기준. 달력 전체 일수로 나누면 전달에 며칠만 쓴 사람
+  // (설치 첫 달·보존기간 밖 데이터)의 분모가 부풀어 '전달 대비 83,000,000%' 같은
+  // 헛숫자가 나온다. 표본이 3일 미만이면 비교 자체를 접는다.
+  const currentDays = Number(months[month]?.active_days) || 0;
+  const previousDays = Number(months[previousMonth]?.active_days) || 0;
+  if (previousDays < 3 || currentDays < 1) return null;
+  const currentDaily = currentValue / currentDays;
+  const previousDaily = previousValue / previousDays;
   if (!previousDaily) return null;
 
   const percent = Math.max(0, Math.round((currentDaily / previousDaily) * 100));
-  const projected = currentDaily * daysInMonth(month);
+  // 월말 예상은 달력 경과일 기준 — 활동일 페이스로 남은 달력일을 채우면 과장된다.
+  const projected = (currentValue / Math.max(1, current.day)) * daysInMonth(month);
   const band: PaceBand = percent >= 130 ? "over" : percent >= 105 ? "up" : percent >= 80 ? "steady" : "recovery";
   return { band, percent, projected, previousMonth };
 }
