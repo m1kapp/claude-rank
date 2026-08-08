@@ -50,7 +50,6 @@ const DICT: Dict = {
   "home.copied": { ko: "복사됐어요!", en: "Copied!" },
   // "이달의 기록"은 뭘로 줄 세운 표인지 안 알려준다 — 정렬 기준을 그대로 제목으로 쓴다.
   "home.monthRank": { ko: "MONTHLY RUN", en: "MONTHLY RUN" },
-  "home.leagueTitle": { ko: "이번 달 리그", en: "This month’s league" },
   "home.plan.all": { ko: "전 종목", en: "All" },
   "home.liveNote": { ko: "이번 달도 진행 중 🏃", en: "Still going this month 🏃" },
   "home.empty": { ko: "아직 기록이 없어요. 등록하고 1등 찜하세요!", en: "No entries yet — register and grab #1!" },
