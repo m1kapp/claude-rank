@@ -109,12 +109,14 @@ body {
 }
 .hero-title em { color: var(--signal); font-style: normal; }
 .hero-lead { position: relative; z-index: 1; max-width: 360px; margin: 0; color: var(--text); font-size: 12.5px; line-height: 1.5; }
-.hero-lanes { display: flex; align-items: center; gap: 7px; margin: 12px 0 0; position: relative; z-index: 1; }
-.provider-pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 5px 10px; color: var(--text); font: 500 10px/1 var(--mono); background: rgba(255,255,255,.025); }
-.provider-pill i, .provider-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
-.provider-pill.claude i, .provider-dot.claude { background: var(--claude); box-shadow: 0 0 8px rgba(255,140,98,.45); }
-.provider-pill.codex i, .provider-dot.codex { background: var(--codex); box-shadow: 0 0 8px rgba(120,168,255,.45); }
-.lane-join { color: var(--faint); font: 500 11px/1 var(--mono); }
+/* 히어로 킥커 끝의 레인 표식 — 이름표 없이 로고만 나란히 */
+.hero-marks { display: inline-flex; align-items: center; gap: 7px; margin-left: 3px; }
+.hero-mark { display: inline-flex; }
+.hero-mark.claude { color: var(--claude); }
+.hero-mark.codex { color: var(--codex); }
+.provider-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+.provider-dot.claude { background: var(--claude); box-shadow: 0 0 8px rgba(255,140,98,.45); }
+.provider-dot.codex { background: var(--codex); box-shadow: 0 0 8px rgba(120,168,255,.45); }
 
 .command-deck { border: 1px solid var(--line); background: linear-gradient(145deg, rgba(200,255,90,.055), rgba(255,255,255,.018)); border-radius: 13px; padding: 4px; }
 .command-caption { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px 6px; color: var(--muted); font: 500 8px/1 var(--mono); text-transform: uppercase; letter-spacing: .08em; }
