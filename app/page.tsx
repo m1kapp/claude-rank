@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Shell from "./Shell";
 import PaceTag from "./PaceTag";
 import RunnerEmpty from "./RunnerEmpty";
+import { ClaudeMark, CodexMark } from "./ProviderMarks";
 import { tierForKrw, tierName } from "../lib/tier";
 import { useI18n } from "../lib/i18n";
 import { paceForProvider } from "../lib/pace";
@@ -84,14 +85,15 @@ export default function Home() {
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100%", position: "relative", zIndex: 1 }}>
         <Section>
           <div className="hero-runway rise">
-            <div className="hero-kicker kicker">{t("home.kicker")}</div>
+            <div className="hero-kicker kicker">
+              {t("home.kicker")}
+              <span className="hero-marks" aria-label="Supported agents">
+                <span className="hero-mark claude"><ClaudeMark /></span>
+                <span className="hero-mark codex"><CodexMark /></span>
+              </span>
+            </div>
             <h1 className="hero-title">{t("home.h1.l1")}<br /><em>{t("home.h1.l2")}</em></h1>
             <p className="hero-lead">{t("home.lead")}</p>
-            <div className="hero-lanes" aria-label="Supported agents">
-              <span className="provider-pill claude"><i />Claude Code</span>
-              <span className="lane-join">+</span>
-              <span className="provider-pill codex"><i />Codex</span>
-            </div>
           </div>
 
           <div className="command-deck rise" style={{ animationDelay: ".06s" }}>
