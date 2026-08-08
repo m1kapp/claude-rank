@@ -33,8 +33,11 @@ const identityKey = (provider: Provider, accountId: string) => `${provider}:${ac
 
 export const runnerIdForToken = (token: string) => `runner_${sha256(token).slice(0, 24)}`;
 
-function sameHash(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
+// 저장된 해시가 없거나 깨진 레코드도 여기로 들어온다(옛 형식·수기 편집).
+// 문자열이 아니면 Buffer.from 이 던져서 500 이 되므로, 불일치로 처리해
+// 호출부가 RunnerCredentialError 로 정리하게 둔다.
+function sameHash(a: unknown, b: string): boolean {
+  if (typeof a !== "string" || a.length !== b.length) return false;
   return timingSafeEqual(Buffer.from(a), Buffer.from(b));
 }
 

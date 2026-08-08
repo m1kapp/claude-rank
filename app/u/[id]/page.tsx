@@ -99,7 +99,9 @@ function PersonaCard({ cur, m, pf }: { cur: string; m: any; pf: Persona }) {
   );
 }
 
-function ProviderSummary({ cur, claudeMonths, codexMonths }: { cur: string; claudeMonths: Record<string, any>; codexMonths?: Record<string, any> }) {
+function ProviderSummary({ cur, claudeMonths, codexMonths, krwPerUsd, codexPlanUsd }: {
+  cur: string; claudeMonths: Record<string, any>; codexMonths?: Record<string, any>; krwPerUsd: number; codexPlanUsd?: number | null;
+}) {
   const { t, won } = useI18n();
   const m = claudeMonths[cur] || {};
   const codex = codexMonths?.[cur];
@@ -117,7 +119,10 @@ function ProviderSummary({ cur, claudeMonths, codexMonths }: { cur: string; clau
       <div className="provider-card codex">
         <div className="label"><span className="provider-dot codex" />Codex</div>
         <div className="value tnum">{codexMetric}</div>
-        <div className="meta">{codex ? `$${Number(codex.cost_usd || 0).toLocaleString()} · ${codex.active_days || 0}${t("hm.dayUnit")}` : t("codex.notConnected")}</div>
+        {/* 두 카드가 같은 통화로 읽히게 Codex 도 원화 환산으로 맞춘다(요금제를 아는 경우 $단가도 Claude 와 같은 형식). */}
+        <div className="meta">{codex
+          ? `${won(Math.round((Number(codex.cost_usd) || 0) * krwPerUsd))} · ${codexPlanUsd ? `$${codexPlanUsd}${t("common.perMo")}` : `${codex.active_days || 0}${t("hm.dayUnit")}`}`
+          : t("codex.notConnected")}</div>
         {codexPace && <PaceTag pace={codexPace} className="provider-pace" />}
       </div>
     </div>
@@ -197,7 +202,7 @@ function QualitySection({ m, dChats, dCommits, hourly, buckets, conc, dConc }: {
 }
 
 export default function UserPage() {
-  const { t, locale } = useI18n();
+  const { t, locale, won } = useI18n();
   const { id } = useParams<{ id: string }>();
   const sp = useSearchParams();
   const questionPreview = sp.get("questions") === "preview";
@@ -243,7 +248,8 @@ export default function UserPage() {
       <Section>
         <Header id={id} cur={cur} months={months} entry={entry} report={report} runner={runner} />
         {questionPreview && <QuestionProfilePreview nick={entry?.nick || t("common.anon")} />}
-        <ProviderSummary cur={cur} claudeMonths={report.months} codexMonths={report.codex?.months} />
+        <ProviderSummary cur={cur} claudeMonths={report.months} codexMonths={report.codex?.months}
+          krwPerUsd={report.currency_krw_per_usd} codexPlanUsd={report.codex?.plan_usd} />
         {!questionPreview && <PersonaCard cur={cur} m={m} pf={pf} />}
         {typeof m.cost_usd === "number" && (
           <div style={{ marginTop: 14 }}>
@@ -280,7 +286,7 @@ export default function UserPage() {
           <SectionHeader>{t("user.codex")}</SectionHeader>
           <div style={{ display: "flex", gap: 6, margin: "8px 0 10px" }}>
             {([
-              [t("codex.cost"), `$${(report.codex.months[cur].cost_usd ?? 0).toLocaleString()}`],
+              [t("codex.cost"), won(Math.round((Number(report.codex.months[cur].cost_usd) || 0) * report.currency_krw_per_usd))],
               [t("codex.tokens"), tfmt(report.codex.months[cur].tokens ?? 0)],
               [t("codex.plan"), report.codex.plan_type || "—"],
               ...(report.codex.months[cur].ratio != null
