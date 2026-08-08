@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useFetch, Section, SectionHeader, Select, StatChip, Skeleton, EmptyState, Divider, Button, ShareButton } from "@m1kapp/kit";
 import Shell from "../../Shell";
@@ -99,8 +100,10 @@ function PersonaCard({ cur, m, pf }: { cur: string; m: any; pf: Persona }) {
   );
 }
 
-function ProviderSummary({ cur, claudeMonths, codexMonths, krwPerUsd, codexPlanUsd }: {
-  cur: string; claudeMonths: Record<string, any>; codexMonths?: Record<string, any>; krwPerUsd: number; codexPlanUsd?: number | null;
+type LaneView = "all" | "claude" | "codex";
+
+function ProviderSummary({ cur, claudeMonths, codexMonths, krwPerUsd, codexPlanUsd, view }: {
+  cur: string; claudeMonths: Record<string, any>; codexMonths?: Record<string, any>; krwPerUsd: number; codexPlanUsd?: number | null; view: LaneView;
 }) {
   const { t, won } = useI18n();
   const m = claudeMonths[cur] || {};
@@ -109,14 +112,14 @@ function ProviderSummary({ cur, claudeMonths, codexMonths, krwPerUsd, codexPlanU
   const claudePace = paceForProvider("claude", claudeMonths, cur);
   const codexPace = codexMonths ? paceForProvider("codex", codexMonths, cur) : null;
   return (
-    <div className="provider-grid rise" style={{ animationDelay: ".05s" }}>
-      <div className="provider-card claude">
+    <div className={`provider-grid rise${view === "all" ? "" : " single"}`} style={{ animationDelay: ".05s" }}>
+      {view !== "codex" && <div className="provider-card claude">
         <div className="label"><span className="provider-dot claude" />Claude Code</div>
         <div className="value tnum">{m.ratio || 0}×</div>
         <div className="meta">{won(m.cost_krw || 0)} · ${m.plan_usd || 0}{t("common.perMo")}</div>
         {claudePace && <PaceTag pace={claudePace} className="provider-pace" />}
-      </div>
-      <div className="provider-card codex">
+      </div>}
+      {view !== "claude" && <div className="provider-card codex">
         <div className="label"><span className="provider-dot codex" />Codex</div>
         <div className="value tnum">{codexMetric}</div>
         {/* 두 카드가 같은 통화로 읽히게 Codex 도 원화 환산으로 맞춘다(요금제를 아는 경우 $단가도 Claude 와 같은 형식). */}
@@ -124,7 +127,7 @@ function ProviderSummary({ cur, claudeMonths, codexMonths, krwPerUsd, codexPlanU
           ? `${won(Math.round((Number(codex.cost_usd) || 0) * krwPerUsd))} · ${codexPlanUsd ? `$${codexPlanUsd}${t("common.perMo")}` : `${codex.active_days || 0}${t("hm.dayUnit")}`}`
           : t("codex.notConnected")}</div>
         {codexPace && <PaceTag pace={codexPace} className="provider-pace" />}
-      </div>
+      </div>}
     </div>
   );
 }
@@ -203,6 +206,7 @@ function QualitySection({ m, dChats, dCommits, hourly, buckets, conc, dConc }: {
 
 export default function UserPage() {
   const { t, locale, won } = useI18n();
+  const [view, setView] = useState<LaneView>("all");
   const { id } = useParams<{ id: string }>();
   const sp = useSearchParams();
   const questionPreview = sp.get("questions") === "preview";
@@ -229,6 +233,8 @@ export default function UserPage() {
   if (!data?.report) return <Shell title={t("common.report")}><Section><EmptyState message={t("common.notFound")} /></Section></Shell>;
 
   const { entry, report, runner } = data;
+  const showClaude = view !== "codex";
+  const showCodex = view !== "claude";
   const m = report.months[cur] || {};
   const pf = persona(aggregate({ [cur]: m }), locale, Number(m.plan_usd) || 0);  // 선택된 월만 분석 (누적 X)
   const s = m.series || {};
@@ -247,30 +253,41 @@ export default function UserPage() {
     <Shell title={t("title.report")}>
       <Section>
         <Header id={id} cur={cur} months={months} entry={entry} report={report} runner={runner} />
+        {/* 전체 / Claude Code / Codex — 아래 섹션 전부가 이 탭을 따른다 */}
+        <div className="lane-tabs" role="tablist">
+          {(["all", "claude", "codex"] as LaneView[]).map((value) => (
+            <button key={value} type="button" role="tab" aria-selected={view === value}
+              className={view === value ? "active" : ""} onClick={() => setView(value)}>
+              {value === "all" ? t("user.tab.all") : value === "claude" ? "Claude Code" : "Codex"}
+            </button>
+          ))}
+        </div>
         {questionPreview && <QuestionProfilePreview nick={entry?.nick || t("common.anon")} />}
         <ProviderSummary cur={cur} claudeMonths={report.months} codexMonths={report.codex?.months}
-          krwPerUsd={report.currency_krw_per_usd} codexPlanUsd={report.codex?.plan_usd} />
-        {!questionPreview && <PersonaCard cur={cur} m={m} pf={pf} />}
-        {typeof m.cost_usd === "number" && (
+          krwPerUsd={report.currency_krw_per_usd} codexPlanUsd={report.codex?.plan_usd} view={view} />
+        {showClaude && !questionPreview && <PersonaCard cur={cur} m={m} pf={pf} />}
+        {showClaude && typeof m.cost_usd === "number" && (
           <div style={{ marginTop: 14 }}>
             <TierBanner usd={m.cost_usd} krwPerUsd={report.currency_krw_per_usd} />
           </div>
         )}
       </Section>
 
-      <Divider />
+      {showClaude && (<>
+        <Divider />
 
-      {/* 잔디밭은 월 선택과 무관하게 전 기간 — 연속일이 월 경계에서 끊기면 안 된다 */}
-      <Section>
-        <SectionHeader>{t("user.activity")}</SectionHeader>
-        <Heatmap report={report} todayISO={todayKST} />
-      </Section>
+        {/* 잔디밭은 월 선택과 무관하게 전 기간 — 연속일이 월 경계에서 끊기면 안 된다 */}
+        <Section>
+          <SectionHeader>{t("user.activity")}</SectionHeader>
+          <Heatmap report={report} todayISO={todayKST} />
+        </Section>
 
-      <Divider />
+        <Divider />
 
-      <PriceSection m={m} dCost={dCost} krwPerUsd={report.currency_krw_per_usd} />
+        <PriceSection m={m} dCost={dCost} krwPerUsd={report.currency_krw_per_usd} />
+      </>)}
 
-      {m.tokens && (<>
+      {showClaude && m.tokens && (<>
         <Divider />
         <Section>
           <SectionHeader>{t("user.tokens")}</SectionHeader>
@@ -280,7 +297,7 @@ export default function UserPage() {
 
       {/* Codex 는 별도 리그 지표. Plus는 자동, Pro는 최초 로컬 선택값으로 배율을 낸다.
           team처럼 단가가 고정되지 않는 요금제만 비용과 토큰으로 표시한다. */}
-      {report.codex?.months?.[cur] && (<>
+      {showCodex && report.codex?.months?.[cur] && (<>
         <Divider />
         <Section>
           <SectionHeader>{t("user.codex")}</SectionHeader>
@@ -305,6 +322,7 @@ export default function UserPage() {
         </Section>
       </>)}
 
+      {showClaude && (<>
       <Divider />
 
       <QualitySection m={m}
@@ -312,6 +330,7 @@ export default function UserPage() {
         dCommits={fillDays(s.daily_commits, cur, firstMonth, currentMonth, "#73e6a3")}
         hourly={hourly} buckets={buckets} conc={conc}
         dConc={fillDays(s.conc_daily, cur, firstMonth, currentMonth, "#73e6a3")} />
+      </>)}
     </Shell>
   );
 }
