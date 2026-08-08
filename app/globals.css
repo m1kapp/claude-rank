@@ -128,23 +128,24 @@ body {
 .share-fill button { width: 100%; justify-content: center; border-radius: 999px !important; }
 
 /* league controls */
-.league-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin-top: 18px; }
+/* 칩 메뉴가 아래 순위 목록 위로 뜨도록 헤더가 쌓임 순서를 잡는다 */
+.league-head { position: relative; z-index: 30; display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin-top: 18px; }
 .league-title { margin: 5px 0 0; font: 650 24px/1 var(--display); letter-spacing: -.045em; }
-.league-switch { display: flex; flex: none; width: 110px; height: 32px; background: var(--raise); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
-.league-switch button { flex: 1; min-width: 0; border: 0; border-radius: 999px; padding: 0; background: transparent; color: var(--muted); cursor: pointer; font: 600 9px/1 var(--mono); text-transform: uppercase; }
-.league-switch button.active { color: var(--signal-ink); background: var(--signal); }
-.league-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 11px; }
-.live-tag { display: inline-flex; align-items: center; gap: 6px; color: var(--signal); font: 600 9px/1 var(--mono); text-transform: uppercase; }
-.live-tag::before { content: ""; width: 5px; height: 5px; background: var(--signal); border-radius: 50%; }
-.month-nav { display: grid; grid-template-columns: 28px 1fr 28px; align-items: center; flex: none; width: 110px; height: 32px; overflow: hidden; border: 1px solid transparent; border-radius: 999px; background: var(--signal); color: var(--signal-ink); }
-.month-nav span { padding: 0 5px; font: 650 10px/1 var(--mono); white-space: nowrap; }
-.month-nav button { display: grid; place-items: center; align-self: stretch; border: 0; background: transparent; color: inherit; cursor: pointer; font: 600 18px/1 var(--display); transition: background .15s ease, opacity .15s ease; }
-.month-nav button:hover:not(:disabled) { background: rgba(23,32,0,.12); }
-.month-nav button:active:not(:disabled) { background: rgba(23,32,0,.22); }
-.month-nav button:disabled { opacity: .28; cursor: default; }
-.plan-switch { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 8px; padding: 3px; border: 1px solid var(--line); border-radius: 11px; background: rgba(255,255,255,.018); }
-.plan-switch button { min-width: 0; border: 0; border-radius: 8px; padding: 6px 3px; background: transparent; color: var(--muted); cursor: pointer; font: 600 9px/1 var(--mono); white-space: nowrap; }
-.plan-switch button.active { background: var(--raise-2); color: var(--signal); box-shadow: inset 0 0 0 1px rgba(200,255,90,.16); }
+/* 레인·월·종목 칩 — 세 줄짜리 컨트롤을 제목 오른쪽 한 줄로 접었다 */
+.league-chips { display: flex; flex: none; align-items: center; gap: 5px; }
+.chip-wrap { position: relative; }
+.filter-chip { display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--raise); color: var(--text); cursor: pointer; font: 600 10px/1 var(--mono); white-space: nowrap; transition: border-color .15s ease, color .15s ease; }
+.filter-chip i { color: var(--faint); font-style: normal; font-size: 8px; }
+.filter-chip:hover, .filter-chip.open { border-color: var(--signal); color: var(--ink); }
+.filter-chip.live { color: var(--signal); border-color: rgba(200,255,90,.35); }
+.chip-mark { display: inline-flex; }
+.chip-mark.claude { color: var(--claude); }
+.chip-mark.codex { color: var(--codex); }
+.chip-scrim { position: fixed; inset: 0; z-index: 8; border: 0; background: transparent; cursor: default; }
+.chip-menu { position: absolute; top: calc(100% + 5px); right: 0; z-index: 9; min-width: 104px; padding: 4px; border: 1px solid var(--line); border-radius: 11px; background: var(--raise-2); box-shadow: 0 12px 28px rgba(0,0,0,.45); }
+.chip-menu button { display: block; width: 100%; border: 0; border-radius: 7px; padding: 7px 9px; background: transparent; color: var(--muted); cursor: pointer; text-align: left; font: 600 10px/1 var(--mono); white-space: nowrap; }
+.chip-menu button:hover { background: rgba(255,255,255,.045); color: var(--ink); }
+.chip-menu button.active { color: var(--signal); background: rgba(200,255,90,.09); }
 
 .ranklist { display: flex; flex-direction: column; margin-top: 7px; }
 .rankrow { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; color: inherit; font: inherit; background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 11px 3px; cursor: pointer; transition: transform .16s ease, background .16s ease; }

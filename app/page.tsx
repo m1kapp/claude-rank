@@ -42,10 +42,55 @@ function fmtKST(iso?: string) {
 
 const tokenFmt = (n = 0) => new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(n);
 
-function shiftMonth(month: string, amount: number) {
-  const [year, rawMonth] = month.split("-").map(Number);
-  const date = new Date(Date.UTC(year, rawMonth - 1 + amount, 1));
-  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+type ChipOption = { value: string; label: string };
+
+// 칩 하나 = 값 하나. 탭하면 선택지가 칩 아래로 열린다.
+function FilterChip({ id, open, onOpen, label, icon, tone, options, selected, onSelect }: {
+  id: string;
+  open: string | null;
+  onOpen: (next: string | null) => void;
+  label: string;
+  icon?: React.ReactNode;
+  tone?: "live";
+  options: ChipOption[];
+  selected: string;
+  onSelect: (value: string) => void;
+}) {
+  const isOpen = open === id;
+  return (
+    <div className="chip-wrap">
+      <button
+        type="button"
+        className={`filter-chip${isOpen ? " open" : ""}${tone === "live" ? " live" : ""}`}
+        aria-expanded={isOpen}
+        onClick={() => onOpen(isOpen ? null : id)}
+      >
+        {icon}
+        <span>{label}</span>
+        <i aria-hidden="true">▾</i>
+      </button>
+      {isOpen && (
+        <>
+          {/* 바깥 탭으로 닫기 — 메뉴가 열린 동안만 깔린다 */}
+          <button type="button" className="chip-scrim" aria-label="close" onClick={() => onOpen(null)} />
+          <div className="chip-menu" role="listbox">
+            {options.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={option.value === selected}
+                className={option.value === selected ? "active" : ""}
+                onClick={() => { onSelect(option.value); onOpen(null); }}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
 
 export default function Home() {
@@ -57,6 +102,7 @@ export default function Home() {
   const [lane, setLane] = useState<Provider>("claude");
   const [selRaw, setSel] = useState("");
   const [plan, setPlan] = useState(0);
+  const [menu, setMenu] = useState<string | null>(null);
   const { copied, copy } = useCopy();
 
   const nowMonth = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 7);
@@ -111,25 +157,32 @@ export default function Home() {
               <div className="kicker">{t("home.monthRank")}</div>
               <h2 className="league-title">{t("home.leagueTitle")}</h2>
             </div>
-            <div className="league-switch" aria-label="Provider league">
-              <button className={lane === "claude" ? "active" : ""} onClick={() => switchLane("claude")}>Claude</button>
-              <button className={lane === "codex" ? "active" : ""} onClick={() => switchLane("codex")}>Codex</button>
+            {/* 레인·월·종목을 각각 한 칩으로. 세 줄짜리 컨트롤을 제목 오른쪽 한 줄로 접었다. */}
+            <div className="league-chips">
+              <FilterChip
+                id="lane" open={menu} onOpen={setMenu}
+                label={lane === "claude" ? "Claude" : "Codex"}
+                icon={<span className={`chip-mark ${lane}`}>{lane === "claude" ? <ClaudeMark size={12} /> : <CodexMark size={12} />}</span>}
+                options={[{ value: "claude", label: "Claude" }, { value: "codex", label: "Codex" }]}
+                selected={lane}
+                onSelect={(value) => switchLane(value as Provider)}
+              />
+              <FilterChip
+                id="month" open={menu} onOpen={setMenu}
+                label={monthLabel(sel)}
+                tone={sel === nowMonth ? "live" : undefined}
+                options={months.map((month) => ({ value: month, label: monthLabel(month) }))}
+                selected={sel}
+                onSelect={setSel}
+              />
+              <FilterChip
+                id="plan" open={menu} onOpen={setMenu}
+                label={plan === 0 ? t("home.plan.all") : `$${plan}`}
+                options={planChoices.map((value) => ({ value: String(value), label: value === 0 ? t("home.plan.all") : `$${value}` }))}
+                selected={String(plan)}
+                onSelect={(value) => setPlan(Number(value))}
+              />
             </div>
-          </div>
-          <div className="league-meta">
-            <span className="live-tag">{sel === nowMonth ? t("home.live") : t("home.archive")}</span>
-            <div className="month-nav" aria-label={t("home.monthNav")}>
-              <button type="button" onClick={() => setSel(shiftMonth(sel, -1))} aria-label={t("home.prevMonth")}>‹</button>
-              <span>{monthLabel(sel)}</span>
-              <button type="button" onClick={() => setSel(shiftMonth(sel, 1))} disabled={sel >= nowMonth} aria-label={t("home.nextMonth")}>›</button>
-            </div>
-          </div>
-          <div className="plan-switch" aria-label={t("home.plan.filter")}>
-            {planChoices.map((value) => (
-              <button key={value} className={plan === value ? "active" : ""} aria-pressed={plan === value} onClick={() => setPlan(value)}>
-                {value === 0 ? t("home.plan.all") : `$${value}`}
-              </button>
-            ))}
           </div>
         </Section>
 
