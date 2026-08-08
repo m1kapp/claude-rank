@@ -153,10 +153,7 @@ export default function Home() {
 
         <Section>
           <div className="league-head rise" style={{ animationDelay: ".13s" }}>
-            <div>
-              <div className="kicker">{t("home.monthRank")}</div>
-              <h2 className="league-title">{t("home.leagueTitle")}</h2>
-            </div>
+            <h2 className="kicker league-kicker">{t("home.monthRank")}</h2>
             {/* 레인·월·종목을 각각 한 칩으로. 세 줄짜리 컨트롤을 제목 오른쪽 한 줄로 접었다. */}
             <div className="league-chips">
               <FilterChip

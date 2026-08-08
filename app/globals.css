@@ -129,8 +129,8 @@ body {
 
 /* league controls */
 /* 칩 메뉴가 아래 순위 목록 위로 뜨도록 헤더가 쌓임 순서를 잡는다 */
-.league-head { position: relative; z-index: 30; display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin-top: 18px; }
-.league-title { margin: 5px 0 0; font: 650 24px/1 var(--display); letter-spacing: -.045em; }
+.league-head { position: relative; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 18px; }
+.league-kicker { margin: 0; }
 /* 레인·월·종목 칩 — 세 줄짜리 컨트롤을 제목 오른쪽 한 줄로 접었다 */
 .league-chips { display: flex; flex: none; align-items: center; gap: 5px; }
 .chip-wrap { position: relative; }
