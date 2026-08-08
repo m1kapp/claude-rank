@@ -96,6 +96,7 @@ const DICT: Dict = {
   "user.dailyList": { ko: "일별 정가 환산", en: "Daily list-price equivalent" },
   "user.vbTitle": { ko: "viberank 전체 순위 (절대 금액 누적 기준) — 클릭하면 프로필", en: "viberank global rank (by absolute cumulative spend) — open profile" },
   "user.codex": { ko: "🤖 Codex (ChatGPT)", en: "🤖 Codex (ChatGPT)" },
+  "user.tab.all": { ko: "전체", en: "All" },
   "codex.plan": { ko: "요금제", en: "Plan" },
   "codex.cost": { ko: "정가 환산", en: "List-price eq." },
   "codex.tokens": { ko: "토큰", en: "Tokens" },
