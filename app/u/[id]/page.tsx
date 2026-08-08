@@ -249,6 +249,36 @@ export default function UserPage() {
     k, v: Math.round((s.conc || {})[k] || 0), c: k === "1" ? "#687064" : "#73e6a3",
   }));
 
+  // Codex 레인을 Claude 와 같은 위젯으로 그리기 위한 어댑터.
+  // 수집기가 주는 건 일별 비용·토큰 분해·모델별 비용까지 — 세션/시간대/커밋은 원본에 없다.
+  const krwPerUsd = report.currency_krw_per_usd;
+  const cx = report.codex?.months?.[cur];
+  const cxMonths: Record<string, any> = report.codex?.months || {};
+  const usdToKrw = (usd: any) => Math.round((Number(usd) || 0) * krwPerUsd);
+  const cxDailyKrw = Object.fromEntries(
+    Object.entries<any>(cx?.series?.daily_cost_usd || {}).map(([day, usd]) => [day, usdToKrw(usd)]),
+  );
+  const cxFirstMonth = cur === Object.keys(cxMonths).sort()[0];
+  const cxCost = withProjection(fillDays(cxDailyKrw, cur, cxFirstMonth, currentMonth, "#78a8ff"), cur, currentMonth);
+  // 잔디밭은 report.months[*].series.daily_cost_krw 를 읽는다 — Codex 일별을 같은 모양으로 싼다.
+  const cxHeatReport = {
+    months: Object.fromEntries(Object.entries<any>(cxMonths).map(([month, stat]) => [month, {
+      series: {
+        daily_cost_krw: Object.fromEntries(
+          Object.entries<any>(stat?.series?.daily_cost_usd || {}).map(([day, usd]) => [day, usdToKrw(usd)]),
+        ),
+      },
+    }])),
+  };
+  const cxTok = cx?.tok
+    ? { ...cx.tok, total: Number(cx.tokens) || (cx.tok.input + cx.tok.output + cx.tok.cache_read + cx.tok.cache_write) }
+    : null;
+  // PriceSection 은 Claude 월 객체 모양을 기대한다(원화·배율·요금제·모델별 USD).
+  const cxPrice = cx ? {
+    cost_krw: usdToKrw(cx.cost_usd), cost_usd: Number(cx.cost_usd) || 0,
+    ratio: cx.ratio ?? null, plan_usd: report.codex?.plan_usd ?? 0, models: cx.models || {},
+  } : null;
+
   return (
     <Shell title={t("title.report")}>
       <Section>
@@ -320,6 +350,27 @@ export default function UserPage() {
             {t("codex.note")}
           </div>
         </Section>
+
+        {/* 아래부터는 Claude 레인과 같은 위젯. 수집기가 일별 비용·토큰·모델별 비용까지 주는 만큼만 그린다. */}
+        {cxCost.length > 0 && (<>
+          <Divider />
+          <Section>
+            <SectionHeader>{t("user.activity")}</SectionHeader>
+            <Heatmap report={cxHeatReport} todayISO={todayKST} />
+          </Section>
+
+          <Divider />
+
+          {cxPrice && <PriceSection m={cxPrice} dCost={cxCost} krwPerUsd={krwPerUsd} />}
+        </>)}
+
+        {cxTok?.total ? (<>
+          <Divider />
+          <Section>
+            <SectionHeader>{t("user.tokens")}</SectionHeader>
+            <TokenWidget tok={cxTok} />
+          </Section>
+        </>) : null}
       </>)}
 
       {showClaude && (<>

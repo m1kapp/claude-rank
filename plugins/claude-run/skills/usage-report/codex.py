@@ -116,8 +116,12 @@ def account_id():
 
 
 def monthly():
-    """ccusage codex daily --json → {YYYY-MM: {cost_usd, tokens}}.
-    Codex 쪽 스키마는 Claude 쪽과 다르다(date/costUSD/models)."""
+    """ccusage codex daily --json → {YYYY-MM: {cost_usd, tokens, days, series, tok, models}}.
+
+    Codex 쪽 스키마는 Claude 쪽과 다르다(date/costUSD/models). 일별 비용·토큰 분해·
+    모델별 비용까지 같이 담아, 프로필에서 Claude 레인과 같은 그래프를 그릴 수 있게 한다.
+    세션·시간대·커밋은 Codex 원본에 없어 만들지 않는다.
+    """
     try:
         out = subprocess.run(["npx", "ccusage@latest", "codex", "daily", "--json"],
                              capture_output=True, text=True, timeout=180)
@@ -129,10 +133,29 @@ def monthly():
         ds = r.get("date") or ""
         if len(ds) < 7:
             continue
-        a = acc.setdefault(ds[:7], {"cost_usd": 0.0, "tokens": 0, "days": 0})
-        a["cost_usd"] += r.get("costUSD", 0) or 0
+        a = acc.setdefault(ds[:7], {
+            "cost_usd": 0.0, "tokens": 0, "days": 0,
+            "daily_cost_usd": {},
+            "tok": {"input": 0, "output": 0, "cache_read": 0, "cache_write": 0, "reasoning": 0},
+            "models": {},
+        })
+        cost = r.get("costUSD", 0) or 0
+        a["cost_usd"] += cost
         a["tokens"] += r.get("totalTokens", 0) or 0
         a["days"] += 1
+        a["daily_cost_usd"][ds] = round(a["daily_cost_usd"].get(ds, 0) + cost, 4)
+        a["tok"]["input"] += r.get("inputTokens", 0) or 0
+        a["tok"]["output"] += r.get("outputTokens", 0) or 0
+        a["tok"]["cache_read"] += r.get("cacheReadTokens", 0) or 0
+        a["tok"]["cache_write"] += r.get("cacheCreationTokens", 0) or 0
+        a["tok"]["reasoning"] += r.get("reasoningOutputTokens", 0) or 0
+        # 모델별 비용은 일별 합계 비용을 모델 토큰 비중으로 나눈다.
+        # ccusage codex 는 모델 단위 costUSD 를 주지 않는다.
+        models = r.get("models") or {}
+        total_tok = sum((mv.get("totalTokens", 0) or 0) for mv in models.values())
+        for name, mv in models.items():
+            share = (mv.get("totalTokens", 0) or 0) / total_tok if total_tok else 0
+            a["models"][name] = round(a["models"].get(name, 0) + cost * share, 4)
     for a in acc.values():
         a["cost_usd"] = round(a["cost_usd"], 2)
     return acc
@@ -149,7 +172,12 @@ def main():
     if aid:
         out["account_id"] = aid
     for mk, a in sorted(months.items()):
-        row = {"cost_usd": a["cost_usd"], "tokens": a["tokens"], "active_days": a["days"]}
+        row = {
+            "cost_usd": a["cost_usd"], "tokens": a["tokens"], "active_days": a["days"],
+            "series": {"daily_cost_usd": a["daily_cost_usd"]},
+            "tok": a["tok"],
+            "models": a["models"],
+        }
         # 배율은 가격이 확정되고 0 이 아닐 때만.
         if usd:
             row["ratio"] = round(a["cost_usd"] / usd, 1)
