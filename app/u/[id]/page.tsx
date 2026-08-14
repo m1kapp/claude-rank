@@ -133,7 +133,9 @@ function ProviderSummary({ cur, claudeMonths, codexMonths, krwPerUsd, codexPlanU
 }
 
 // 정가환산(일별 막대 + 모델별 비용)
-function PriceSection({ m, dCost, krwPerUsd }: { m: any; dCost: DayPoint[]; krwPerUsd: number }) {
+function PriceSection({ m, dCost, krwPerUsd, color, modelsEstimated }: {
+  m: any; dCost: DayPoint[]; krwPerUsd: number; color?: string; modelsEstimated?: boolean;
+}) {
   const { t, won } = useI18n();
   return (
     <Section>
@@ -142,8 +144,10 @@ function PriceSection({ m, dCost, krwPerUsd }: { m: any; dCost: DayPoint[]; krwP
         <div><div className="display tnum" style={{ fontSize: 28, fontWeight: 900 }}>{won(m.cost_krw)}</div><div style={{ fontSize: 12, color: "var(--muted)" }}>{t("user.listEq")}</div></div>
         <div style={{ textAlign: "right" }}><div className="display tnum" style={{ fontSize: 26, fontWeight: 900, color: "var(--sage)" }}>{m.ratio}×</div><div style={{ fontSize: 11, color: "var(--muted)" }}>{t("user.vsPlan", { plan: m.plan_usd })}</div></div>
       </div>
-      <Bars data={dCost} color="var(--claude)" avg wk fmt={(n) => won(n)} />
+      <Bars data={dCost} color={color || "var(--claude)"} avg wk fmt={(n) => won(n)} />
       {cap(t("user.dailyList"))}
+      {/* Codex 는 모델별 비용이 원본에 없어 토큰 비중으로 나눈 값이다 — 확정값처럼 보이면 안 된다 */}
+      {modelsEstimated && Object.keys(m.models || {}).length > 0 && cap(t("user.modelsEstimated"))}
       <div style={{ marginTop: 4 }}>
         {Object.entries(m.models || {}).map(([k, v]: any) => (
           <div key={k} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, margin: "5px 0" }}>
@@ -327,6 +331,15 @@ export default function UserPage() {
 
       {/* Codex 는 별도 리그 지표. Plus는 자동, Pro는 최초 로컬 선택값으로 배율을 낸다.
           team처럼 단가가 고정되지 않는 요금제만 비용과 토큰으로 표시한다. */}
+      {/* Codex 탭인데 이 달 기록이 없으면 카드 하나만 덩그러니 남는다 — 무엇을 하면 채워지는지 알려준다 */}
+      {view === "codex" && !report.codex?.months?.[cur] && (
+        <Section>
+          <div style={{ marginTop: 14, fontSize: 12, color: "var(--text-soft)", background: "var(--card)", borderRadius: 9, padding: "11px 13px" }}>
+            {t("codex.connectHint")}
+          </div>
+        </Section>
+      )}
+
       {showCodex && report.codex?.months?.[cur] && (<>
         <Divider />
         <Section>
@@ -361,7 +374,7 @@ export default function UserPage() {
 
           <Divider />
 
-          {cxPrice && <PriceSection m={cxPrice} dCost={cxCost} krwPerUsd={krwPerUsd} />}
+          {cxPrice && <PriceSection m={cxPrice} dCost={cxCost} krwPerUsd={krwPerUsd} color="var(--codex)" modelsEstimated />}
         </>)}
 
         {cxTok?.total ? (<>
