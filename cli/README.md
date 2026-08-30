@@ -15,6 +15,7 @@ npx @m1kapp/runmaxing
 npx @m1kapp/runmaxing              # 집계 후 랭킹 갱신 (닉네임 자동)
 npx @m1kapp/runmaxing <닉네임>     # 닉네임 지정 — 다음부턴 생략 가능
 npx @m1kapp/runmaxing --codex-plan 200  # Codex Pro 종목 지정($100/$200)
+npx @m1kapp/runmaxing --wsl-distro Ubuntu  # Windows에서 WSL 직접 지정
 npx @m1kapp/runmaxing --report     # 리포트만 만들고 제출하지 않음
 npx @m1kapp/runmaxing --no-open    # 브라우저를 열지 않음
 ```
@@ -29,9 +30,12 @@ npx @m1kapp/runmaxing --no-open    # 브라우저를 열지 않음
 
 ## 필요 조건
 
-`bash`, `python3`, `npx`. macOS·Linux에서 바로 동작합니다. Windows PowerShell에서도
-WSL 배포판 안에 `python3`와 `npx`가 준비되어 있으면 같은 명령을 실행할 수 있으며,
-runmaxing이 기존 POSIX 수집기를 WSL로 자동 연결합니다. `--force` 설치는 필요하지 않습니다.
+`bash`, `python3`, `npx`, `curl`. macOS·Linux에서 바로 동작합니다. Windows PowerShell에서도
+WSL 배포판 안에 `python3`와 `npx`가 준비되어 있으면 어느 폴더에서나 같은 명령을
+실행할 수 있습니다. 기본 WSL에 기록이 없으면 기록이 있는 배포판 하나를 자동 선택합니다.
+여러 배포판이 후보이거나 로그인·도구가 없으면 `ACTION_REQUIRED`와 Claude Code/Codex가
+그대로 수행할 복구 명령을 출력합니다. 직접 고르려면 `--wsl-distro`를 사용합니다.
+`--force` 설치는 필요하지 않습니다.
 
 전송되는 것은 집계된 사용량(일별 비용·토큰·모델·세션 통계)뿐입니다. 프롬프트·코드·파일
 경로는 포함되지 않습니다.
