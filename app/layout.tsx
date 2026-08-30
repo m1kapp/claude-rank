@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import "@m1kapp/kit/styles.css";
+import { KitStyles } from "@m1kapp/kit/pwa";
 import "./globals.css";
 import Providers from "./providers";
 
@@ -31,6 +31,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark">
+      <head>
+        <KitStyles />
+      </head>
       <body>
         <Providers>{children}</Providers>
       </body>
