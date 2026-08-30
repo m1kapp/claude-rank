@@ -8,7 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@m1kapp/kit": "^0.0.40",
+    "@m1kapp/kit": "^0.0.41",
     "next": "^15.5.22",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
