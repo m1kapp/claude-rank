@@ -8,7 +8,7 @@
   그 user 레코드는 사람이 아니라 부모 에이전트가 던진 프롬프트다.
   대신 토큰·도구호출·도구에러·커밋은 실제로 쓴 양이므로 합산한다
   (비용은 ccusage가 서브에이전트까지 세므로 그래야 분모가 맞는다)."""
-import json, glob, os, sys, statistics, re
+import json, glob, os, sys, statistics, re, heapq
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 
@@ -45,15 +45,18 @@ hourly = defaultdict(lambda: defaultdict(int))    # "YYYY-MM" -> {hour: 채팅�
 git = defaultdict(lambda: {"commit":0,"push":0})  # "YYYY-MM" -> 카운트
 gitdaily = defaultdict(lambda: defaultdict(int))  # "YYYY-MM" -> {"YYYY-MM-DD": 커밋수}
 
-# 파일별로 (시각, 사람발화여부) 모은 뒤 시간 공백으로 작업 세션 분할
+# 파일별 원시 구간을 만든 뒤, 같은 프로젝트에서 이어진 파일은 다시 연결한다.
+# 자동 컴팩트/초기화가 새 JSONL을 만들었다는 이유만으로 세션 수가 늘면 안 된다.
 mon = defaultdict(list)                       # "YYYY-MM" -> [세션별 채팅수, ...]
 daily = defaultdict(lambda: defaultdict(int)) # "YYYY-MM" -> {"YYYY-MM-DD": 채팅수}
-# 세션이 '살아 있던' 구간 [시작, 끝]. 여러 개를 동시에 굴렸는지 재려면 이게 필요하다.
-# 한 파일 안의 세션끼리는 GAP 으로 갈려 정의상 안 겹치므로, 겹침은 곧 다른 프로젝트다.
 spans = defaultdict(list)                     # "YYYY-MM" -> [(시작, 끝), ...]
+raw_sessions = defaultdict(list)               # 프로젝트 -> [{start,end,turns}, ...]
+transcript_files = defaultdict(int)            # 사람 발화가 든 JSONL 수
+compact_count = defaultdict(int)               # 명시적 compact_boundary 수
 for f in glob.glob(os.path.join(base, "*", "**", "*.jsonl"), recursive=True):
     evs = []
     alltimes = []      # 사람 발화만이 아니라 모든 레코드 시각(에이전트가 도는 동안도 '살아 있음')
+    human_months = set()
     try:
         for line in open(f):
             o = json.loads(line)
@@ -64,6 +67,8 @@ for f in glob.glob(os.path.join(base, "*", "**", "*.jsonl"), recursive=True):
             except Exception: dt = None
             mk = dt.strftime("%Y-%m") if dt else None
             if dt and not side: alltimes.append(dt)
+            if t == "system" and o.get("subtype") == "compact_boundary" and mk and not side:
+                compact_count[mk] += 1
             if t == "assistant" and mk:
                 u = o.get("message", {}).get("usage", {})
                 e = eff[mk]
@@ -94,6 +99,7 @@ for f in glob.glob(os.path.join(base, "*", "**", "*.jsonl"), recursive=True):
                 evs.append((dt, h))
                 if h:
                     ds = dt.strftime("%Y-%m-%d")
+                    human_months.add(ds[:7])
                     daily[ds[:7]][ds] += 1
                     hourly[ds[:7]][dt.hour] += 1
                     e = eff[ds[:7]]; e["human"] += 1
@@ -101,6 +107,8 @@ for f in glob.glob(os.path.join(base, "*", "**", "*.jsonl"), recursive=True):
                     if txt and len(txt) < 400 and FRUSTR.search(txt): e["corr"] += 1
     except Exception:
         pass
+    for mk in human_months:
+        transcript_files[mk] += 1
     evs.sort()
     alltimes.sort()
     # 세션 분할 규칙은 그대로 둔다(사람 발화 기준). 여기서 추가하는 건 구간뿐이라
@@ -115,7 +123,6 @@ for f in glob.glob(os.path.join(base, "*", "**", "*.jsonl"), recursive=True):
     for i, ch in enumerate(chunks):
         ht = sum(1 for d, hh in ch if hh)
         if ht <= 0: continue
-        mon[ch[0][0].strftime("%Y-%m")].append(ht)
         # 끝은 마지막 사람 발화가 아니라 그 뒤로 이어진 에이전트 활동까지다.
         # 다음 세션이 시작되기 전까지, GAP 안쪽만 인정한다.
         u0, u1 = ch[0][0], ch[-1][0]
@@ -126,7 +133,40 @@ for f in glob.glob(os.path.join(base, "*", "**", "*.jsonl"), recursive=True):
             if nxt is not None and t2 >= nxt: break
             if (t2 - end).total_seconds() > GAP: break
             end = t2
-        spans[u0.strftime("%Y-%m")].append((u0, end))
+        project = os.path.relpath(f, base).split(os.sep, 1)[0]
+        raw_sessions[project].append({"start": u0, "end": end, "turns": ht})
+
+# 같은 프로젝트의 다른 파일이 1시간 안에 비중첩으로 이어지면 하나의 작업세션이다.
+# 겹치는 구간은 실제 병렬 작업일 수 있으므로 서로 다른 트랙으로 유지한다.
+for project_sessions in raw_sessions.values():
+    # overlap: 아직 현재 시작시각과 겹치는 트랙(min end heap)
+    # available: 끝났지만 GAP 안쪽이라 이어붙일 수 있는 트랙(max end heap)
+    overlap, available, finished, seq = [], [], [], 0
+    for item in sorted(project_sessions, key=lambda s: (s["start"], s["end"])):
+        start_ts = item["start"].timestamp()
+        cutoff_ts = start_ts - GAP
+        while overlap and overlap[0][0] <= start_ts:
+            _, _, track = heapq.heappop(overlap)
+            seq += 1
+            heapq.heappush(available, (-track["end"].timestamp(), seq, track))
+        # max end조차 GAP 밖이면 available 전체가 만료됐다.
+        if available and -available[0][0] <= cutoff_ts:
+            while available:
+                finished.append(heapq.heappop(available)[2])
+        if available:
+            _, _, track = heapq.heappop(available)
+            track["end"] = max(track["end"], item["end"])
+            track["turns"] += item["turns"]
+        else:
+            track = dict(item)
+        seq += 1
+        heapq.heappush(overlap, (track["end"].timestamp(), seq, track))
+    finished.extend(item[2] for item in overlap)
+    finished.extend(item[2] for item in available)
+    for track in finished:
+        mk = track["start"].strftime("%Y-%m")
+        mon[mk].append(track["turns"])
+        spans[mk].append((track["start"], track["end"]))
 
 def concurrency_daily(month_spans):
     """날짜 -> 그날의 순간 최대 동시 세션 수.
@@ -202,6 +242,8 @@ for m, t in mon.items():
         "conc_parallel": conc_par,    # 2개 이상 겹친 시간 비율(%)
         "conc_mean": conc_mean,       # 시간 가중 평균 동시 세션 수
         "sessions": len(t),
+        "transcript_files": transcript_files.get(m, 0),
+        "compact_count": compact_count.get(m, 0),
         "chats": sum(t),
         "per_session": round(sum(t) / len(t), 1),
         "median": int(statistics.median(t)),

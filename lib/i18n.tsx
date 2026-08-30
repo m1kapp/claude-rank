@@ -130,7 +130,13 @@ const DICT: Dict = {
   "user.sess.sessions": { ko: "작업세션", en: "Sessions" },
   "user.sess.perSession": { ko: "세션당", en: "Per session" },
   "user.sess.max": { ko: "최대", en: "Max" },
+  "user.sess.files": { ko: "대화 파일", en: "Transcript files" },
+  "user.sess.compacts": { ko: "명시적 컴팩트", en: "Explicit compacts" },
   "user.sess.cap": { ko: "세션 크기 분포(채팅 수)", en: "Session size distribution (chats)" },
+  "user.sess.method": {
+    ko: "파일 초기화와 분리 · 같은 프로젝트에서 1시간 안에 이어진 흐름을 한 작업세션으로 연결",
+    en: "Independent of file resets · continuations in the same project within one hour are joined",
+  },
   "user.eff.cache": { ko: "캐시적중 %", en: "Cache hit %" },
   "user.eff.toolErr": { ko: "도구에러 %", en: "Tool error %" },
   "user.eff.correction": { ko: "정정율 %", en: "Correction %" },

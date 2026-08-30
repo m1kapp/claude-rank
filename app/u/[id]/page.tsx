@@ -177,8 +177,15 @@ function QualitySection({ m, dChats, dCommits, hourly, buckets, conc, dConc }: {
       <Bars data={dChats} avg wk />{cap(t("user.day.cap"))}
 
       {subhead(t("user.seg.sess"))}
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}><StatChip label={t("user.sess.sessions")} value={m.sessions} /><StatChip label={t("user.sess.perSession")} value={Math.round(m.per_session)} /><StatChip label={t("user.sess.max")} value={m.max_session} /></div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+        <StatChip label={t("user.sess.sessions")} value={m.sessions} />
+        <StatChip label={t("user.sess.perSession")} value={Math.round(m.per_session)} />
+        <StatChip label={t("user.sess.max")} value={m.max_session} />
+        {typeof m.transcript_files === "number" ? <StatChip label={t("user.sess.files")} value={m.transcript_files} /> : null}
+        {typeof m.compact_count === "number" ? <StatChip label={t("user.sess.compacts")} value={m.compact_count} /> : null}
+      </div>
       <Bars data={buckets} />{cap(t("user.sess.cap"))}
+      {typeof m.transcript_files === "number" ? cap(t("user.sess.method")) : null}
 
       {subhead(t("user.seg.eff"))}
       <div style={{ display: "flex", gap: 8 }}><StatChip label={t("user.eff.cache")} value={Math.round(ef.cache_hit)} /><StatChip label={t("user.eff.toolErr")} value={ef.tool_err} /><StatChip label={t("user.eff.correction")} value={ef.correction} /></div>

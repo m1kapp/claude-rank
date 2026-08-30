@@ -88,6 +88,7 @@ function maxInto(dst: Record<string, number>, src: any) {
 // 비합산(질적) 필드(median/max/efficiency)는 채팅 많은 '주 기기' 값을 대표로 채택 (근사)
 function mergeMonthSlices(slices: any[], plan: number, krw: number): any {
   let cost_usd = 0, cost_krw = 0, chats = 0, commits = 0, active = 0, sessions = 0;
+  let transcriptFiles = 0, compactCount = 0;
   const models: Record<string, number> = {};
   const daily_cost_krw: Record<string, number> = {};
   const daily_chats: Record<string, number> = {};
@@ -106,6 +107,8 @@ function mergeMonthSlices(slices: any[], plan: number, krw: number): any {
     commits += num(s.git?.commit);
     active += num(s.active_days);
     sessions += num(s.sessions);
+    transcriptFiles += num(s.transcript_files);
+    compactCount += num(s.compact_count);
     addInto(models, s.models);
     const ser = s.series || {};
     addInto(daily_cost_krw, ser.daily_cost_krw);
@@ -136,6 +139,8 @@ function mergeMonthSlices(slices: any[], plan: number, krw: number): any {
     ratio,
     models,
     sessions,
+    transcript_files: transcriptFiles,
+    compact_count: compactCount,
     chats,
     per_session: sessions ? Math.round(chats / sessions) : 0,
     median_session: median,
