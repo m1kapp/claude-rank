@@ -7,6 +7,7 @@ Pro 20x($200)를 구분할 수 없어 최초 한 번 사용자에게 묻고 로�
 team/business처럼 단가가 고정되지 않는 요금제는 배율을 만들지 않는다.
 """
 import json, os, base64, subprocess, sys, hashlib
+from concurrent.futures import ThreadPoolExecutor
 
 # 월 단가(USD). None = 가격이 하나로 정해지지 않음 → 배율 계산 안 함.
 PLAN_USD = {
@@ -115,6 +116,18 @@ def account_id():
     return ""
 
 
+def ccusage_daily(speed=None):
+    """ccusage 일별 JSON. speed=None은 기록된 Fast 설정을 따르는 auto다."""
+    args = ["npx", "ccusage@latest", "codex", "daily", "--json"]
+    if speed:
+        args += ["--speed", speed]
+    try:
+        out = subprocess.run(args, capture_output=True, text=True, timeout=180)
+        return json.loads(out.stdout)
+    except Exception:
+        return None
+
+
 def monthly():
     """ccusage codex daily --json → {YYYY-MM: {cost_usd, tokens, days, series, tok, models}}.
 
@@ -122,12 +135,20 @@ def monthly():
     모델별 비용까지 같이 담아, 프로필에서 Claude 레인과 같은 그래프를 그릴 수 있게 한다.
     세션·시간대·커밋은 Codex 원본에 없어 만들지 않는다.
     """
-    try:
-        out = subprocess.run(["npx", "ccusage@latest", "codex", "daily", "--json"],
-                             capture_output=True, text=True, timeout=180)
-        d = json.loads(out.stdout)
-    except Exception:
+    # 실행 중인 로그가 두 호출 사이에서 자랄 수 있으므로 두 계산을 같은 시점에 시작한다.
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        auto_future = pool.submit(ccusage_daily)
+        standard_future = pool.submit(ccusage_daily, "standard")
+        d = auto_future.result()
+        standard = standard_future.result() or {}
+    if not d:
         return {}
+    # auto에는 기록된 Fast 티어가 반영된다. 같은 로그를 Standard로 한 번 더 계산해
+    # 총비용 중 Fast 때문에 추가된 프리미엄만 분리한다. 두 결과의 날짜가 완전히
+    # 같을 때만 필드를 내보내 부분 집계를 확정값처럼 보이지 않게 한다.
+    auto_dates = {r.get("date") for r in d.get("daily", []) if r.get("date")}
+    standard_rows = {r.get("date"): r for r in standard.get("daily", []) if r.get("date")}
+    split_fast = bool(auto_dates) and auto_dates == set(standard_rows)
     acc = {}
     for r in d.get("daily", []):
         ds = r.get("date") or ""
@@ -141,6 +162,12 @@ def monthly():
         })
         cost = r.get("costUSD", 0) or 0
         a["cost_usd"] += cost
+        if split_fast:
+            standard_cost = min(cost, standard_rows[ds].get("costUSD", 0) or 0)
+            premium = cost - standard_cost
+            a["standard_cost_usd"] = a.get("standard_cost_usd", 0) + standard_cost
+            a["fast_premium_usd"] = a.get("fast_premium_usd", 0) + premium
+            a.setdefault("daily_fast_premium_usd", {})[ds] = round(premium, 4)
         a["tokens"] += r.get("totalTokens", 0) or 0
         a["days"] += 1
         a["daily_cost_usd"][ds] = round(a["daily_cost_usd"].get(ds, 0) + cost, 4)
@@ -158,6 +185,9 @@ def monthly():
             a["models"][name] = round(a["models"].get(name, 0) + cost * share, 4)
     for a in acc.values():
         a["cost_usd"] = round(a["cost_usd"], 2)
+        if "standard_cost_usd" in a:
+            a["standard_cost_usd"] = round(a["standard_cost_usd"], 2)
+            a["fast_premium_usd"] = round(a["fast_premium_usd"], 2)
     return acc
 
 
@@ -178,6 +208,10 @@ def main():
             "tok": a["tok"],
             "models": a["models"],
         }
+        if "standard_cost_usd" in a:
+            row["standard_cost_usd"] = a["standard_cost_usd"]
+            row["fast_premium_usd"] = a["fast_premium_usd"]
+            row["series"]["daily_fast_premium_usd"] = a["daily_fast_premium_usd"]
         # 배율은 가격이 확정되고 0 이 아닐 때만.
         if usd:
             row["ratio"] = round(a["cost_usd"] / usd, 1)

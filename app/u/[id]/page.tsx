@@ -358,6 +358,16 @@ export default function UserPage() {
               </div>
             ))}
           </div>
+          {Number(report.codex.months[cur].fast_premium_usd) > 0 && Number(report.codex.plan_usd) > 0 && (() => {
+            const fast = Number(report.codex.months[cur].fast_premium_usd) / Number(report.codex.plan_usd);
+            const standard = Number(report.codex.months[cur].standard_cost_usd) / Number(report.codex.plan_usd);
+            return (
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, margin: "0 0 10px", padding: "10px 12px", border: "1px solid color-mix(in srgb, var(--codex) 35%, var(--line))", borderRadius: 10, background: "color-mix(in srgb, var(--codex) 7%, var(--card))" }}>
+                <b className="tnum" style={{ color: "var(--codex)", whiteSpace: "nowrap" }}>⚡ {t("codex.fastLabel")} +{fast.toFixed(1)}×</b>
+                <span style={{ color: "var(--text-soft)", fontSize: 11, textAlign: "right" }}>{t("codex.fastBreakdown", { standard: standard.toFixed(1), fast: fast.toFixed(1) })}</span>
+              </div>
+            );
+          })()}
           {report.codex.months[cur].ratio == null && cap(t("codex.noRatio"))}
           <div style={{ fontSize: 12, color: "var(--text-soft)", background: "var(--card)", borderRadius: 9, padding: "11px 13px" }}>
             {t("codex.note")}

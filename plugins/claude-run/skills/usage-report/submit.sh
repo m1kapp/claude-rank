@@ -3,6 +3,7 @@
 # 닉네임을 명시하면 ~/.usage-report-nick에 저장하고, 다음부턴 생략해도 같은 이름으로 올라감.
 # (계정/기기 고정 — 리포트의 익명 ID로 중복 갱신)
 set -e
+set -o pipefail
 DIR_SUB="$(cd "$(dirname "$0")" && pwd)"
 NICK_FILE="$HOME/.usage-report-nick"
 NICK="$1"
@@ -46,12 +47,21 @@ RUNNER_ID="$(printf '%s' "$IDENTITY_JSON" | python3 -c 'import json,sys; print(j
 RUNNER_TOKEN="$(printf '%s' "$IDENTITY_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["device_token"])')"
 
 echo "제출: $NICK → $ENDPOINT  (리포트: $JSON_OUT)"
-RESP=$(NICK="$NICK" JSON_OUT="$JSON_OUT" RUNNER_ID="$RUNNER_ID" RUNNER_TOKEN="$RUNNER_TOKEN" python3 -c 'import json,os;print(json.dumps({"nick":os.environ["NICK"],"report":json.load(open(os.environ["JSON_OUT"])),"runner":{"id":os.environ["RUNNER_ID"],"token":os.environ["RUNNER_TOKEN"]}}))' \
-  | curl -s -X POST "$ENDPOINT/api/submit" -H "Content-Type: application/json" -d @-)
-printf '%s' "$RESP" | JSON_OUT="$JSON_OUT" python3 -c "
+if ! RAW_RESP=$(NICK="$NICK" JSON_OUT="$JSON_OUT" RUNNER_ID="$RUNNER_ID" RUNNER_TOKEN="$RUNNER_TOKEN" python3 -c 'import json,os;print(json.dumps({"nick":os.environ["NICK"],"report":json.load(open(os.environ["JSON_OUT"])),"runner":{"id":os.environ["RUNNER_ID"],"token":os.environ["RUNNER_TOKEN"]}}))' \
+  | curl -sS -w $'\n%{http_code}' -X POST "$ENDPOINT/api/submit" -H "Content-Type: application/json" -d @-); then
+  echo "⚠️ 전송 실패 — 네트워크와 엔드포인트를 확인해 주세요: $ENDPOINT"
+  exit 1
+fi
+HTTP_STATUS="${RAW_RESP##*$'\n'}"
+RESP="${RAW_RESP%$'\n'*}"
+if ! printf '%s' "$RESP" | JSON_OUT="$JSON_OUT" HTTP_STATUS="$HTTP_STATUS" python3 -c "
 import json, sys, os, calendar, datetime
 try:
     d = json.load(sys.stdin)
+    status = int(os.environ.get('HTTP_STATUS') or 0)
+    if not 200 <= status < 300:
+        print('⚠️ ' + str(d.get('error') or f'제출 실패 (HTTP {status})'))
+        sys.exit(1)
     if d.get('ok'):
         e = d['entry']
         # 메시지는 '이번 달' 기준 (누적 X) — 로컬 리포트에서 월별 수치 계산
@@ -90,9 +100,13 @@ try:
             print(f\"✅ 합류 완료! 본전배율 {e['ratio']}× · 채팅 {e['chats']:,}\")
     else:
         print('⚠️ ' + str(d.get('error', '제출 실패')))
+        sys.exit(1)
 except Exception:
-    print('⚠️ 응답 파싱 실패 — 엔드포인트 확인: $ENDPOINT')
-"
+    print(f'⚠️ 응답 파싱 실패 (HTTP {os.environ.get(\"HTTP_STATUS\", \"?\")}) — 엔드포인트 확인: $ENDPOINT')
+    sys.exit(1)
+"; then
+  exit 1
+fi
 
 # viberank 연동(켠 경우에만) — 우리 제출이 끝난 뒤에 붙인다. 실패해도 무시.
 bash "$DIR_SUB/viberank.sh" submit 2>/dev/null || true
