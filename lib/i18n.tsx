@@ -102,6 +102,8 @@ const DICT: Dict = {
   "codex.plan": { ko: "요금제", en: "Plan" },
   "codex.cost": { ko: "정가 환산", en: "List-price eq." },
   "codex.tokens": { ko: "토큰", en: "Tokens" },
+  "codex.fastLabel": { ko: "Fast 추가", en: "Fast uplift" },
+  "codex.fastBreakdown": { ko: "Standard {standard}×에 Fast 프리미엄 +{fast}× 포함", en: "Standard {standard}× plus a +{fast}× Fast premium" },
   "codex.notConnected": { ko: "아직 연결되지 않음", en: "not connected yet" },
   "codex.noRatio": { ko: "이 요금제는 좌석·연납에 따라 단가가 달라 배율을 내지 않습니다", en: "Price varies by seat/billing on this plan — no multiple shown" },
   "codex.note": { ko: "Codex는 별도 리그에서 겨룹니다. Plus는 $20, Pro는 최초 선택한 $100/$200을 기준으로 본전 배율을 계산합니다.", en: "Codex runs in its own league. Value uses $20 for Plus and your one-time $100/$200 selection for Pro." },

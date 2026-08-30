@@ -100,6 +100,16 @@ function codexValidationError(report: any): string | null {
     const expected = cost / plan;
     const rel = Math.abs(ratio - expected) / Math.max(expected, 1);
     if (rel > 0.08) return `Codex 리포트 정합성 오류(${mk}): 배율이 비용과 맞지 않아요.`;
+    const hasStandard = typeof month.standard_cost_usd === "number";
+    const hasFast = typeof month.fast_premium_usd === "number";
+    if (hasStandard !== hasFast) return `Codex 리포트 정합성 오류(${mk}): Fast 비용 필드가 불완전해요.`;
+    if (hasStandard) {
+      const standard = num(month.standard_cost_usd);
+      const premium = num(month.fast_premium_usd);
+      if (standard < 0 || premium < 0) return `Codex 리포트 정합성 오류(${mk}): Fast 비용이 음수예요.`;
+      const splitRel = Math.abs(standard + premium - cost) / Math.max(cost, 1);
+      if (splitRel > 0.02) return `Codex 리포트 정합성 오류(${mk}): Standard와 Fast 비용 합계가 맞지 않아요.`;
+    }
   }
   return null;
 }

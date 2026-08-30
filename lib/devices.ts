@@ -201,13 +201,27 @@ export function mergeReports(reports: any[]): any {
       if (!cs.length) return {};
       const ms: Record<string, any> = {};
       for (const c of cs) for (const [mk, v] of Object.entries<any>(c.months || {})) {
-        const a = (ms[mk] ||= { cost_usd: 0, tokens: 0, active_days: 0 });
+        const a = (ms[mk] ||= { cost_usd: 0, tokens: 0, active_days: 0, standard_cost_usd: 0, fast_premium_usd: 0, fast_breakdown_complete: true });
         a.cost_usd += num(v.cost_usd); a.tokens += num(v.tokens); a.active_days = Math.max(a.active_days, num(v.active_days));
+        if (typeof v.standard_cost_usd === "number" && typeof v.fast_premium_usd === "number") {
+          a.standard_cost_usd += num(v.standard_cost_usd);
+          a.fast_premium_usd += num(v.fast_premium_usd);
+        } else {
+          a.fast_breakdown_complete = false;
+        }
       }
       const base = cs[0];
       const accountIds = [...new Set(cs.map((c) => c.account_id).filter(Boolean))];
       for (const [mk, a] of Object.entries<any>(ms)) {
         a.cost_usd = Number(a.cost_usd.toFixed(2));
+        if (a.fast_breakdown_complete) {
+          a.standard_cost_usd = Number(a.standard_cost_usd.toFixed(2));
+          a.fast_premium_usd = Number(a.fast_premium_usd.toFixed(2));
+        } else {
+          delete a.standard_cost_usd;
+          delete a.fast_premium_usd;
+        }
+        delete a.fast_breakdown_complete;
         if (base.plan_usd) a.ratio = Number((a.cost_usd / base.plan_usd).toFixed(1));
       }
       return { codex: {
