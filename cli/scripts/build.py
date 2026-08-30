@@ -126,6 +126,8 @@ def quality_panel(mo):
     if not s:
         return '<div class="w"><div class="ph">📊 질적 · 활동</div><div class="ws">세션 데이터 없음</div></div>'
     persess, perday, med, mx = s["per_session"], s["per_day"], s["median"], s["max"]
+    transcript_files = s.get("transcript_files", 0)
+    compact_count = s.get("compact_count", 0)
 
     # === 세션 기준 view: 세션 크기 분포 히스토그램 ===
     bk = s.get("buckets", {})
@@ -143,10 +145,12 @@ def quality_panel(mo):
         <div class="ai"><span class="an">{persess:.0f}</span><span class="al">세션당 채팅</span></div>
         <div class="ai"><span class="an">{med}</span><span class="al">중앙값</span></div>
         <div class="ai"><span class="an">{mx:,}</span><span class="al">최대 세션</span></div>
+        <div class="ai"><span class="an">{transcript_files:,}</span><span class="al">대화 파일</span></div>
+        <div class="ai"><span class="an">{compact_count:,}</span><span class="al">명시적 컴팩트</span></div>
       </div>
       <div class="chart wide">{bbars}</div>
       <div class="ccap">세션 크기 분포 (가로축 = 세션당 채팅 수 구간)</div>
-      <div class="qnote">세션당 평균 {persess:.0f}채팅 vs 중앙값 {med} → <b>{skew}</b>. 대부분 짧은 세션({med}채팅대)이고, 가끔 긴 세션({mx}채팅) 1~2건이 평균을 끌어올림.</div>
+      <div class="qnote">대화 파일 {transcript_files:,}개를 프로젝트·1시간 연속성으로 {s["sessions"]:,}개 실세션에 연결. 명시적 컴팩트 {compact_count:,}회 · 평균 {persess:.0f}채팅 vs 중앙값 {med} → <b>{skew}</b>.</div>
     </div>'''
 
     # === 일별 기준 view: 일별 채팅 추이 ===
@@ -407,8 +411,8 @@ h1{{font-family:Georgia,serif;font-size:26px;letter-spacing:-.5px}}
 .qtop{{display:flex;align-items:baseline;gap:9px;padding:12px 14px;margin-bottom:13px;background:#2a2622;border-radius:11px;color:#f4f1ea}}
 .qtn{{font-size:26px;font-weight:800;font-family:Georgia,serif;color:#6a9bcc;line-height:1}}
 .qtl{{font-size:12px;color:#9a9389}}
-.act{{display:flex;gap:6px;margin-bottom:12px}}
-.ai{{flex:1;background:#faf7f0;border:1px solid #efe9dd;border-radius:9px;padding:10px 4px;text-align:center}}
+.act{{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}}
+.ai{{flex:1 1 80px;background:#faf7f0;border:1px solid #efe9dd;border-radius:9px;padding:10px 4px;text-align:center}}
 .an{{display:block;font-size:20px;font-weight:800;font-family:Georgia,serif;color:#2a2622;font-variant-numeric:tabular-nums}}
 .al{{display:block;font-size:10px;color:#9a9389;margin-top:1px}}
 .chips{{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}}
@@ -485,6 +489,8 @@ for m in months:
         "ratio": round(tot / plan_for(m), 1),
         "models": {k: round(v, 2) for k, v in sorted(mm[m].items(), key=lambda x: -x[1])},
         "sessions": s.get("sessions"),
+        "transcript_files": s.get("transcript_files"),
+        "compact_count": s.get("compact_count"),
         "chats": s.get("chats"),
         "per_session": s.get("per_session"),
         "median_session": s.get("median"),
