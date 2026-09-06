@@ -30,11 +30,15 @@ npx @m1kapp/runmaxing --no-open    # 브라우저를 열지 않음
 
 ## 필요 조건
 
-`bash`, `python3`, `npx`, `curl`. macOS·Linux에서 바로 동작합니다. Windows PowerShell에서도
-WSL 배포판 안에 `python3`와 `npx`가 준비되어 있으면 어느 폴더에서나 같은 명령을
-실행할 수 있습니다. 기본 WSL에 기록이 없으면 기록이 있는 배포판 하나를 자동 선택합니다.
-여러 배포판이 후보이거나 로그인·도구가 없으면 `ACTION_REQUIRED`와 Claude Code/Codex가
-그대로 수행할 복구 명령을 출력합니다. 직접 고르려면 `--wsl-distro`를 사용합니다.
+Node.js와 Python 3.9 이상이 필요합니다. Windows PowerShell에서 바로 실행되며
+**WSL·Git Bash·curl은 필요하지 않습니다.** Windows 사용자 폴더의 Claude/Codex 기록을 읽습니다.
+Python은 `py -3`, `python3`, `python` 순서로 찾아 실행합니다. 설치되어 있지 않으면
+`winget install -e --id Python.Python.3.13`을 실행하고 터미널을 다시 여세요.
+
+macOS·Linux에서는 `bash`, `python3`, `npx`, `curl`을 사용합니다.
+Windows에 기록이 없고 사용 가능한 WSL 기록이 있으면 기존처럼 자동 연결합니다.
+WSL에서 쓰던 기록을 직접 지정하려면 `--wsl-distro Ubuntu`를 사용합니다.
+실패하면 `ACTION_REQUIRED`와 복구 안내를 출력합니다.
 `--force` 설치는 필요하지 않습니다.
 
 전송되는 것은 집계된 사용량(일별 비용·토큰·모델·세션 통계)뿐입니다. 프롬프트·코드·파일

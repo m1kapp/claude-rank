@@ -6,7 +6,7 @@ Pro 20x($200)를 구분할 수 없어 최초 한 번 사용자에게 묻고 로�
 선택 이력은 append-only 파일에 남겨 기존 값을 조용히 덮어쓰지 않는다.
 team/business처럼 단가가 고정되지 않는 요금제는 배율을 만들지 않는다.
 """
-import json, os, base64, subprocess, sys, hashlib
+import json, os, base64, subprocess, sys, hashlib, shutil
 from concurrent.futures import ThreadPoolExecutor
 
 # 월 단가(USD). None = 가격이 하나로 정해지지 않음 → 배율 계산 안 함.
@@ -59,6 +59,13 @@ def remember_pro_plan(plan, path=PRO_PLAN_FILE):
 def prompt_pro_plan():
     """대화형 실행에서만 묻는다. cron/CI처럼 tty가 없으면 조용히 미확정으로 둔다."""
     try:
+        if os.name == "nt":
+            if not sys.stdin.isatty():
+                return None
+            print("\nCodex Pro 종목: 1) $100 · Pro 5x  2) $200 · Pro 20x\n선택 [1/2]: ",
+                  end="", file=sys.stderr, flush=True)
+            answer = sys.stdin.readline().strip().lower()
+            return 100 if answer in {"1", "100", "5x"} else 200 if answer in {"2", "200", "20x"} else None
         with open("/dev/tty", "r+", encoding="utf-8", buffering=1) as tty:
             tty.write("\nCodex Pro 종목을 최초 한 번 선택해 주세요.\n")
             tty.write("  1) $100 · Pro 5x\n  2) $200 · Pro 20x\n선택 [1/2]: ")
@@ -118,7 +125,7 @@ def account_id():
 
 def ccusage_daily(speed=None):
     """ccusage 일별 JSON. speed=None은 기록된 Fast 설정을 따르는 auto다."""
-    args = ["npx", "ccusage@latest", "codex", "daily", "--json"]
+    args = [shutil.which("npx") or "npx", "--yes", "ccusage@latest", "codex", "daily", "--json"]
     if speed:
         args += ["--speed", speed]
     try:
