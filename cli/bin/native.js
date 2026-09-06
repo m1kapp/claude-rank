@@ -7,7 +7,7 @@ function nativeRunner(scripts, env, spawn = spawnSync) {
   // py is the Windows launcher; skip Store aliases that do not run Python.
   const python = [["py", "-3"], ["python3"], ["python"]].find(([bin, ...args]) => {
     const result = spawn(bin, [...args, "-c", "import sys; assert sys.version_info >= (3, 9)"],
-      { stdio: "ignore", windowsHide: true, env });
+      { stdio: "ignore", windowsHide: true, timeout: 10000, env });
     return !result.error && result.status === 0;
   });
   if (!python) {
@@ -17,7 +17,7 @@ function nativeRunner(scripts, env, spawn = spawnSync) {
     return null;
   }
   return (script, args = []) => spawn(python[0], [
-    ...python.slice(1), "-X", "utf8", path.join(scripts, "native.py"), script, ...args,
+    ...python.slice(1), "-B", "-X", "utf8", path.join(scripts, "native.py"), script, ...args,
   ], { stdio: "inherit", env: { ...env, PYTHONUTF8: "1", PYTHONIOENCODING: "utf-8" } });
 }
 
