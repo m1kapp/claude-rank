@@ -74,6 +74,7 @@ const DICT: Dict = {
   "home.verified": { ko: "검증된 러너 — 라이브 사용량 증명 확인됨", en: "Verified runner — live usage proof confirmed" },
   "user.verified": { ko: "검증됨", en: "Verified" },
   "user.card": { ko: "카드", en: "Card" },
+  "user.githubCard": { ko: "GitHub에 붙이기", en: "Copy for GitHub" },
   "user.wrapped": { ko: "Wrapped", en: "Wrapped" },
   // user / report
   "user.kicker": { ko: "가성비 리포트 · 월별", en: "Value report · monthly" },

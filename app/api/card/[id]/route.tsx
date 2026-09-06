@@ -10,5 +10,7 @@ export const runtime = "nodejs";
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const month = req.nextUrl.searchParams.get("month") || undefined;
-  return renderCard(id, month && /^\d{4}-\d{2}$/.test(month) ? month : undefined);
+  const style = req.nextUrl.searchParams.get("style") === "rhythm" ? "rhythm" : "cost";
+  const locale = req.nextUrl.searchParams.get("lang") === "en" ? "en" : "ko";
+  return renderCard(id, month && /^\d{4}-(0[1-9]|1[0-2])$/.test(month) ? month : undefined, style, locale);
 }

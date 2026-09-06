@@ -1,19 +1,19 @@
 "use client";
 import { useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useFetch, Section, SectionHeader, Select, StatChip, Skeleton, EmptyState, Divider, Button, ShareButton } from "@m1kapp/kit";
+import { useFetch, useCopy, Section, SectionHeader, Select, StatChip, Skeleton, EmptyState, Divider, Button, ShareButton } from "@m1kapp/kit";
 import Shell from "../../Shell";
 import PaceTag from "../../PaceTag";
 import { useI18n } from "../../../lib/i18n";
 import { paceForProvider } from "../../../lib/pace";
-import { aggregate, persona, type Persona } from "../../../lib/persona";
+import { activityRhythm } from "../../../lib/rhythm";
 import { pickMonth, nowMonthKST, fillDays, withProjection, type DayPoint } from "../../../lib/month";
 import { Bars, TierBanner, TokenWidget, Heatmap, mcolor, cap, subhead, tfmt } from "./widgets";
 import QuestionProfilePreview from "./QuestionProfilePreview";
 
 // 상단 툴바(뒤로/Wrapped/카드/공유) + 닉네임 + 월 선택
 function Header({ id, cur, months, entry, report, runner }: { id: string; cur: string; months: string[]; entry: any; report: any; runner?: any }) {
-  const { t, monthLabel } = useI18n();
+  const { t, monthLabel, locale } = useI18n();
   const router = useRouter();
   const m = report.months[cur] || {};
   const pill: React.CSSProperties = { display: "inline-flex", alignItems: "center", gap: 5, textDecoration: "none", color: "var(--ink)", border: "1px solid var(--line)", borderRadius: 999, padding: "0 12px", height: 32, fontSize: 11, fontWeight: 600 };
@@ -24,9 +24,8 @@ function Header({ id, cur, months, entry, report, runner }: { id: string; cur: s
           <Button variant="light" shape="pill" onClick={() => router.push("/")} aria-label={t("common.back")}>←</Button>
           <div className="profile-actions">
             <a className="share-pill" href={`/u/${id}/wrapped?m=${cur}`} style={pill}>{t("user.wrapped")}</a>
-            {/* 선택한 월을 카드 API에 넘긴다. PNG는 제출 시각도 쿼리에 붙여
-                브라우저 디스크 캐시에 남은 옛 카드가 다시 열리지 않게 한다. */}
-            <a className="share-pill" href={`/api/card/${id}?month=${encodeURIComponent(cur)}&v=${encodeURIComponent(entry?.updated || cur)}`} target="_blank" rel="noopener noreferrer" style={pill}>{t("user.card")}</a>
+            {/* 선택한 월·언어로 GitHub에 붙일 카드를 연다. */}
+            <a className="share-pill" href={`/api/card/${id}?style=rhythm&month=${encodeURIComponent(cur)}&lang=${locale}&v=1`} target="_blank" rel="noopener noreferrer" style={pill}>{t("user.card")}</a>
             <ShareButton
               className="share-pill"
               url={`${typeof window !== "undefined" ? window.location.origin : "https://runmaxing.m1k.app"}/u/${id}?m=${cur}`}
@@ -76,26 +75,21 @@ function Header({ id, cur, months, entry, report, runner }: { id: string; cur: s
   );
 }
 
-// 이 달의 프로필 (선택된 월만)
-function PersonaCard({ cur, m, pf }: { cur: string; m: any; pf: Persona }) {
-  const { t, monthLabel } = useI18n();
+function RhythmCard({ id, cur, report }: { id: string; cur: string; report: any }) {
+  const { t, locale } = useI18n();
+  const { copied, copy } = useCopy();
+  const rhythm = activityRhythm(cur, report.months?.[cur], report.codex?.months?.[cur], locale);
+  const imagePath = `/api/card/${encodeURIComponent(id)}?style=rhythm&month=${encodeURIComponent(cur)}&lang=${locale}&v=1`;
+  const markdown = `[![runmaxing activity rhythm](https://runmaxing.m1k.app${imagePath})](https://runmaxing.m1k.app/u/${encodeURIComponent(id)}?m=${encodeURIComponent(cur)})`;
   return (
-    <div className="rise" style={{ marginTop: 14, padding: "16px 16px", background: "var(--card)", border: "1px solid var(--line)", borderRadius: 14 }}>
-      <div className="kicker" style={{ marginBottom: 10 }}>{monthLabel(cur)} · {t("user.persona.kicker")}</div>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <span style={{ fontSize: 27 }}>{pf.emoji}</span>
-        <div><div className="display" style={{ fontSize: 20, fontWeight: 650, letterSpacing: "-.03em" }}>{pf.title}</div><div className="mono" style={{ fontSize: 9, color: "var(--signal)", marginTop: 3 }}>{pf.intensity}</div></div>
+    <div className="rise" style={{ marginTop: 18 }}>
+      <a href={imagePath} target="_blank" rel="noopener noreferrer">
+        <img src={imagePath} width={1200} height={520} alt={`${rhythm.title}. ${rhythm.stats.map((s) => `${s.label}: ${s.value}`).join(". ")}. ${rhythm.source}`}
+          style={{ display: "block", width: "100%", height: "auto", borderRadius: 14 }} />
+      </a>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+        <Button variant="light" shape="pill" onClick={() => copy(markdown)}>{copied ? t("user.shared") : t("user.githubCard")}</Button>
       </div>
-      <p style={{ color: "var(--muted)", fontSize: 11.5, lineHeight: 1.6, margin: "12px 0 0" }}>{pf.blurb}</p>
-      {pf.tags.length > 0 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "5px 6px", marginTop: 14 }}>
-          {pf.tags.map((tag, i) => (
-            <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 500, lineHeight: 1.5, color: "var(--text)", border: "1px solid var(--line)", borderRadius: 999, padding: "0 9px", height: 22 }}>
-              <span style={{ fontSize: 10.5 }}>{tag.icon}</span>{tag.label}
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -216,7 +210,7 @@ function QualitySection({ m, dChats, dCommits, hourly, buckets, conc, dConc }: {
 }
 
 export default function UserPage() {
-  const { t, locale, won } = useI18n();
+  const { t, won } = useI18n();
   const [view, setView] = useState<LaneView>("all");
   const { id } = useParams<{ id: string }>();
   const sp = useSearchParams();
@@ -247,7 +241,6 @@ export default function UserPage() {
   const showClaude = view !== "codex";
   const showCodex = view !== "claude";
   const m = report.months[cur] || {};
-  const pf = persona(aggregate({ [cur]: m }), locale, Number(m.plan_usd) || 0);  // 선택된 월만 분석 (누적 X)
   const s = m.series || {};
   const todayKST = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
   const firstMonth = cur === months[0];
@@ -294,6 +287,7 @@ export default function UserPage() {
     <Shell title={t("title.report")}>
       <Section>
         <Header id={id} cur={cur} months={months} entry={entry} report={report} runner={runner} />
+        {!questionPreview && <RhythmCard id={id} cur={cur} report={report} />}
         {/* 전체 / Claude Code / Codex — 아래 섹션 전부가 이 탭을 따른다 */}
         <div className="lane-tabs" role="tablist">
           {(["all", "claude", "codex"] as LaneView[]).map((value) => (
@@ -306,7 +300,6 @@ export default function UserPage() {
         {questionPreview && <QuestionProfilePreview nick={entry?.nick || t("common.anon")} />}
         <ProviderSummary cur={cur} claudeMonths={report.months} codexMonths={report.codex?.months}
           krwPerUsd={report.currency_krw_per_usd} codexPlanUsd={report.codex?.plan_usd} view={view} />
-        {showClaude && !questionPreview && <PersonaCard cur={cur} m={m} pf={pf} />}
         {showClaude && typeof m.cost_usd === "number" && (
           <div style={{ marginTop: 14 }}>
             <TierBanner usd={m.cost_usd} krwPerUsd={report.currency_krw_per_usd} />
