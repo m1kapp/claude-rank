@@ -82,7 +82,7 @@ const resolved = isWindows && (requestedWslDistro || !nativeData)
     requested: requestedWslDistro,
     requireClaude: !args.includes("--report"),
   }) : null;
-if (isWindows && !requestedWslDistro && (!resolved || resolved.error)) {
+if (isWindows && !requestedWslDistro && (!resolved || resolved.error === "WSL_UNAVAILABLE")) {
   run = nativeRunner(SCRIPTS, env);
   if (!run) process.exit(1);
 } else if (isWindows) {

@@ -20,6 +20,12 @@ test("Python discovery skips broken aliases and uses the Windows launcher", () =
   assert.equal(calls[1][0], "py");
   assert.equal(calls[1][1], "-3");
   assert.ok(calls[1].includes(path.join("scripts", "native.py")));
+  const fallbacks = [];
+  assert.ok(nativeRunner("scripts", {}, (bin) => {
+    fallbacks.push(bin);
+    return { status: bin === "python" ? 0 : 1 };
+  }));
+  assert.deepEqual(fallbacks, ["py", "python3", "python"]);
 });
 
 test("Windows CLI collects and submits from a Unicode home without WSL or Bash", async () => {

@@ -1,6 +1,6 @@
 {
   "name": "@m1kapp/runmaxing",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "runmaxing — Claude Code와 Codex를 한 runner에 연결하고 별도 리그로 기록. 설치 없이 npx 한 줄.",
   "bin": {
     "runmaxing": "bin/cli.js",
