@@ -9,6 +9,7 @@ import { ClaudeMark, CodexMark } from "./ProviderMarks";
 import { tierForKrw, tierName } from "../lib/tier";
 import { useI18n } from "../lib/i18n";
 import { paceForProvider } from "../lib/pace";
+import { nowMonthKST } from "../lib/month";
 
 type Provider = "claude" | "codex";
 type ProviderMonth = {
@@ -105,12 +106,11 @@ export default function Home() {
   const [menu, setMenu] = useState<string | null>(null);
   const { copied, copy } = useCopy();
 
-  const nowMonth = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 7);
-  const monthSet = new Set<string>();
+  const nowMonth = nowMonthKST();
+  const monthSet = new Set<string>([nowMonth]);
   entries.forEach((entry) => Object.keys(entry.provider_months?.[lane] || {}).forEach((month) => monthSet.add(month)));
-  const months = monthSet.size ? [...monthSet].sort().reverse() : [nowMonth];
-  const defaultMonth = months.find((month) => entries.filter((entry) => entry.provider_months?.[lane]?.[month]).length >= 2) || months[0];
-  const sel = selRaw || defaultMonth;
+  const months = [...monthSet].sort().reverse();
+  const sel = selRaw || nowMonth;
 
   const planChoices = [0, 20, 100, 200];
   const rows = entries.flatMap((entry) => {
@@ -144,8 +144,8 @@ export default function Home() {
 
           <div className="command-deck rise" style={{ animationDelay: ".06s" }}>
             <div className="command-caption"><span>{t("home.command.label")}</span><span>{t("home.command.once")}</span></div>
-            <button className="command-line" onClick={() => copy("npx @m1kapp/runmaxing")}>
-              <code>npx @m1kapp/runmaxing</code>
+            <button className="command-line" onClick={() => copy("npx @m1kapp/runmaxing@latest")}>
+              <code>npx @m1kapp/runmaxing@latest</code>
               <span>{copied ? t("home.command.copied") : t("home.command.copy")}</span>
             </button>
           </div>
