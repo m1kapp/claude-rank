@@ -4,6 +4,8 @@ import { ImageResponse } from "next/og";
 import { all, getReport } from "./store";
 import { tierForUsd } from "./tier";
 import { resolveEntryId } from "./runners";
+import { activityRhythm } from "./rhythm";
+import { pickMonth } from "./month";
 
 // 본전 계산서 카드 렌더러. /u/[id]/opengraph-image 와 /api/card/[id] 가 공유한다.
 // 링크 미리보기는 월을 못 고르지만(Next 규약상 opengraph-image 는 쿼리를 못 받는다),
@@ -123,7 +125,7 @@ function cardData(entry: any, report: any, month?: string) {
   };
 }
 
-export async function renderCard(id: string, month?: string) {
+export async function renderCard(id: string, month?: string, style = "cost", locale: "ko" | "en" = "ko") {
   try {
     const fonts = loadFonts();
 
@@ -131,6 +133,12 @@ export async function renderCard(id: string, month?: string) {
     const entry = (await all()).find((e) => e.id === entryId);
     const report = await getReport(entryId);
     if (!entry || !report) return fallbackImage(fonts);
+
+    if (style === "rhythm") {
+      const months = [...new Set([...Object.keys(report.months || {}), ...Object.keys(report.codex?.months || {})])].sort();
+      const cur = pickMonth(months, month || "");
+      return rhythmImage(entry, report, cur, locale, fonts);
+    }
 
     const d = cardData(entry, report, month);
 
@@ -227,6 +235,42 @@ export async function renderCard(id: string, month?: string) {
   } catch {
     return fallbackImage();
   }
+}
+
+function rhythmImage(entry: any, report: any, month: string, locale: "ko" | "en", fonts: Font[]) {
+  const r = activityRhythm(month, report.months?.[month], report.codex?.months?.[month], locale);
+  const nick = Array.from(String(entry.nick || "runner")).slice(0, 32).join("");
+  return new ImageResponse(
+    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", padding: "42px 48px", background: BG, color: CREAM, fontFamily: "Pretendard", border: `1px solid ${LINE}` }}>
+      <div style={{ display: "flex", alignItems: "center", fontSize: 19 }}>
+        {logoUri() ? <img src={logoUri()} width="28" height="28" alt="" /> : null}
+        <span style={{ fontWeight: 700, marginLeft: 10 }}>runmaxing</span>
+        <span style={{ color: MUTED, fontSize: 14, letterSpacing: 2, marginLeft: 20 }}>ACTIVITY RHYTHM</span>
+        <span style={{ marginLeft: "auto", color: TERRA, fontSize: 18 }}>{month.replace("-", ".")} / KST</span>
+      </div>
+      <div style={{ display: "flex", alignItems: "baseline", marginTop: 35, color: CREAM2, fontSize: 24 }}>
+        <span>{nick}</span><span style={{ color: FAINT, fontSize: 16, marginLeft: 16 }}>{locale === "ko" ? "이 달의 달리는 방식" : "A month in motion"}</span>
+      </div>
+      <div style={{ display: "flex", color: TERRA, fontSize: locale === "ko" ? 62 : 57, fontWeight: 700, letterSpacing: -2, marginTop: 9 }}>{r.title}</div>
+      <div style={{ display: "flex", gap: 6, marginTop: 29 }}>
+        {r.days.map((day, i) => <div key={i} style={{ display: "flex", flex: 1, flexDirection: "column", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", height: 22, width: "100%", borderRadius: 4, background: day.active ? TERRA : "#192018", border: `1px solid ${day.weekend ? "#66794f" : day.active ? TERRA : HAIR}`, opacity: day.elapsed ? 1 : 0.35 }} />
+          <span style={{ fontSize: 11, color: day.weekend ? CREAM2 : FAINT }}>{i + 1}</span>
+        </div>)}
+      </div>
+      <div style={{ display: "flex", marginTop: 28, paddingTop: 22, borderTop: `1px solid ${HAIR}` }}>
+        {r.stats.map((stat, i) => <div key={stat.label} style={{ display: "flex", flexDirection: "column", width: "33.33%", paddingLeft: i ? 30 : 0, borderLeft: i ? `1px solid ${HAIR}` : "none" }}>
+          <span style={{ fontSize: 16, color: CREAM2 }}>{stat.label}</span>
+          <span style={{ fontSize: 46, fontWeight: 700, marginTop: 7, letterSpacing: -1 }}>{stat.value}</span>
+          <span style={{ fontSize: 14, color: MUTED, marginTop: 4 }}>{stat.note}</span>
+        </div>)}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", marginTop: "auto", fontSize: 13, color: MUTED }}>
+        <span>{r.source}</span><span style={{ marginLeft: "auto", color: TERRA }}>runmaxing.m1k.app</span>
+      </div>
+    </div>,
+    { width: CARD_SIZE.width, height: 520, fonts, headers: ogHeaders(entry.updated, `rhythm-1:${month}:${locale}`) },
+  );
 }
 
 function LedgerRow({ k, v, note, hl }: { k: string; v: string; note?: string; hl?: boolean }) {
