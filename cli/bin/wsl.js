@@ -72,7 +72,6 @@ function resolveWslDistro(spawn, { requested = "", requireClaude = true } = {}) 
   }
 
   const defaultProbe = probeDistro(spawn, "");
-  if (!defaultProbe.reachable) return { error: "WSL_UNAVAILABLE", probes: [defaultProbe] };
   if (usable(defaultProbe, requireClaude)) {
     return { distro: "", source: "default", probe: defaultProbe };
   }
@@ -85,6 +84,9 @@ function resolveWslDistro(spawn, { requested = "", requireClaude = true } = {}) 
   if (candidates.length > 1) return { error: "WSL_DISTRO_AMBIGUOUS", probes: candidates };
 
   const all = [defaultProbe, ...probes];
+  if (!all.some((probe) => probe.reachable)) {
+    return { error: "WSL_UNAVAILABLE", probes: all };
+  }
   if (requireClaude && !all.some((probe) => probe.claudeAuth)) {
     return { error: "CLAUDE_LOGIN_REQUIRED", probes: all };
   }

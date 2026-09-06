@@ -20,7 +20,7 @@ function withTempBin(name, body, run) {
   }
 }
 
-test("turns collector failures into an actionable agent instruction", () => {
+test("turns collector failures into an actionable agent instruction", { skip: process.platform === "win32" }, () => {
   withTempBin("npx", `#!/bin/sh
 if [ "$1" = "--version" ]; then echo 10.0.0; exit 0; fi
 exit 9
@@ -35,7 +35,7 @@ exit 9
   });
 });
 
-test("turns submit failures into an actionable agent instruction", () => {
+test("turns submit failures into an actionable agent instruction", { skip: process.platform === "win32" }, () => {
   withTempBin("bash", `#!/bin/sh
 if [ "$1" = "--version" ]; then exec /bin/bash --version; fi
 case "$1" in

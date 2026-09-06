@@ -44,6 +44,30 @@ test("automatically selects the only WSL with identity and logs", () => {
   assert.deepEqual({ distro: result.distro, source: result.source }, { distro: "Ubuntu", source: "auto" });
 });
 
+test("finds a usable distro even when the default WSL cannot run bash", () => {
+  const result = resolveWslDistro(fakeSpawn({
+    defaultProbe: null,
+    distros: ["docker-desktop", "Ubuntu"],
+    probes: { Ubuntu: "1,1,0,0" },
+  }));
+  assert.equal(result.distro, "Ubuntu");
+  assert.equal(result.source, "auto");
+});
+
+test("reports unavailable only when no WSL distro is reachable", () => {
+  const result = resolveWslDistro(fakeSpawn({ defaultProbe: null }));
+  assert.equal(result.error, "WSL_UNAVAILABLE");
+});
+
+test("reports missing login when another distro is reachable", () => {
+  const result = resolveWslDistro(fakeSpawn({
+    defaultProbe: null,
+    distros: ["Ubuntu"],
+    probes: { Ubuntu: "0,0,0,0" },
+  }));
+  assert.equal(result.error, "CLAUDE_LOGIN_REQUIRED");
+});
+
 test("requires an explicit choice when multiple WSLs contain usable records", () => {
   const spawn = fakeSpawn({
     distros: ["Ubuntu", "Debian"],

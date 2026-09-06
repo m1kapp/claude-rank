@@ -9,7 +9,9 @@
 const { spawnSync } = require("node:child_process");
 const path = require("node:path");
 const fs = require("node:fs");
+const os = require("node:os");
 const { resolveWslDistro, runWsl } = require("./wsl");
+const { nativeRunner } = require("./native");
 
 const SCRIPTS = path.join(__dirname, "..", "scripts");
 const args = process.argv.slice(2);
@@ -27,8 +29,8 @@ if (args.includes("-h") || args.includes("--help")) {
 
 요금제·닉네임은 자동 판별됩니다. 첫 제출에서 로컬 runner 신분증을 한 번 만들고
 Claude와 Codex를 따로 인식해 연결합니다. 기존 신분증은 덮어쓰지 않습니다.
-필요 조건: bash, python3, curl, 그리고 npx(ccusage 집계용).
-Windows PowerShell에서는 설치된 WSL로 자동 연결합니다.
+필요 조건: Node.js와 Python 3.9 이상. macOS·Linux는 bash, curl도 필요합니다.
+Windows PowerShell에서 바로 실행됩니다. WSL은 필수가 아닙니다.
 
 슬래시 명령과 하루 1회 자동 갱신을 원하면 플러그인도 있다:
   /plugin marketplace add m1kapp/runmaxing
@@ -73,11 +75,17 @@ if (args.includes("--no-open")) env.USAGE_REPORT_NO_OPEN = "1";
 if (codexPlan) env.RUNMAXING_CODEX_PLAN = codexPlan;
 
 let run;
-if (isWindows) {
-  const resolved = resolveWslDistro(spawnSync, {
+const nativeData = isWindows && [".claude.json", ".claude/projects", ".codex/auth.json", ".codex/sessions"]
+  .some((name) => fs.existsSync(path.join(os.homedir(), name)));
+const resolved = isWindows && (requestedWslDistro || !nativeData)
+  ? resolveWslDistro(spawnSync, {
     requested: requestedWslDistro,
     requireClaude: !args.includes("--report"),
-  });
+  }) : null;
+if (isWindows && !requestedWslDistro && (!resolved || resolved.error)) {
+  run = nativeRunner(SCRIPTS, env);
+  if (!run) process.exit(1);
+} else if (isWindows) {
   if (resolved.error) {
     console.error(`runmaxing: ACTION_REQUIRED=${resolved.error}`);
     if (resolved.error === "WSL_UNAVAILABLE") {
